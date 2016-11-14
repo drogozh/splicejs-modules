@@ -1,6 +1,6 @@
 $js.module({
 imports:[
-	{ Utils : '/{$jshome}/modules/splice.util.js'}
+	{ Utils : '/{splice.modules}/splice.util.js'}
 ],	
 definition:function(){
 var scope = this

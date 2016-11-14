@@ -1,7 +1,7 @@
 /* global sjs */
 $js.module({
 imports:[
-	{Inheritance : '/{$jshome}/modules/splice.inheritance.js'}
+	{Inheritance : '/{splice.modules}/splice.inheritance.js'}
 ],
 definition:function(){
     "use strict";

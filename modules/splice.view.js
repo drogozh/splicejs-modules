@@ -1,9 +1,9 @@
 $js.module ({
 imports:[
-    { Inheritance : '/{$jshome}/modules/splice.inheritance.js'},
-    { Syntax : '/{$jshome}/modules/splice.syntax.js'},
-    { Document  : '/{$jshome}/modules/splice.document.js'},
-    { Events : '/{$jshome}/modules/splice.event.js'}
+    { Inheritance : '/{splice.modules}/splice.inheritance.js'},
+    { Syntax 			: '/{splice.modules}/splice.syntax.js'},
+    { Document  	: '/{splice.modules}/splice.document.js'},
+    { Events 			: '/{splice.modules}/splice.event.js'}
 ]
 ,
 definition:function(){

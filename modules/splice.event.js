@@ -1,7 +1,7 @@
 $js.module({
 imports:[
-  { Inheritance : '/{$jshome}/modules/splice.inheritance.js'},
-  { Sync      : '/{$jshome}/modules/splice.async.js'}
+  { Inheritance : '/{splice.modules}/splice.inheritance.js'},
+  { Sync      : '/{splice.modules}/splice.async.js'}
 ],
 definition:function(){
     "use strict";

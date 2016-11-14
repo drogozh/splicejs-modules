@@ -1,8 +1,8 @@
 $js.module({
 imports:[
-  {Inheritance:'/{$jshome}/modules/splice.inheritance.js'},
-  {Events:'/{$jshome}/modules/splice.event.js'},
-  {Util:'/{$jshome}/modules/splice.util.js'}
+  {Inheritance  :'/{splice.modules}/splice.inheritance.js'},
+  {Events       :'/{splice.modules}/splice.event.js'},
+  {Util         :'/{splice.modules}/splice.util.js'}
 ]
 ,
 definition:function(){

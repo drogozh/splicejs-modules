@@ -1,16 +1,16 @@
-$js.module({
+define({
 prerequisite:[
-  '/{$jshome}/modules/splice.component.module.extensions.js'
+  '/{splice.modules}/splice.component.module.extensions.js'
 ],
 imports:[
-	{ Utils 	  : '/{$jshome}/modules/splice.util.js'},
-  	{ Inheritance : '/{$jshome}/modules/splice.inheritance.js'},
-  	{ Networking  : '/{$jshome}/modules/splice.network.js'},
-  	{ Document    : '/{$jshome}/modules/splice.document.js'},
-  	{ Syntax      : '/{$jshome}/modules/splice.syntax.js'},
-  	{ Events      : '/{$jshome}/modules/splice.event.js'},
-  	{ Views       : '/{$jshome}/modules/splice.view.js'},
-  	{ Data        : '/{$jshome}/modules/splice.dataitem.js'}
+	{ Utils 	  : '/{splice.modules}/splice.util.js'},
+  	{ Inheritance : '/{splice.modules}/splice.inheritance.js'},
+  	{ Networking  : '/{splice.modules}/splice.network.js'},
+  	{ Document    : '/{splice.modules}/splice.document.js'},
+  	{ Syntax      : '/{splice.modules}/splice.syntax.js'},
+  	{ Events      : '/{splice.modules}/splice.event.js'},
+  	{ Views       : '/{splice.modules}/splice.view.js'},
+  	{ Data        : '/{splice.modules}/splice.dataitem.js'}
 ],
 
 definition:function(){

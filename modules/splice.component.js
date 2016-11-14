@@ -1,8 +1,8 @@
-$js.module({
+define({
 imports:[
-  {Inheritance : '/{$jshome}/modules/splice.Inheritance.js'},
-  {Core : '/{$jshome}/modules/splice.component.core.js'},
-  {Controls : '/{$jshome}/modules/splice.component.controls.js'}
+  {Inheritance  : '/{splice.modules}/splice.Inheritance.js'},
+  {Core         : '/{splice.modules}/splice.component.core.js'}
+  //, {Controls     : '/{splice.modules}/modules/splice.component.controls.js'}
 ],
 definition:function(){
 
@@ -22,7 +22,7 @@ definition:function(){
     this.scope = scope;
     this.document = document;
     if(!this.scope.components)
-      this.scope.components = sjs.namespace();
+      this.scope.components = scope.imports.$js.namespace();
   });
 
   DocumentApplication.prototype.run =  function(){
