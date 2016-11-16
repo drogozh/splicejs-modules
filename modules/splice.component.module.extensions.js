@@ -19,19 +19,21 @@ definition:function(){
   ----------------------------------------------------------
     HTML File Handler
   */
-  function HtmlSpec(){}
+  function HtmlSpec(fileName){
+    this.fileName = fileName;
+  }
   HtmlSpec.prototype = new ImportSpec();
   HtmlSpec.execute = function(){
     this.isProcessed = true;
   }
 
   var htmlHandler = {
-      importSpec:function(filename,stackId){
-        return new HtmlSpec();
+      importSpec:function(fileName){
+        return new HtmlSpec(fileName);
       },
-      load:function(filename, loader, spec){
+      load:function(loader, spec){
         http.get({
-            url: filename,
+            url: spec.fileName,
             onok:function(response){
               spec.dom = document.createElement('span');
 
@@ -49,7 +51,7 @@ definition:function(){
               }
 
               spec.dom.innerHTML = response.text;
-              loader.onitemloaded(filename);
+              loader.onitemloaded(spec.fileName);
             }
         });
       }
@@ -59,22 +61,24 @@ definition:function(){
   ----------------------------------------------------------
     CSS File Handler
   */
-  function CssSpec(){}
+  function CssSpec(fileName){
+    this.fileName = fileName;
+  }
   CssSpec.prototype = new ImportSpec();
   CssSpec.prototype.execute = function(){
     this.isProcessed = true;
   };
 
   var cssHandler = {
-    importSpec:function(){
-      return new CssSpec();
+    importSpec:function(fileName){
+      return new CssSpec(fileName);
     },
-    load:function(filename,loader){
+    load:function(loader,spec){
       var linkref = document.createElement('link');
 
       linkref.setAttribute("rel", "stylesheet");
       linkref.setAttribute("type", "text/css");
-      linkref.setAttribute("href", filename);
+      linkref.setAttribute("href", spec.fileName);
 
       //linkref.onreadystatechange
       /*
@@ -95,7 +99,7 @@ definition:function(){
       */
       //lets not wait for CSS to load since CSS are processed by the browser
       setTimeout(function(){
-        loader.onitemloaded(filename);
+        loader.onitemloaded(spec.fileName);
       },1);
       head.appendChild(linkref);
      

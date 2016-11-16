@@ -1,8 +1,9 @@
 define({
-prerequisite:[
+preload:[
   '/{splice.modules}/splice.component.module.extensions.js'
 ],
 imports:[
+	'require',
 	{ Utils 	  : '/{splice.modules}/splice.util.js'},
   	{ Inheritance : '/{splice.modules}/splice.inheritance.js'},
   	{ Networking  : '/{splice.modules}/splice.network.js'},
@@ -13,7 +14,7 @@ imports:[
   	{ Data        : '/{splice.modules}/splice.dataitem.js'}
 ],
 
-definition:function(){
+definition:function(require){
 "use strict";
 
 var scope = this;
@@ -67,6 +68,55 @@ function defineComponents(scope){
 	}
 	return scope.__sjs_components__;
 };
+
+//----------------------------- component 2.0 ------------------------------------
+
+function Component(promise,template){
+	this.template = template;
+	this.promise = promise;
+
+	promise.then(function(){
+		var spec = define(template.fileName);
+		extractComponents.call(promise.scope,spec.dom);
+		compileTemplates(promise.scope);
+	});
+}
+
+Component.prototype.display = function(){
+	
+}
+
+function ComponentFactory(scope){
+    return (function(templates,controller){
+		var files = []
+		,	types = []
+		,	templ = null;
+		for(var i=0; i < templates.length; i++){
+			var parts = templates[i].split(':');
+			if(parts.length > 1) {
+				types.push(parts[0]);
+				files.push('!'+parts[1]);
+	
+				templ = {
+					name:parts[0],
+					fileName:scope.imports.$js.context.resolve('!'+parts[1])
+				};
+
+				continue;
+			}
+			files.push('!'+parts[0]);
+		}
+		
+		var promise = require(this)(files);
+		return new Component(promise,templ);
+    }).bind(scope);
+  }
+
+
+  function componentDefinition(){
+
+  }
+//---------------------------------------------------------------------------------
 
   /*
   ----------------------------------------------------------
@@ -1284,7 +1334,8 @@ Controller.prototype.dispose = function(){
     scope.exports(
       Template, Controller, 
 	  defineComponents, compileTemplate,
-      {Proxy:proxy}
+      {Proxy:proxy},
+	  ComponentFactory
     );
 
 }

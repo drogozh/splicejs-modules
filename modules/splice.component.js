@@ -4,7 +4,7 @@ imports:[
   {Core         : '/{splice.modules}/splice.component.core.js'}
   //, {Controls     : '/{splice.modules}/modules/splice.component.controls.js'}
 ],
-definition:function(){
+definition:function(require){
 
   var scope = this;
 
@@ -15,7 +15,6 @@ definition:function(){
   ,   Controller = imports.Core.Controller
   ;
 
-  
   
   
   var DocumentApplication = Class(function DocumentApplication(document,scope){
