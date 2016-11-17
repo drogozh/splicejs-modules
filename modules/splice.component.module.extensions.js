@@ -51,7 +51,10 @@ definition:function(){
               }
 
               spec.dom.innerHTML = response.text;
-              loader.onitemloaded(spec.fileName);
+              setTimeout(function(){
+                loader.onitemloaded(spec.fileName);
+              },1000);
+              
             }
         });
       }

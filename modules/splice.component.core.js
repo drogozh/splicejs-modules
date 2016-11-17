@@ -11,7 +11,8 @@ imports:[
   	{ Syntax      : '/{splice.modules}/splice.syntax.js'},
   	{ Events      : '/{splice.modules}/splice.event.js'},
   	{ Views       : '/{splice.modules}/splice.view.js'},
-  	{ Data        : '/{splice.modules}/splice.dataitem.js'}
+  	{ Data        : '/{splice.modules}/splice.dataitem.js'},
+	{ Async       : '/{splice.modules}/splice.async.js'},
 ],
 
 definition:function(require){
@@ -28,6 +29,7 @@ var http = imports.Networking.http
 , 	Tokenizer = imports.Syntax.Tokenizer
 , 	View = imports.Views.View
 , 	DataItem = imports.Data.DataItem
+,	Async = imports.Async
 ,	log	= imports.Utils.log
 ,	debug = imports.Utils.log.debug
 ;
@@ -70,34 +72,42 @@ function defineComponents(scope){
 };
 
 //----------------------------- component 2.0 ------------------------------------
+var AsyncPromise = Async.AsyncPromise;
 
-function Component(promise,template){
-	this.template = template;
-	this.promise = promise;
-
-	promise.then(function(){
-		var spec = define(template.fileName);
-		extractComponents.call(promise.scope,spec.dom);
-		compileTemplates(promise.scope);
-	});
+//default component controller controller
+function Component(){
+	this.view = null;	
 }
 
-Component.prototype.display = function(){
+Component.prototype.initialize = function(){};
+Component.prototype.display = function(target){
 	
+	var div = document.createElement('div');
+	div.style.display = "inline-block";
+	div.innerHTML = 'loading...';
+	
+	target.appendChild(div);
+	this.view.then((function(tInstance){
+		target.replaceChild(tInstance,div);
+		this.onDisplay();
+	}).bind(this));
+	return this;
+}
+
+Component.prototype.onDisplay = function(){
+
 }
 
 function ComponentFactory(scope){
     return (function(templates,controller){
 		var files = []
-		,	types = []
-		,	templ = null;
+		,	tRef = null;
 		for(var i=0; i < templates.length; i++){
 			var parts = templates[i].split(':');
 			if(parts.length > 1) {
-				types.push(parts[0]);
 				files.push('!'+parts[1]);
 	
-				templ = {
+				tRef = {
 					name:parts[0],
 					fileName:scope.imports.$js.context.resolve('!'+parts[1])
 				};
@@ -106,15 +116,47 @@ function ComponentFactory(scope){
 			}
 			files.push('!'+parts[0]);
 		}
+
+		return componentDefinition(controller,
+			new AsyncTemplate(
+				new AsyncPromise(
+					(function(resolve,reject){
+						require(this)(files).then(function(){resolve();});
+			}).bind(this)),tRef),this);
 		
-		var promise = require(this)(files);
-		return new Component(promise,templ);
     }).bind(scope);
+}
+
+  var TemplateMap = {};
+  function AsyncTemplate(promise, templ){
+	  this.promise = promise;
+	  this.templ = templ;
   }
 
+  AsyncTemplate.prototype.getInstance = function(controller,args,scope){
+	  var spec = define(this.templ.fileName); 
+	  if(!spec || spec.status!='loaded')
+	  return this.promise.then((function(result){
+		  var spec = define(this.templ.fileName);
+		  TemplateMap[this.templ.fileName] = this;
+		  return spec.dom.cloneNode(true);
+	  }).bind(this));
 
-  function componentDefinition(){
+	  return {then:function(fn){
+		  fn(spec.dom.cloneNode(true));
+	  }}
 
+
+  }
+
+  function componentDefinition(controller,template,scope){
+	  var component = function Component(args){
+		  var obj = new controller(args);
+		  obj.view = template.getInstance(obj);
+		  obj.initialize();
+		  return obj;
+	  }
+	  return component;
   }
 //---------------------------------------------------------------------------------
 
@@ -1335,7 +1377,8 @@ Controller.prototype.dispose = function(){
       Template, Controller, 
 	  defineComponents, compileTemplate,
       {Proxy:proxy},
-	  ComponentFactory
+	  ComponentFactory,
+	  Component
     );
 
 }

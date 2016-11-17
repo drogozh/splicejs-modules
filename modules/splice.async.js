@@ -11,7 +11,7 @@ var scope = this;
 
 		if(pageSize) page_size = pageSize;
 
-		var	pages = Math.floor(length / page_size) + ( (length % page_size) / (length % page_size ))
+		var	pages = Math.floor(length / page_size) + ( (length % page_size) > 0 ? 1 : 0)  
 		,	count = {p:0};
 
 		var fn = function(){
@@ -35,8 +35,53 @@ var scope = this;
 	};
 
 
+//async promise
+function AsyncPromise(exer,scope){
+	this.onok = [];
+	this.onfail = [];
+	this.scope = scope;
+	//resolve
+	exer((function(okResult){
+		//ok
+		this.okResult = okResult;
+		if(this.onok != null) {
+			
+			asyncLoop(0,this.onok.length,2, (function(i){
+				this.okResult = this.onok[i](this.okResult);
+				return true;
+			}).bind(this));
+
+			// for(var i=0; i<this.onok.length; i++) {
+			// 	this.okResult = this.onok[i](this.okResult);
+			// }
+		}
+		else this.okResult = okResult;
+	}).bind(this),
+	//reject 
+	(function(failResult){
+		//fail
+		if(this.onfail != null) this.onfail(failResult);
+		else this.failResult = failResult;
+	}).bind(this));
+}
+AsyncPromise.prototype.then = function(fn){
+	this.onok.push(fn);
+	if(this.okResult !== undefined) 
+		this.okResult = fn(this.okResult);
+	
+	
+	return this;
+}
+AsyncPromise.prototype['catch'] = function(fn){
+	this.onfail = fn;
+	if(this.failResult !== undefined) fn(this.failResult);
+	return this;
+}
+
+
     scope.exports(
-        asyncLoop
+        asyncLoop,
+		AsyncPromise
     );
 
 }}
