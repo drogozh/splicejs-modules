@@ -98,36 +98,57 @@ Component.prototype.onDisplay = function(){
 
 }
 
+
+function extractTemplates(dom){
+	var nodes = selectNodes(dom,'sjs-template',function(node){
+		if(node.tagName == 'SJS-TEMPLATE') return node;
+		return null;
+	});
+	var templates = {};
+	for(var i=0; i<nodes.length; i++){
+  		var node = nodes[i];
+		var name = node.attributes['sjs-name'].value;  
+  		templates[name] = new Template(node);
+  	}
+	return templates;
+}
+var TemplateMap = {};
 function ComponentFactory(scope){
-    return (function(templates,controller){
-		var files = []
-		,	tRef = null;
+    return (function ComponentFactory(templates){
+		var files = [];
 		for(var i=0; i < templates.length; i++){
-			var parts = templates[i].split(':');
-			if(parts.length > 1) {
-				files.push('!'+parts[1]);
-	
-				tRef = {
+			files.push('!'+templates[i]);
+		}
+
+		return (function(templateName, controller){
+			var parts = templateName.split(':');
+			var tRef = {
 					name:parts[0],
 					fileName:scope.imports.$js.context.resolve('!'+parts[1])
 				};
 
-				continue;
-			}
-			files.push('!'+parts[0]);
-		}
+			new AsyncPromise(
+						(function(resolve,reject){
+							require(this)(files).then(function(){
+								//extract templates
+								for(var i=0; i<files.length; i++){
+									var fileName = scope.imports.$js.context.resolve(files[i]);
+									var spec = define(fileName);
+									if(!spec.dom) continue;
+									spec.templates = extractTemplates(spec.dom);
+								}
+								resolve();
+							});
+				}).bind(this)); 	
 
-		return componentDefinition(controller,
-			new AsyncTemplate(
-				new AsyncPromise(
-					(function(resolve,reject){
-						require(this)(files).then(function(){resolve();});
-			}).bind(this)),tRef),this);
-		
+			return componentDefinition(controller,	new AsyncTemplate(
+				new AsyncPromise(function(x,y){}),tRef));
+		}).bind(this);
+
     }).bind(scope);
 }
 
-  var TemplateMap = {};
+  
   function AsyncTemplate(promise, templ){
 	  this.promise = promise;
 	  this.templ = templ;
@@ -149,12 +170,30 @@ function ComponentFactory(scope){
 
   }
 
-  function componentDefinition(controller,template,scope){
+  function componentDefinition(controller,template){
+	  var compScope = imports.$js.namespace();
 	  var component = function Component(args){
 		  var obj = new controller(args);
 		  obj.view = template.getInstance(obj);
 		  obj.initialize();
 		  return obj;
+	  }
+	  component.scope = function(){
+		for(var i=0; i < arguments.length; i++){
+			var arg = arguments[i];
+			if(typeof arg === 'function' ){
+				compScope.add(imports.$js.fname(arg),arg);
+				continue;
+			}
+			if(typeof arg === 'object'){
+				var keys = Object.keys(arg);
+				for(var k=0; k < keys.length; k++){
+					compScope.add(keys[k],arg[keys[k]]);
+				}
+				continue;
+			}
+		}
+		  return component;
 	  }
 	  return component;
   }

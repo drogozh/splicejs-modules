@@ -46,7 +46,7 @@ function AsyncPromise(exer,scope){
 		this.okResult = okResult;
 		if(this.onok != null) {
 			
-			asyncLoop(0,this.onok.length,2, (function(i){
+			asyncLoop(0,this.onok.length-1,2, (function(i){
 				this.okResult = this.onok[i](this.okResult);
 				return true;
 			}).bind(this));
