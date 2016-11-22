@@ -36,7 +36,7 @@ var scope = this;
 
 
 //async promise
-function AsyncPromise(exer,scope,name){
+function AsyncPromise(exer,name){
 	this.onok = [];
 	this.onfail = [];
 	this.scope = scope;

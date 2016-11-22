@@ -88,7 +88,7 @@ Component.prototype.display = function(target){
 	
 	target.appendChild(div);
 	this.view.then((function(tInstance){
-		target.replaceChild(tInstance,div);
+		target.replaceChild(tInstance.dom,div);
 		this.onDisplay();
 	}).bind(this));
 	return this;
@@ -132,7 +132,7 @@ function ComponentFactory(scope){
 				}
 				resolve();
 			});	
-		}).bind(this));
+		}).bind(this),'Files promise');
 
 		return (function(templateName, controller){
 			var parts = templateName.split(':');
@@ -161,9 +161,16 @@ function ComponentFactory(scope){
   }
 
   AsyncTemplate.prototype.getInstance = function(controller,args,scope){
-	  return this.promise.then((function(template){		  
-		  return new Template();
-	  }).bind(this));
+	  
+	return new AsyncPromise( (function(resolve, reject){
+		this.promise.then(function(template){
+			resolve(new Template(template.dom));
+		});		
+	}).bind(this));
+
+	//   return this.promise.then((function(template){		  
+	// 	  return new Template(template.dom);
+	//   }).bind(this));
 
 	//   return {then:function(fn){
 	// 	  fn(spec.dom.cloneNode(true));

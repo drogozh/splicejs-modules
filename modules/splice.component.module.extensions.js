@@ -15,6 +15,7 @@ definition:function(){
   ,   log = scope.imports.$js.log;
   
 
+
   /*
   ----------------------------------------------------------
     HTML File Handler
@@ -35,6 +36,8 @@ definition:function(){
         http.get({
             url: spec.fileName,
             onok:function(response){
+              loader.add(spec);
+
               spec.dom = document.createElement('span');
 
               var cStart = /<sjs-component(?:.*?)>/gi
@@ -52,7 +55,8 @@ definition:function(){
 
               spec.dom.innerHTML = response.text;
               setTimeout(function(){
-                loader.onitemloaded(spec.fileName);
+                loader.notify(spec);
+                //loader.onitemloaded(spec.fileName);
               },1000);
               
             }
@@ -77,6 +81,8 @@ definition:function(){
       return new CssSpec(fileName);
     },
     load:function(loader,spec){
+      loader.add(spec);
+
       var linkref = document.createElement('link');
 
       linkref.setAttribute("rel", "stylesheet");
@@ -102,7 +108,8 @@ definition:function(){
       */
       //lets not wait for CSS to load since CSS are processed by the browser
       setTimeout(function(){
-        loader.onitemloaded(spec.fileName);
+        //loader.onitemloaded(spec.fileName);
+         loader.notify(spec);
       },1);
       head.appendChild(linkref);
      
