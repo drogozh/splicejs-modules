@@ -119,55 +119,55 @@ function ComponentFactory(scope){
 		for(var i=0; i < templates.length; i++){
 			files.push('!'+templates[i]);
 		}
+		//load template files as soon as 
+		//component factory is requested
+		var resourcePromise = new AsyncPromise((function(resolve,reject){
+			require(this)(files).then(function(){
+				//extract templates
+				for(var i=0; i<files.length; i++){
+					var fileName = scope.imports.$js.context.resolve(files[i]);
+					var spec = define(fileName);
+					if(!spec.dom) continue;
+					spec.templates = extractTemplates(spec.dom);
+				}
+				resolve();
+			});	
+		}).bind(this));
 
 		return (function(templateName, controller){
 			var parts = templateName.split(':');
-			var tRef = {
+
+			return componentDefinition(controller,	
+			new AsyncTemplate(this,{
 					name:parts[0],
 					fileName:scope.imports.$js.context.resolve('!'+parts[1])
-				};
-
-			new AsyncPromise(
-						(function(resolve,reject){
-							require(this)(files).then(function(){
-								//extract templates
-								for(var i=0; i<files.length; i++){
-									var fileName = scope.imports.$js.context.resolve(files[i]);
-									var spec = define(fileName);
-									if(!spec.dom) continue;
-									spec.templates = extractTemplates(spec.dom);
-								}
-								resolve();
-							});
-				}).bind(this)); 	
-
-			return componentDefinition(controller,	new AsyncTemplate(
-				new AsyncPromise(function(x,y){}),tRef));
-		}).bind(this);
+				}));
+		}).bind(resourcePromise);
 
     }).bind(scope);
 }
 
   
-  function AsyncTemplate(promise, templ){
-	  this.promise = promise;
-	  this.templ = templ;
+  function AsyncTemplate(promise, t){
+	  
+	  this.promise = new AsyncPromise((function(resolve,reject){
+		promise.then(function(){
+			var template = define(t.fileName).templates[t.name];	  
+			resolve(template);
+		});
+	  }).bind(this),'WTF promise');
+
+	  this.templ = t;
   }
 
   AsyncTemplate.prototype.getInstance = function(controller,args,scope){
-	  var spec = define(this.templ.fileName); 
-	  if(!spec || spec.status!='loaded')
-	  return this.promise.then((function(result){
-		  var spec = define(this.templ.fileName);
-		  TemplateMap[this.templ.fileName] = this;
-		  return spec.dom.cloneNode(true);
+	  return this.promise.then((function(template){		  
+		  return new Template();
 	  }).bind(this));
 
-	  return {then:function(fn){
-		  fn(spec.dom.cloneNode(true));
-	  }}
-
-
+	//   return {then:function(fn){
+	// 	  fn(spec.dom.cloneNode(true));
+	//   }}
   }
 
   function componentDefinition(controller,template){

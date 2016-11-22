@@ -36,10 +36,11 @@ var scope = this;
 
 
 //async promise
-function AsyncPromise(exer,scope){
+function AsyncPromise(exer,scope,name){
 	this.onok = [];
 	this.onfail = [];
 	this.scope = scope;
+	this.name = name;
 	//resolve
 	exer((function(okResult){
 		//ok
