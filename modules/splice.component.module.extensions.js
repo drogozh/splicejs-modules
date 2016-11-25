@@ -57,7 +57,7 @@ definition:function(){
               setTimeout(function(){
                 loader.notify(spec);
                 //loader.onitemloaded(spec.fileName);
-              },1000);
+              },1);
               
             }
         });

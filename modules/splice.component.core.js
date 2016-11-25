@@ -132,17 +132,17 @@ function ComponentFactory(scope){
 				}
 				resolve();
 			});	
-		}).bind(this),'Files promise');
+		}).bind(this));
 
-		return (function(templateName, controller){
+		return function(templateName, controller){
 			var parts = templateName.split(':');
 
 			return componentDefinition(controller,	
-			new AsyncTemplate(this,{
+			new AsyncTemplate(resourcePromise,{
 					name:parts[0],
 					fileName:scope.imports.$js.context.resolve('!'+parts[1])
 				}));
-		}).bind(resourcePromise);
+		};
 
     }).bind(scope);
 }
@@ -155,7 +155,7 @@ function ComponentFactory(scope){
 			var template = define(t.fileName).templates[t.name];	  
 			resolve(template);
 		});
-	  }).bind(this),'WTF promise');
+	  }).bind(this));
 
 	  this.templ = t;
   }
@@ -163,9 +163,10 @@ function ComponentFactory(scope){
   AsyncTemplate.prototype.getInstance = function(controller,args,scope){
 	  
 	return new AsyncPromise( (function(resolve, reject){
-		this.promise.then(function(template){
-			resolve(new Template(template.dom));
-		});		
+		this.promise.then((function(template){
+			resolve(new Template(template.dom.cloneNode(true)));
+			return template;
+		}).bind(this));		
 	}).bind(this));
 
 	//   return this.promise.then((function(template){		  
@@ -725,12 +726,6 @@ Controller.prototype.dispose = function(){
   		this.type = dom.getAttribute('sjs-type');
   		this.controller = dom.getAttribute('sjs-controller');
 
-  		//export attribute exists
-  		if(this.dom.attributes['sjs-export']) {
-  			var exp = dom.getAttribute('sjs-export');
-  			if(!exp) this._export = this.type;
-  			else this._export = exp;
-  		}
 
   		/*
   		 * Object references to child templates

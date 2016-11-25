@@ -36,18 +36,19 @@ var scope = this;
 
 
 //async promise
-function AsyncPromise(exer,name){
+function AsyncPromise(exer,name,pageSize){
 	this.onok = [];
 	this.onfail = [];
 	this.scope = scope;
 	this.name = name;
+	this.pageSize = pageSize != null?pageSize : 100;
 	//resolve
 	exer((function(okResult){
 		//ok
 		this.okResult = okResult;
 		if(this.onok != null) {
 			
-			asyncLoop(0,this.onok.length-1,2, (function(i){
+			asyncLoop(0,this.onok.length-1,this.pageSize, (function(i){
 				this.okResult = this.onok[i](this.okResult);
 				return true;
 			}).bind(this));
