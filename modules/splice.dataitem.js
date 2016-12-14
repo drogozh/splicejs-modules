@@ -1,21 +1,12 @@
-$js.module({
-imports:[
-  {Inheritance  :'/{splice.modules}/splice.inheritance.js'},
-  {Events       :'/{splice.modules}/splice.event.js'},
-  {Util         :'/{splice.modules}/splice.util.js'}
-]
-,
-definition:function(){
+define(
+[
+  {Inheritance  :'/{splice.modules}/splice.inheritance.js',
+  Events       :'/{splice.modules}/splice.event.js',
+  Util         :'/{splice.modules}/splice.util.js'}
+],
+function(imports){
   "use strict";
   
-  var scope = this;
-  var $js = scope.imports.$js;
-
-  var
-      log = $js.log
-  ,   imports = scope.imports
-  ;
-
   var
         Class = imports.Inheritance.Class
   ,     Interface = imports.Inheritance.Interface
@@ -395,9 +386,11 @@ definition:function(){
   		}
   	};
 
-    scope.exports(
-        {IDataContract : IDataContract},
-        DataItem, DelegateDataItem, ArrayDataItem
-    );
+ return {
+   IDataContract : IDataContract,
+   DataItem : DataItem, 
+   DelegateDataItem : DelegateDataItem, 
+   ArrayDataItem : ArrayDataItem
+};
 
-}})
+})

@@ -1,28 +1,23 @@
-define({
-preload:[
-  '/{splice.modules}/splice.component.module.extensions.js'
-],
-imports:[
+define(
+[
+	'preload|/{splice.modules}/splice.component.module.extensions.js',
 	'require',
-	{ Utils 	  : '/{splice.modules}/splice.util.js'},
-  	{ Inheritance : '/{splice.modules}/splice.inheritance.js'},
-  	{ Networking  : '/{splice.modules}/splice.network.js'},
-  	{ Document    : '/{splice.modules}/splice.document.js'},
-  	{ Syntax      : '/{splice.modules}/splice.syntax.js'},
-  	{ Events      : '/{splice.modules}/splice.event.js'},
-  	{ Views       : '/{splice.modules}/splice.view.js'},
-  	{ Data        : '/{splice.modules}/splice.dataitem.js'},
-	{ Async       : '/{splice.modules}/splice.async.js'},
+	{ 	Utils 	 	: '/{splice.modules}/splice.util.js',
+		Inheritance : '/{splice.modules}/splice.inheritance.js',
+		Networking  : '/{splice.modules}/splice.network.js',
+		Document    : '/{splice.modules}/splice.document.js',
+		Syntax      : '/{splice.modules}/splice.syntax.js',
+		Events      : '/{splice.modules}/splice.event.js',
+		Views       : '/{splice.modules}/splice.view.js',
+		Data        : '/{splice.modules}/splice.dataitem.js',
+		Async       : '/{splice.modules}/splice.async.js'},
 ],
-
-definition:function(require){
+function(require,imports){
 "use strict";
 
 var scope = this;
 
-var imports = scope.imports
-, 	sjs = scope.imports.$js
-;
+var sjs = scope.imports.$js;
 
 var http = imports.Networking.http
 , 	doc = imports.Document
@@ -1421,6 +1416,4 @@ Controller.prototype.dispose = function(){
 	  ComponentFactory,
 	  Component
     );
-
-}
 });

@@ -1,6 +1,4 @@
-$js.module({
-definition:function(){
-var scope = this;
+define(function(){
 
 //todo: add loop JOIN method to put them on the same timer
     var asyncLoop = function asyncLoop(from, to, pageSize, oncallback, oncomplete, onpage){
@@ -81,10 +79,10 @@ AsyncPromise.prototype['catch'] = function(fn){
 }
 
 
-    scope.exports(
-        asyncLoop,
-		AsyncPromise
-    );
+return {
+	AsyncLoop:asyncLoop,
+	AsyncPromise:AsyncPromise
+}
 
-}}
-);
+
+});

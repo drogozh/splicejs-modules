@@ -1,7 +1,5 @@
-$js.module({
-definition:function(){
+define(function(){
   "use strict";
-
   /*
   ----------------------------------------------------------
   	HttpRequest
@@ -208,15 +206,14 @@ definition:function(){
 		return json;
 	};
 
-  function remote(url, adapter) {
-    return new Remote(url, adapter);
-  };
+    function remote(url, adapter) {
+        return new Remote(url, adapter);
+    };
 
+    // module exports
+    return {
+        remote:remote,
+        http : { get:  HttpRequest.get, post: HttpRequest.post }
+    }
 
-  // module exports
-	this.exports(
-    remote,
-    {http : { get:  HttpRequest.get, post: HttpRequest.post }}
-	);
-}
 });

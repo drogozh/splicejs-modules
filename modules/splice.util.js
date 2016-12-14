@@ -1,9 +1,6 @@
-$js.module({
-definition:function(scope){
-  "use strict";
-  var scope = this;
-
-  var sjs = scope.imports.$js;
+define(['exports'],
+function(exports){
+"use strict";
 
 function fileExt(f){
 	return f.substring(f.lastIndexOf('.'));
@@ -69,16 +66,16 @@ if(!log.info) 	log.info  = function(){};
 if(!log.warn) 	log.warn = function(){};
 if(!log.log) 	log.log = function(){};
 
-scope.exports({
-  log,mixin,fname,
-  Text:{
+exports.log = log;
+exports.mixin = mixin; 
+exports.fname = fname;
+exports.Text = {
     join:join, trim:trim
-  }, 
-  File:{
+};
+
+exports.File = {
     ext:fileExt
-  }
-});
+};
 
 
-}
 });

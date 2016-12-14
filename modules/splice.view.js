@@ -1,19 +1,13 @@
-$js.module ({
-imports:[
-    { Inheritance : '/{splice.modules}/splice.inheritance.js'},
-    { Syntax 			: '/{splice.modules}/splice.syntax.js'},
-    { Document  	: '/{splice.modules}/splice.document.js'},
-    { Events 			: '/{splice.modules}/splice.event.js'}
+define([
+  { Inheritance : '/{splice.modules}/splice.inheritance.js',
+    Syntax 			: '/{splice.modules}/splice.syntax.js',
+    Document  	: '/{splice.modules}/splice.document.js',
+    Events 			: '/{splice.modules}/splice.event.js'}
 ]
 ,
-definition:function(){
+function(imports){
  	"use strict";
-	 
-	var scope = this;
 
-  var	sjs = scope.sjs
-  , 	imports = scope.imports
-  ;
 
   var Tokenizer = imports.Syntax.Tokenizer
   , 	Document = imports.Document
@@ -604,11 +598,11 @@ function remove(view){
   	element.className = clean;
   };
 
-  scope.exports(
-    View, {
-      DomMulticastEvent:new DomMulticastEvent(),
-      DomMulticastStopEvent: new DomMulticastStopEvent()
-    }
-  );
-}
+return {
+    View:View, 
+    DomMulticastEvent:new DomMulticastEvent(),
+    DomMulticastStopEvent: new DomMulticastStopEvent()
+  }
+
+
 });

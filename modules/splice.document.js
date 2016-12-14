@@ -1,20 +1,13 @@
 /* global sjs */
-$js.module({
-imports:[
-	{Syntax:'/{splice.modules}/splice.syntax.js'}
-]
-,
-definition:function(){
+define(
+[
+	'/{splice.modules}/splice.syntax.js'
+],
+function(syntax){
     "use strict";
-    var scope = this;
-	
-	var 
-        sjs = scope.sjs
-    ,   imports = scope.imports
-    ;
 
 	var
-		Tokenizer = imports.Syntax.Tokenizer
+		Tokenizer = syntax.Tokenizer
 	;
 
 	function getValueUnit(value){
@@ -403,11 +396,11 @@ definition:function(){
 		return window.innerHeight;
 	}
 
-	scope.exports(
-		isHTMLElement,
-		dfs,
-		{style:style},
-		{select:{
+	return {
+		isHTMLElement:isHTMLElement,
+		dfs:dfs,
+		style:style,
+		select:{
 			nodes:	selectNodes,
 			setTitle:		setTitle,
 			firstNonText:	firstNonText,
@@ -415,19 +408,19 @@ definition:function(){
 			elementNodes:	selectElementNodes,
 			unknownNodes:	selectUnknownNodes,
 			commentNodes:	selectComments
-		}},
-		{screen:{
+		},
+		screen:{
 			width		:screenWidth,
 			height	:screenHeight
-		}},
-		{window:{
+		},
+		window:{
 			width		:windowWidth,
 			height	:windowHeight
-		}},
-		{create:create},
-		{dom	: dom},
-		{cssvalue : _unit}
+		},
+		create:create,
+		dom	: dom,
+		cssvalue : _unit
 
-	);
-}
+	};
+
 });

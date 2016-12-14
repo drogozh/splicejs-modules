@@ -1,19 +1,11 @@
-$js.module({
-imports:[
-  { Networking  : '/{splice.modules}/splice.network.js'}
+define(
+[
+  '/{splice.modules}/splice.network.js',
+  'loader'
 ],
-definition:function(){
-  var scope = this;
-  
-  var 
-      imports = scope.imports 
-  ,   sjs = scope.imports.$js;
-
-  var 
-      http = imports.Networking.http
-  ,   ImportSpec = imports.$js.ImportSpec
-  ,   log = scope.imports.$js.log;
-  
+function(networking,loader){
+  var http = networking.http
+  ,   ImportSpec = loader.ImportSpec;
 
 
   /*
@@ -117,8 +109,6 @@ definition:function(){
     }
   };
 
-
-
   try {
     if(!JSON) throw 'No JSON'; 
   }
@@ -126,10 +116,8 @@ definition:function(){
     JSON = {parse:function(){}};
   }
 
-  sjs.extension.loader({
-    '.css' : cssHandler,
-    '.html': htmlHandler
-  });
+  loader.add('.css',cssHandler);
+  loader.add('.html',htmlHandler);
+ 
 
-}
-})
+});

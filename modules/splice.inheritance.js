@@ -1,8 +1,4 @@
-$js.module({
-definition:function(){
-  
-	var scope = this;
-	var sjs = scope.imports.$js;
+define(function(){
 	
 	/*
 		Inheritance model
@@ -107,9 +103,9 @@ definition:function(){
 	};
 
 
+return {
+	Class:Class, 
+	Interface: Interface
+};
 
-	scope.exports(
-		Class, Interface
-	);
-
-}});
+});

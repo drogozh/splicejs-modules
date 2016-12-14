@@ -1,14 +1,10 @@
-$js.module({
-imports:[
-	{ Utils : '/{splice.modules}/splice.util.js'}
+define(
+[
+	'/{splice.modules}/splice.util.js'
 ],	
-definition:function(){
-var scope = this
-,	imports = this.imports;
+function(utils){
 
-var 
-    mixin = imports.Utils.mixin
-;
+var mixin = utils.mixin;
 
 function Tokenizer(input, alphanum, space){
 	if(!(this instanceof Tokenizer) ) return new Tokenizer(input, alphanum, space);
@@ -66,8 +62,7 @@ Tokenizer.prototype = {
 		return result;
 	}
 }
-scope.exports(
-	Tokenizer
-);
-}
+
+return {Tokenizer:Tokenizer};
+
 });

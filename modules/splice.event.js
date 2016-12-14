@@ -1,22 +1,19 @@
-$js.module({
-imports:[
-  { Inheritance : '/{splice.modules}/splice.inheritance.js'},
-  { Sync      : '/{splice.modules}/splice.async.js'}
+define(
+[
+  '/{splice.modules}/splice.inheritance.js',
+  '/{splice.modules}/splice.async.js',
+  '/{splice.modules}/splice.util.js'
 ],
-definition:function(){
+function(inheritance,sync,util){
     "use strict";
 
-    var scope = this;
-    var sjs = scope.imports.$js;
     var 
-        fname = sjs.fname
-    ,   imports = scope.imports
-    ,   mixin = sjs.mixin
-    ,   log = sjs.log
+        fname = util.fname
+    ,   mixin = util.mixin
     ;
 
     var
-      Class = imports.Inheritance.Class
+      Class = inheritance.Class
     ;
 
     function Subscription(instance, callback){
@@ -208,14 +205,12 @@ definition:function(){
         ------------------------------------------------------------------------------
         Exports
     */
-    scope.exports(
-        BaseEvent,
-        { attach:_attach,
-          createMulticastRunner: _createMulticastEvent,
-          createUnicastRunner:_createUnicastEvent,
-          MulticastEvent:new MulticastEvent(),
-          UnicastEvent:new UnicastEvent()
-        }
-    );
-}
+return {    
+  BaseEvent:BaseEvent,
+  attach:_attach,
+  createMulticastRunner: _createMulticastEvent,
+  createUnicastRunner:_createUnicastEvent,
+  MulticastEvent:new MulticastEvent(),
+  UnicastEvent:new UnicastEvent()    
+};
 });
