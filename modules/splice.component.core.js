@@ -12,12 +12,10 @@ define(
 		Data        : '/{splice.modules}/splice.dataitem.js',
 		Async       : '/{splice.modules}/splice.async.js'},
 ],
-function(require,imports){
+function(ext,require,imports){
 "use strict";
 
 var scope = this;
-
-var sjs = scope.imports.$js;
 
 var http = imports.Networking.http
 , 	doc = imports.Document
@@ -1409,11 +1407,13 @@ Controller.prototype.dispose = function(){
   	};
 
 
-    scope.exports(
-      Template, Controller, 
-	  defineComponents, compileTemplate,
-      {Proxy:proxy},
-	  ComponentFactory,
-	  Component
-    );
+return {    
+	Template	:	Template, 
+	Controller	:	Controller, 
+	defineComponents: defineComponents, 
+	compileTemplate:compileTemplate,
+    Proxy:proxy,
+	ComponentFactory:ComponentFactory,
+	Component:Component
+	};
 });
