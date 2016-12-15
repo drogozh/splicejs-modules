@@ -1407,7 +1407,8 @@ Controller.prototype.dispose = function(){
   	};
 
 
-return {    
+return {
+	Scope		:   imports.Utils.Namespace,		    
 	Template	:	Template, 
 	Controller	:	Controller, 
 	defineComponents: defineComponents, 

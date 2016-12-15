@@ -57,6 +57,76 @@ function join(separator, collection, start){
   return result;
 }
 
+
+
+function namespaceAdd(path,obj,isSealed){
+	if(!path) return this;
+	if(this.__sjs_seal__[path]) throw 'namespace ' +path +' is sealed';
+	var parts = path.split('.');
+	var target = this;
+	for(var i=0; i<parts.length-1; i++){
+		if(target[parts[i]] == null) target[parts[i]] = Object.create(null);
+		target = target[parts[i]];
+	}
+	if(target[parts[parts.length-1]] != null) throw "namespace conflict: " + path;
+	target[parts[parts.length-1]] = obj;
+
+	if(isSealed == true) this.__sjs_seal__[path] = true;
+}
+
+
+function Namespace(){
+	if(!(this instanceof Namespace) ) return new Namespace();
+	this.sequence = 0;
+	this.__sjs_seal__ = {};
+	this.children = null;
+}
+
+Namespace.prototype = {
+	add : function(path, obj, isSealed){
+		if(typeof(path)=='object' || typeof(path) == 'function'){
+			for(var i=0; i < arguments.length; i++){
+				var arg = arguments[i];
+
+				if(typeof arg === 'function' ){
+					namespaceAdd.call(this, fname(arg),arg,isSealed);
+					continue;
+				}
+
+				if(typeof arg == 'object') {
+					var keys = Object.keys(arg);
+					for(var key in keys){
+						namespaceAdd.call(this, keys[key],arg[keys[key]],isSealed);
+					}
+					continue;
+				}
+			}
+			return this;
+		}
+
+		if(typeof(path) == 'string'){
+			namespaceAdd.call(this, path,obj,isSealed);
+		}
+		return this;
+	},
+	lookup:function(path){
+		if(!path) return null;
+		var parts = path.split('.');
+		var target = this;
+		for(var i=0; i<parts.length-1; i++){
+			if(target[parts[i]] == null) target[parts[i]] = Object.create(null);
+			target = target[parts[i]];
+			if(target == null) break;
+		}
+		return target[parts[parts.length-1]];
+	}
+};
+
+
+
+
+
+
 //logging setup
 var log = !window.console ? {} : window.console;
 //console log interface
@@ -77,5 +147,6 @@ exports.File = {
     ext:fileExt
 };
 
+return {Namespace:Namespace};
 
 });

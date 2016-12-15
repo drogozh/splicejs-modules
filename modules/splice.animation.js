@@ -1,11 +1,4 @@
-$js.module({// this function causes stack overflow
-/*
-function AnimationLoop(callback){
-	if(!callback()) return;
-	window.requestAnimationFrame(AnimationLoop(callback));
-}
-*/
-definition:function(){
+define(function(){
 	"use strict";
 
 	//extends the instance of the library
@@ -154,7 +147,9 @@ definition:function(){
 	}
 
 	//module exports
-	this.exports(
-		StoryBoard, Animation, Animate
-	);
-}});
+return {
+	StoryBoard : StoryBoard, 
+	Animation : Animation, 
+	Animate : Animate
+};
+});

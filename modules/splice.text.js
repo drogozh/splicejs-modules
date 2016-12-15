@@ -1,8 +1,4 @@
-
-$js.module({
-definition:function(){
-
-var scope = this;
+define(function(){
 
 var STRINGBODY = 0
 , 	FORMAT = 1
@@ -442,9 +438,7 @@ var Text = function Text(text){
 		text:text,
 
 		endswith:function(ending){
-			var matcher = new RegExp("^.+"+ending.replace(/[.]/,"\\$&")+'$');
-			var result = matcher.test(this.text);
-			return result;
+			return new RegExp(ending+'$').test(this.text);
 		},
 
 		/**
@@ -528,9 +522,10 @@ var Text = function Text(text){
 	};
 };
 
-scope.exports(
-	format, Text
-);
+return {
+	format:format, 
+	Text:Text
+};
 
-}
+
 });
