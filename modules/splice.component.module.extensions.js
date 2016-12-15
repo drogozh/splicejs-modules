@@ -116,8 +116,8 @@ function(networking,loader){
     JSON = {parse:function(){}};
   }
 
-  loader.add('.css',cssHandler);
-  loader.add('.html',htmlHandler);
+  loader.addHandler('.css',cssHandler);
+  loader.addHandler('.html',htmlHandler);
  
 
 });
