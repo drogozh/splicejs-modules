@@ -30,7 +30,7 @@ function(networking,loader){
             onok:function(response){
               loader.add(spec);
 
-              spec.dom = document.createElement('span');
+              spec.exports = document.createElement('span');
 
               var cStart = /<sjs-component(?:.*?)>/gi
               ,   cEnd = /<\/sjs-component>/gi
@@ -45,7 +45,7 @@ function(networking,loader){
                // log.info(match);
               }
 
-              spec.dom.innerHTML = response.text;
+              spec.exports.innerHTML = response.text;
               setTimeout(function(){
                 loader.notify(spec);
                 //loader.onitemloaded(spec.fileName);
