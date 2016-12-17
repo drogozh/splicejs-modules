@@ -12,11 +12,35 @@ function(networking,loader){
   ----------------------------------------------------------
     HTML File Handler
   */
+
+  function Template(node){
+    this.node = node;
+  }
+
+
+  function TemplateCollection(node){
+    this.templates = {};
+    var nodes = node.querySelectorAll('sjs-template');
+    for(var i=0; i<nodes.length; i++){
+      var node = nodes[i];
+      var attr = node.getAttribute('sjs-name');
+      if(!attr) continue;
+      this.templates[attr] = new Template(node);
+    }
+  }
+
+
   function HtmlSpec(fileName){
     this.fileName = fileName;
   }
   HtmlSpec.prototype = new ImportSpec();
-  HtmlSpec.execute = function(){
+  HtmlSpec.prototype.execute = function(){
+
+    var node = document.createElement('span');
+    node.innerHTML = this.innerHTML;
+
+    var collection = new TemplateCollection(node);
+    this.exports = collection.templates;
     this.isProcessed = true;
   }
 
@@ -25,31 +49,18 @@ function(networking,loader){
         return new HtmlSpec(fileName);
       },
       load:function(loader, spec){
+        loader.add(spec);
         http.get({
             url: spec.fileName,
             onok:function(response){
-              loader.add(spec);
+              spec.innerHTML = response.text;
+              var delay = 1;
+              if(/label.html$/.test(spec.fileName)) 
+                delay = 2000;
 
-              spec.exports = document.createElement('span');
-
-              var cStart = /<sjs-component(?:.*?)>/gi
-              ,   cEnd = /<\/sjs-component>/gi
-
-              //var //componentRegex = /(?:<sjs-component>)(.|[\n\r\t\s\f])*(?:<\/sjs-component>)/gi
-              //    /<sjs-component(?:.*?)>(.*|[\n\r\t\s\f]*)<\/sjs-component>/
-              //    /<sjs-component(?:.*?)>((?:.|[\n\r\t\s\f])*)<\/sjs-component>/
-              
-              ,   match = null;  
-              while((match = cStart.exec(response.text))){
-                var end = cEnd.exec(response.text);
-               // log.info(match);
-              }
-
-              spec.exports.innerHTML = response.text;
               setTimeout(function(){
                 loader.notify(spec);
-                //loader.onitemloaded(spec.fileName);
-              },1);
+              },delay);
               
             }
         });

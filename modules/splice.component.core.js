@@ -68,28 +68,45 @@ function defineComponents(scope){
 var AsyncPromise = Async.AsyncPromise;
 
 //default component controller controller
-function Component(){
+function Component(templateName,model){
 	this.view = null;	
+	this.tName = templateName;
+	this.children = [];
+	this.model = model;
+	model.component = this;
+	this.model.onInit();
 }
 
-Component.prototype.initialize = function(){};
-Component.prototype.display = function(target){
+Component.prototype.loaded = function(t){
+	this.isLoaded = true;
+	console.log('i am loaded');
+	this.template = t[this.tName];
+	if(this.isDelayedDisplay) this.display();
+	this.onLoaded();
+}
+
+Component.prototype.display = function(parent){
+	this.parent = this.parent || parent;
+	if(!this.isLoaded){
+		this.isDelayedDisplay = true;
+		return;
+	}
 	
-	var div = document.createElement('div');
-	div.style.display = "inline-block";
-	div.innerHTML = 'loading...';
-	
-	target.appendChild(div);
-	this.view.then((function(tInstance){
-		target.replaceChild(tInstance.dom,div);
-		this.onDisplay();
-	}).bind(this));
-	return this;
+	this.node = this.template.node.cloneNode(true);
+	//display parent first
+	this.parent.appendChild(this.node);
+	//display children
+	for(var i=0; i<this.children.length; i++){
+		this.children[i].display(this.node);
+	}
+	this.isDelayedDisplay = false;
+	this.onDisplay();
 }
-
-Component.prototype.onDisplay = function(){
-
+Component.prototype.addChild = function(child){
+	this.children.push(child);
 }
+Component.prototype.onLoaded = function(){}
+Component.prototype.onDisplay = function(){}
 
 
 function extractTemplates(dom){
@@ -105,40 +122,46 @@ function extractTemplates(dom){
   	}
 	return templates;
 }
-var TemplateMap = {};
-function ComponentFactory(scope){
-    return (function ComponentFactory(templates){
-		var files = [];
-		for(var i=0; i < templates.length; i++){
-			files.push('!'+templates[i]);
-		}
-		//load template files as soon as 
-		//component factory is requested
-		var resourcePromise = new AsyncPromise((function(resolve,reject){
-			require(this)(files).then(function(){
-				//extract templates
-				for(var i=0; i<files.length; i++){
-					var fileName = scope.imports.$js.context.resolve(files[i]);
-					var spec = define(fileName);
-					if(!spec.dom) continue;
-					spec.templates = extractTemplates(spec.dom);
-				}
-				resolve();
-			});	
-		}).bind(this));
 
-		return function(templateName, controller){
-			var parts = templateName.split(':');
-
-			return componentDefinition(controller,	
-			new AsyncTemplate(resourcePromise,{
-					name:parts[0],
-					fileName:scope.imports.$js.context.resolve('!'+parts[1])
-				}));
-		};
-
-    }).bind(scope);
+function Listener(){
+	imports.Events.attach(this,{'onloaded':imports.Events.MulticastEvent});
 }
+Listener.prototype.loaded = function(t){	
+	if(this.isLoaded) return; //already loaded
+	this.t = t;
+	this.onloaded(t);
+	this.isLoaded = true;
+}
+Listener.prototype.subscribe = function(callback){
+	this.onloaded.subscribe(callback);
+}
+
+
+var TemplateMap = {};
+function ComponentFactory(require,scope){
+	return function(template,controller){
+		var parts = template.split(":");
+		var listener = new Listener();
+		require('!'+[parts[1]],function(t){
+			listener.loaded(t);
+		});
+		return function(args){
+			var comp = new Component(parts[0],new controller(args));
+			if(!listener.isLoaded){
+				listener.subscribe((function(t){
+					this.loaded(t)
+				}).bind(comp));
+			} else {
+				comp.loaded(listener.t);
+			}
+			return comp;
+		}
+	}
+}
+
+
+
+
 
   
   function AsyncTemplate(promise, t){

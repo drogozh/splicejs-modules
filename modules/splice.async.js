@@ -37,7 +37,6 @@ define(function(){
 function AsyncPromise(exer,name,pageSize){
 	this.onok = [];
 	this.onfail = [];
-	this.scope = scope;
 	this.name = name;
 	this.pageSize = pageSize != null?pageSize : 100;
 	//resolve
