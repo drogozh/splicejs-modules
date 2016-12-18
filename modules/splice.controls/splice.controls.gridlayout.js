@@ -1,33 +1,23 @@
-$js.module({
-prerequisite:[
-  '/{$jshome}/modules/splice.module.extensions.js'
-],
-imports:[
-	{ Inheritance : '/{$jshome}/modules/splice.inheritance.js'},
-	{ Component		: '/{$jshome}/modules/splice.component.core.js'},
-	{ Events			: '/{$jshome}/modules/splice.event.js'},
-	{'SpliceJS.UI':'/{$jshome}/modules/splice.ui.js'},
-	'splice.controls.gridlayout.css',
-	'splice.controls.gridlayout.html'
-]
-,
-definition:function(){
-	var scope = this
-	,	sjs = this.imports.$js;
+define([	
+	'require',
+	'{splice.modules}/splice.inheritance',
+	'{splice.modules}/splice.component',
+	'{splice.modules}/splice.event',
+	'{splice.modules}/splice.view',
+	'{splice.modules}/splice.component.interaction',
+	'preload|{splice.modules}/splice.component.loader'
 
-	var log = sjs.log
-    ,   imports = scope.imports
+],function(require,inheritance,component,event,view,interaction){
+
+	var	Class 		= inheritance.Class
+	,	DragAndDrop = interaction.DragAndDrop
+	,   proxy 		= component.proxy
 	;
 
-	var
-		Class 		= imports.Inheritance.Class
-	,	UIControl   = imports.SpliceJS.UI.UIControl
-	,	DragAndDrop = imports.SpliceJS.UI.DragAndDrop
-	,	event 		= imports.Events.event
-	,   proxy 		= imports.Component.Proxy
-	;
-
-
+	/**
+	 * 
+	 * 
+	 */
 	var Grid = function Grid(rows,columns){
 		this.rows 		= rows;
 		this.columns 	= columns;
@@ -77,16 +67,19 @@ definition:function(){
 	,	right 	= 3
 	,	bottom 	= 4
 	,	move 	= 5;
-	/*
-	*
-	*	Cell container class
-	*
-	*/
-	var CellContainer = Class(function CellContainerController(args){
-		this.base();
 
-		event(this).attach({
-			onAdd 			: event.multicast,
+	/**
+	 * 
+	 * 
+	 */
+	var CellContainer = Class(function CellContainerController(args){
+	}).extend(component.ComponentBase);
+
+
+	CellContainer.prototype.onInit = function(args){
+
+		event.attach(this,{
+			onAdd 			: event.MulticastEvent,
 			onStartMove 	: event.multicast,
 			onMove 	  		: event.multicast,
 			onEndMove 		: event.multicast,
@@ -98,14 +91,15 @@ definition:function(){
 			onMaximize 		: event.multicast
 		})
 
+
 		this.onStartResize.subscribe(this.startResize, this);
 		this.onResize.subscribe(this.resize, this);
 		this.onEndResize.subscribe(this.endResize, this);
 		this.onStartMove.subscribe(this.startMove,this);
 
-	}).extend(UIControl);
 
-	CellContainer.prototype.initialize = function(){
+
+
 		//initialize user interraction events
 		event(this.views.leftEdge).attach({
 			onmousedown : event.unicast
@@ -595,15 +589,17 @@ definition:function(){
 		return {row:row, col:col};
 	};
 
-	/* module exports */
-	scope.add(
-		Grid, CellContainer, GridLayout
-	);
 
-	scope.exports(
-		Grid, CellContainer, GridLayout
-	);
+	//component factory
+    var ComponentFactory = component.ComponentFactory(require,{});
 
-}
+
+
+
+	return  {
+		Grid : Grid,
+		CellContainer : CellContainer,
+		GridLayout:GridLayout
+	}
 
 });

@@ -12,7 +12,8 @@ function(inheritance,events,doc,syntax,data,utils){
     "use strict";
 
     var DataItem = data.DataItem
-    ,   foreach = utils.foreach;
+    ,   foreach = utils.foreach
+    ,   Class = inheritance.Class;
 
   	var BINDING_TYPES = {
   			SELF 		 : 1
@@ -26,9 +27,6 @@ function(inheritance,events,doc,syntax,data,utils){
   		,	TYPE 		 : 5
   		/* Indicates type lookup lookup */
   	};
-
-
-
 
     /**
      *  Listens for template loader
@@ -44,8 +42,7 @@ function(inheritance,events,doc,syntax,data,utils){
         var keys = Object.keys(t);
 
   		for(var i=0; i< keys.length; i++) {
-            var tt = compileTemplate(new Template(t[keys[i]].node));
-            t[keys[i]] = tt;
+            t[keys[i]] = new Template(t[keys[i]].node).compile();
   		}
         
         this.t = t;
@@ -95,6 +92,8 @@ function(inheritance,events,doc,syntax,data,utils){
      */
     var DocumentBody = {
         displayChild:function(child){
+            if(!child || !child.node) return;
+            if(document.body == child.node) return;
             document.body.appendChild(child.node);
         }
     };
@@ -253,6 +252,49 @@ function(inheritance,events,doc,syntax,data,utils){
   		return a;
     }
 
+    Template.prototype.clone = function(){
+        return this.node.cloneNode(true);
+    }
+
+
+    /**
+  	 * Creates a build version of the template (dom element but not linked to main document yet).
+  	 * This will not generate any bindings but rather encode  information into elements through data-...
+  	 *
+  	 * @param template - template to compile
+  	 * @returns Template a DOM of the template (aka build version).
+  	 */
+    Template.prototype.compile = function(template){
+
+        var scope = {};
+        
+        template = this;
+
+        /* select top level includes */
+        var inclusions = [];
+
+        var nodes = doc.select.nodes({childNodes:template.node.childNodes},
+                function(node){
+                    if(node.tagName == 'INCLUDE' || node.tagName == 'ELEMENT') return node;
+                },
+                function(node){
+                    if(node.tagName == 'INCLUDE' || node.tagName == 'ELEMENT') return [];
+                    return node.childNodes;
+                }
+            );
+
+        if(!nodes || nodes.length < 1) return template;
+
+        for(var i=0; i<nodes.length; i++){
+            var node = nodes[i]
+            ,	parent = node.parentNode
+            ,	json = convertToProxyJson.call(scope, node, node.tagName);
+                       
+            var a = template.addChild(json);
+            parent.replaceChild(a,node);
+        }
+        return template;    
+    }
 
     /**
      * 
@@ -269,7 +311,7 @@ function(inheritance,events,doc,syntax,data,utils){
     */
     function getTemplateInstance(template){
         
-        var clone = template.node.cloneNode(true)
+        var clone = template.clone()
         ,   _anchors = clone.querySelectorAll('[sjs-child-id]')
         ,   anchors = [];
 
@@ -449,42 +491,7 @@ function(inheritance,events,doc,syntax,data,utils){
   	};
 
 
-    /**
-  	 * Creates a build version of the template (dom element but not linked to main document yet).
-  	 * This will not generate any bindings but rather encode  information into elements through data-...
-  	 *
-  	 * @param template - template to compile
-  	 * @returns Template a DOM of the template (aka build version).
-  	 */
-    function compileTemplate(template){
-
-        var scope = this;
-
-        /* select top level includes */
-        var inclusions = [];
-
-        var nodes = doc.select.nodes({childNodes:template.node.childNodes},
-                function(node){
-                    if(node.tagName == 'INCLUDE' || node.tagName == 'ELEMENT') return node;
-                },
-                function(node){
-                    if(node.tagName == 'INCLUDE' || node.tagName == 'ELEMENT') return [];
-                    return node.childNodes;
-                }
-            );
-
-        if(!nodes || nodes.length < 1) return template;
-
-        for(var i=0; i<nodes.length; i++){
-            var node = nodes[i]
-            ,	parent = node.parentNode
-            ,	json = convertToProxyJson.call(scope, node, node.tagName);
-                       
-            var a = template.addChild(json);
-            parent.replaceChild(a,node);
-        }
-        return template;    
-    }
+    
 
     /**
      * 
@@ -689,25 +696,23 @@ function(inheritance,events,doc,syntax,data,utils){
   	}
 
 
-    function DocumentApplication(document,scope){
-        this.scope = scope;
-        this.document = document;
-        if(!this.scope.components)
-        this.scope.components = scope.imports.$js.namespace();
-    };
+    var DocumentApplication = Class(function DocumentApplication(scope){
+        var template = new Template(document.body).compile();
+        template.clone = function(){return this.node;}
+        this.loaded(template,scope);
+    }).extend(ComponentBase);
 
-    DocumentApplication.prototype.run =  function(){
-        var bodyTemplate = new ComponentTemplate(this.document.body);
-        bodyTemplate.compile(this.scope);
-        var controller = new Controller();
-        bodyTemplate.processIncludeAnchors(this.document.body,controller,this.scope);
-        controller.onDisplay();
+    DocumentApplication.prototype.start =  function(){
+        this.display();
     };
 
 
     return {
+        Template:Template,
         ComponentFactory:   ComponentFactory,
-        ComponentBase:      ComponentBase
+        ComponentBase:      ComponentBase,
+        DocumentApplication: DocumentApplication,
+        proxy:proxy
     }
 
 });
