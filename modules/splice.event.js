@@ -26,20 +26,18 @@ function(inheritance,sync,util){
     };
 
 
-    /*
-        ------------------------------------------------------------------------------
-
-    */
+    /**
+     *    BaseEvent
+     */
     function BaseEvent(){}
     BaseEvent.prototype.attach = function attach(){
       throw fname(this.constructor) + ' must iplement attach() function';
     };
 
 
-    /*
-        ------------------------------------------------------------------------------
-        Events
-    */
+    /**
+     *    MulticastEvent
+     */
     var MulticastEvent = Class(function MulticastEvent(){
     }).extend(BaseEvent);
 

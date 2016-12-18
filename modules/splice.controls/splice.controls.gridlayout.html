@@ -1,14 +1,14 @@
-<sjs-component sjs-type="GridLayout" sjs-controller="GridLayoutController" sjs-export>
+<template sjs-name="GridLayout">
 	<div class="-splicejs-grid-layout" sjs-content="default"></div>
-</sjs-component>
+</template>
 
 
-<sjs-component sjs-type="CellContainer" sjs-controller="CellContainerController">
+<template name="CellContainer">
 	<div class="-splicejs-grid-layout-cell" sjs-element="root">
 		<div class="body" sjs-element="body" sjs-content="body"></div>
-		<div class="resize-left" 	sjs-element="leftEdge"></div>
-		<div class="resize-top"  	sjs-element="topEdge"></div>
-		<div class="resize-right" 	sjs-element="rightEdge"></div>
-		<div class="resize-bottom"  sjs-element="bottomEdge"></div>
+		<div class="resize-left" 	sjs-content="leftEdge"></div>
+		<div class="resize-top"  	sjs-content="topEdge"></div>
+		<div class="resize-right" 	sjs-content="rightEdge"></div>
+		<div class="resize-bottom"  sjs-content="bottomEdge"></div>
 	</div>
-</sjs-component>
+</template>

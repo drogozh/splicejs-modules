@@ -57,6 +57,11 @@ function(imports){
       return !s ? null : s[this._path];
     };
 
+    DataItem.prototype.getOwner = function(){
+      return _recGetSource(this);
+    };
+
+
     /*
         setValue must not access arbitrary object keys
         rework add ArrayDataItem

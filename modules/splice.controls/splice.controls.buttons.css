@@ -5,6 +5,14 @@
     padding: 0.3em 1em;
 	cursor: pointer;
 	transition: background 0.2s ease-in;
+
+    user-select: none;
+	-webkit-user-select: none; /* webkit (safari, chrome) browsers */
+    -moz-user-select: none; /* mozilla browsers */
+    -khtml-user-select: none; /* webkit (konqueror) browsers */
+    -ms-user-select: none; /* IE10+ */
+	
+
 }
 
 .-sjs-button-disabled {

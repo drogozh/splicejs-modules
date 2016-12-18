@@ -64,49 +64,6 @@ function defineComponents(scope){
 	return scope.__sjs_components__;
 };
 
-//----------------------------- component 2.0 ------------------------------------
-var AsyncPromise = Async.AsyncPromise;
-
-//default component controller controller
-function Component(templateName,model){
-	this.view = null;	
-	this.tName = templateName;
-	this.children = [];
-	this.model = model;
-	model.component = this;
-	this.model.onInit();
-}
-
-Component.prototype.loaded = function(t){
-	this.isLoaded = true;
-	console.log('i am loaded');
-	this.template = t[this.tName];
-	if(this.isDelayedDisplay) this.display();
-	this.onLoaded();
-}
-
-Component.prototype.display = function(parent){
-	this.parent = this.parent || parent;
-	if(!this.isLoaded){
-		this.isDelayedDisplay = true;
-		return;
-	}
-	
-	this.node = this.template.node.cloneNode(true);
-	//display parent first
-	this.parent.appendChild(this.node);
-	//display children
-	for(var i=0; i<this.children.length; i++){
-		this.children[i].display(this.node);
-	}
-	this.isDelayedDisplay = false;
-	this.onDisplay();
-}
-Component.prototype.addChild = function(child){
-	this.children.push(child);
-}
-Component.prototype.onLoaded = function(){}
-Component.prototype.onDisplay = function(){}
 
 
 function extractTemplates(dom){
@@ -123,104 +80,11 @@ function extractTemplates(dom){
 	return templates;
 }
 
-function Listener(){
-	imports.Events.attach(this,{'onloaded':imports.Events.MulticastEvent});
-}
-Listener.prototype.loaded = function(t){	
-	if(this.isLoaded) return; //already loaded
-	this.t = t;
-	this.onloaded(t);
-	this.isLoaded = true;
-}
-Listener.prototype.subscribe = function(callback){
-	this.onloaded.subscribe(callback);
-}
-
-
-var TemplateMap = {};
-function ComponentFactory(require,scope){
-	return function(template,controller){
-		var parts = template.split(":");
-		var listener = new Listener();
-		require('!'+[parts[1]],function(t){
-			listener.loaded(t);
-		});
-		return function(args){
-			var comp = new Component(parts[0],new controller(args));
-			if(!listener.isLoaded){
-				listener.subscribe((function(t){
-					this.loaded(t)
-				}).bind(comp));
-			} else {
-				comp.loaded(listener.t);
-			}
-			return comp;
-		}
-	}
-}
 
 
 
 
 
-  
-  function AsyncTemplate(promise, t){
-	  
-	  this.promise = new AsyncPromise((function(resolve,reject){
-		promise.then(function(){
-			var template = define(t.fileName).templates[t.name];	  
-			resolve(template);
-		});
-	  }).bind(this));
-
-	  this.templ = t;
-  }
-
-  AsyncTemplate.prototype.getInstance = function(controller,args,scope){
-	  
-	return new AsyncPromise( (function(resolve, reject){
-		this.promise.then((function(template){
-			resolve(new Template(template.dom.cloneNode(true)));
-			return template;
-		}).bind(this));		
-	}).bind(this));
-
-	//   return this.promise.then((function(template){		  
-	// 	  return new Template(template.dom);
-	//   }).bind(this));
-
-	//   return {then:function(fn){
-	// 	  fn(spec.dom.cloneNode(true));
-	//   }}
-  }
-
-  function componentDefinition(controller,template){
-	  var compScope = imports.$js.namespace();
-	  var component = function Component(args){
-		  var obj = new controller(args);
-		  obj.view = template.getInstance(obj);
-		  obj.initialize();
-		  return obj;
-	  }
-	  component.scope = function(){
-		for(var i=0; i < arguments.length; i++){
-			var arg = arguments[i];
-			if(typeof arg === 'function' ){
-				compScope.add(imports.$js.fname(arg),arg);
-				continue;
-			}
-			if(typeof arg === 'object'){
-				var keys = Object.keys(arg);
-				for(var k=0; k < keys.length; k++){
-					compScope.add(keys[k],arg[keys[k]]);
-				}
-				continue;
-			}
-		}
-		  return component;
-	  }
-	  return component;
-  }
 //---------------------------------------------------------------------------------
 
   /*
@@ -393,17 +257,25 @@ function ComponentFactory(require,scope){
   	*/
     //!!!!!!!!!!!!!!!!!!!!! MOVE TO ANOTHER MODULE !!!!!!!!!!!!!!!!!!!!!!!!!
   	function buildContentMap(element){
-  		var contentNodes = selectNodes(element,'[sjs-content]', function(node){
-			  if(!node.attributes) return null;
-			  if(node.attributes['sjs-content']) return node;
-			  return null;
-		  })
+		if(element.tagName == 'TEMPLATE')
+			element = element.content;
+
+  		// var contentNodes = selectNodes(element,'[sjs-content]', function(node){
+		// 	  if(!node.attributes) return null;
+		// 	  if(node.attributes['sjs-content']) return node;
+		// 	  return null;
+		//   })
+		var contentNodes = element.querySelectorAll('[sjs-content]')
 		,	cMap = {};
 
   		if(!contentNodes) return;
   		var node = element;
   		for(var i=0; i<=contentNodes.length; i++){
-  			var attr = node.getAttribute('sjs-content');
+			if(!node.getAttribute) { 
+				node = contentNodes[i];
+				continue; 
+			}
+			var attr = node.getAttribute('sjs-content');
   			if(!attr) {
   				node = contentNodes[i];
   				continue;
@@ -1437,7 +1309,5 @@ return {
 	defineComponents: defineComponents, 
 	compileTemplate:compileTemplate,
     Proxy:proxy,
-	ComponentFactory:ComponentFactory,
-	Component:Component
 	};
 });

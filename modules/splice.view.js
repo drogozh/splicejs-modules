@@ -271,20 +271,52 @@ function remove(view){
 
 
 
+/**
+ *		DomEvent
+ */
+var DomEvent = Class(function DomEvent(){
+
+}).extend(Events.BaseEvent);
 
 
-  /*
-      -----------------------------------------------------------------
-      Dom Event
-  */
-  var DomMulticastEvent = Class(function DomMulticastEvent(){
-  }).extend(Events.BaseEvent);
+DomEvent.prototype.attach = function(instance, property){
+
+}
 
 
-  var DomMulticastStopEvent = Class(function DomMulticastStopEvent(){
-    this.base();
-    this.stopPropagation = true;
-  }).extend(DomMulticastEvent);
+/**
+ *		DomStopEvent
+ */
+var DomStopEvent = Class(function DomStopEvent(){
+
+}).extend(Event);
+
+DomStopEvent.prototype.attach = function(instance,property){
+	var runner = Events.createUnitcastRunner();
+
+	instance[property] = function(e){
+		if(!e) e = window.event; cancelBubble(e);
+	};
+
+	instance[property].subscribe = function(){
+		runner.subscribe
+	};
+}
+
+
+/**
+ *    Dom Event MulticastEvent
+ */
+var DomMulticastEvent = Class(function DomMulticastEvent(){
+}).extend(Events.BaseEvent);
+
+
+
+
+var DomMulticastStopEvent = Class(function DomMulticastStopEvent(){
+	this.base();
+	this.stopPropagation = true;
+}).extend(DomMulticastEvent);
 
   DomMulticastEvent.prototype.attach = function(instance, property){
     if(!Document.isHTMLElement(instance) && !(instance instanceof View) && !(instance == window))
@@ -296,7 +328,7 @@ function remove(view){
       var fn = evt;
       evt = function(e){
         if(!e) e = window.event;
-        _cancelBubble(e);
+        cancelBubble(e);
         setTimeout(function(){
           fn(this.args);
         }.bind({args:_domEventArgs(e)}),1);
@@ -314,7 +346,7 @@ function remove(view){
     return evt;
   }
 
-  function _cancelBubble(e){
+  function cancelBubble(e){
     e.cancelBubble = true;
     if (e.stopPropagation) e.stopPropagation();
   }
@@ -599,9 +631,14 @@ function remove(view){
   };
 
 return {
-    View:View, 
+    View:View,
+		css:{
+			addClass:addClass,
+			removeClass:removeClass
+		}, 
     DomMulticastEvent:new DomMulticastEvent(),
-    DomMulticastStopEvent: new DomMulticastStopEvent()
+    DomMulticastStopEvent: new DomMulticastStopEvent(),
+		cancelEventBubble:cancelBubble
   }
 
 

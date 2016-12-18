@@ -22,6 +22,16 @@ function mixin(_t, _s){
 	return _t;
 }
 
+
+function foreach(collection,callback){
+    var	keys = Object.keys(collection)
+    ,   idx= 0;
+    for(var key in keys ){
+        callback(collection[keys[key]],keys[key],idx++);
+    }    
+}
+
+
 function trim(s){if(!s) return s;
 	if(String.prototype.trim) return s.trim();
 	return s.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '');
@@ -36,12 +46,12 @@ function fname(foo){
 		return 'anonymous';
 	}
 	*/
-if(typeof foo != 'function') throw 'unable to obtain function name, argument is not a function'
-var match = /function(\s*[A-Za-z0-9_\$]*)\(/.exec(foo.toString());
-if(!match)  return 'anonymous';
-	var name = trim(match[1]);
-	if(!name) return 'anonymous';
-	return name;
+    if(typeof foo != 'function') throw 'unable to obtain function name, argument is not a function'
+    var match = /function(\s*[A-Za-z0-9_\$]*)\(/.exec(foo.toString());
+    if(!match)  return 'anonymous';
+        var name = trim(match[1]);
+        if(!name) return 'anonymous';
+        return name;
 }
 
 
@@ -138,7 +148,7 @@ if(!log.log) 	log.log = function(){};
 
 exports.log = log;
 exports.mixin = mixin; 
-exports.fname = fname;
+exports.fname = exports.functionName = fname;
 exports.Text = {
     join:join, trim:trim
 };
@@ -147,6 +157,6 @@ exports.File = {
     ext:fileExt
 };
 
-return {Namespace:Namespace};
+return {Namespace:Namespace,foreach:foreach};
 
 });

@@ -2,10 +2,11 @@ define(
 [
   '/{splice.modules}/splice.network.js',
   'loader'
-],
-function(networking,loader){
+], function(networking,loader){
+
   var http = networking.http
   ,   ImportSpec = loader.ImportSpec;
+
 
 
   /*
@@ -15,16 +16,36 @@ function(networking,loader){
 
   function Template(node){
     this.node = node;
+
   }
 
 
   function TemplateCollection(node){
     this.templates = {};
-    var nodes = node.querySelectorAll('sjs-template');
+    var nodes = node.querySelectorAll('template');
     for(var i=0; i<nodes.length; i++){
       var node = nodes[i];
       var attr = node.getAttribute('sjs-name');
       if(!attr) continue;
+
+      if(node.tagName == 'TEMPLATE' && node.content){
+        node = node.content;
+      }
+
+      //isolate node
+      if(node.children.length == 1){ 
+        node = node.children[0];
+      }
+      else {
+        var root = new document.createElement('div');
+        var children = node.children;
+        for(var i=0; i<children.length; i++){
+          root.appendChild(children[i]);
+        }
+        node = root;
+      }  
+      
+
       this.templates[attr] = new Template(node);
     }
   }
