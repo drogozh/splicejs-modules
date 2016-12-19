@@ -1,6 +1,6 @@
 $js.module({
 imports:[
-  { Networking  : '/{$jshome}/modules/splice.network.js'}
+  { Networking  : '/{$jshome}/modules/network.js'}
 ],
 definition:function(){
     var scope = this

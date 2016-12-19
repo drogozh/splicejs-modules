@@ -14,10 +14,10 @@
     <copyright>Copyright 2016</copyright>
     <tags>JavaScript</tags>
     <dependencies>
+		<dependency id="SpliceJS" version="1.0.0"/>
     </dependencies>
   </metadata>
 	<files>
-		<file src="..\..\modules\**" target="content\lib\splicejs\modules"/>
-		<file src="..\..\modules.ts" target="content\lib\splicejs\modules.ts"/>
+		<file src="..\..\modules\**" target="content\Scripts\splicejs\modules"/>
 	</files>
 </package>

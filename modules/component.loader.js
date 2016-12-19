@@ -1,6 +1,6 @@
 define(
 [
-  '/{splice.modules}/splice.network.js',
+  '/{splice.modules}/network.js',
   'loader'
 ], function(networking,loader){
 

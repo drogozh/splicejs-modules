@@ -1,8 +1,8 @@
 define(
 [
-  '/{splice.modules}/splice.inheritance.js',
-  '/{splice.modules}/splice.async.js',
-  '/{splice.modules}/splice.util.js'
+  '/{splice.modules}/inheritance',
+  '/{splice.modules}/async',
+  '/{splice.modules}/util'
 ],
 function(inheritance,sync,util){
     "use strict";

@@ -2,12 +2,12 @@
 define([
 	
 	'require',
-	'{splice.modules}/splice.inheritance',
-	'{splice.modules}/splice.component',
-	'{splice.modules}/splice.event',
-	'{splice.modules}/splice.view',
-	'preload|{splice.modules}/splice.component.loader',
-	'!splice.controls.buttons.css'
+	'{splice.modules}/inheritance',
+	'{splice.modules}/component',
+	'{splice.modules}/event',
+	'{splice.modules}/view',
+	'preload|{splice.modules}/component.loader',
+	'!buttons.css'
 
 ],function(require,inheritance,component,event,view){
 
@@ -293,8 +293,8 @@ define([
 	// );
 
 	return {
-		Button		: ComponentFactory('Button:splice.controls.buttons.html',Button),
-		Label		: ComponentFactory('Label:splice.controls.buttons.html',Label),
-		CheckBox	: ComponentFactory('CheckBox:splice.controls.buttons.html',CheckBox)
+		Button		: ComponentFactory('Button:buttons.html',Button),
+		Label		: ComponentFactory('Label:buttons.html',Label),
+		CheckBox	: ComponentFactory('CheckBox:buttons.html',CheckBox)
 	}
 });

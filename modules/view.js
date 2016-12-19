@@ -1,8 +1,8 @@
 define([
-  { Inheritance : '/{splice.modules}/splice.inheritance.js',
-    Syntax 			: '/{splice.modules}/splice.syntax.js',
-    Document  	: '/{splice.modules}/splice.document.js',
-    Events 			: '/{splice.modules}/splice.event.js'}
+  { Inheritance : '/{splice.modules}/inheritance',
+    Syntax 		: '/{splice.modules}/syntax',
+    Document  	: '/{splice.modules}/document',
+    Events		: '/{splice.modules}/event'}
 ]
 ,
 function(imports){

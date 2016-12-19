@@ -1,11 +1,11 @@
 define([
-    'splice.inheritance',
-    'splice.event',
-    'splice.document',
-    'splice.syntax',
-    'splice.dataitem',
-    'splice.util',
-    'preload|splice.component.loader'
+    'inheritance',
+    'event',
+    'document',
+    'syntax',
+    'dataitem',
+    'util',
+    'preload|component.loader'
 ],
 
 function(inheritance,events,doc,syntax,data,utils){
@@ -42,6 +42,7 @@ function(inheritance,events,doc,syntax,data,utils){
         var keys = Object.keys(t);
 
   		for(var i=0; i< keys.length; i++) {
+            if(t[keys[i]].isCompiled) continue;
             t[keys[i]] = new Template(t[keys[i]].node).compile();
   		}
         
@@ -264,11 +265,12 @@ function(inheritance,events,doc,syntax,data,utils){
   	 * @param template - template to compile
   	 * @returns Template a DOM of the template (aka build version).
   	 */
-    Template.prototype.compile = function(template){
+    Template.prototype.compile = function(){
 
-        var scope = {};
-        
-        template = this;
+        var scope = {}
+        ,   template = this;
+
+        template.isCompiled = true;
 
         /* select top level includes */
         var inclusions = [];
@@ -293,6 +295,8 @@ function(inheritance,events,doc,syntax,data,utils){
             var a = template.addChild(json);
             parent.replaceChild(a,node);
         }
+
+        
         return template;    
     }
 
@@ -694,8 +698,16 @@ function(inheritance,events,doc,syntax,data,utils){
   	function capitalize(s){
   		return s[0].toUpperCase() + s.substring(1);
   	}
+    
 
 
+
+
+    /**
+     * 
+     * Document Application
+     * Uses document.body as a template instance
+     */
     var DocumentApplication = Class(function DocumentApplication(scope){
         var template = new Template(document.body).compile();
         template.clone = function(){return this.node;}
