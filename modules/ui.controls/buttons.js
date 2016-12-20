@@ -51,7 +51,7 @@ define([
 
     Button.prototype.setCaption = function(caption){
         this.caption = caption
-        this.setContent(caption); 
+        this.replace(caption); 
     }    
 		
 	/**

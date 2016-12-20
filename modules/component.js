@@ -260,16 +260,19 @@ function(inheritance,events,doc,syntax,data,utils){
     /**
      * Replaces content at provided location
      */
-    ComponentBase.prototype.replace = function(value, placement){
+    ComponentBase.prototype.replace = function(value, location){
         //nothing to do here, if placement is not set
-        if(!placement) return;
+        location = location || 'default';
         
-        var node = this.content[placement];
+        var node = this.content[location];
         
         if(value instanceof ComponentBase) {
             node.parentNode.replaceChild(value.node,node);
             this.content[placement] = value.node;
+            return;
         }
+        
+        node.innerHTML = value.toString();
         
     }
 
