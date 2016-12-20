@@ -11,6 +11,13 @@ define([
 function(inheritance,events,doc,syntax,data,utils){
     "use strict";
 
+    var tags = {
+        include:'INCLUDE',
+        template:'TEMPLATE',
+        element:'ELEMENT'
+    }
+
+
     var DataItem = data.DataItem
     ,   foreach = utils.foreach
     ,   Class = inheritance.Class;
@@ -60,7 +67,7 @@ function(inheritance,events,doc,syntax,data,utils){
      * Component genesis
      */
     function ComponentFactory(require,scope){
-        return function(template,controller){
+        return {define:function(template,controller){
             var parts = template.split(":");
             var listener = new Listener();
             scope[utils.functionName(controller)] = controller;
@@ -85,6 +92,7 @@ function(inheritance,events,doc,syntax,data,utils){
                 return comp;
             }
         }
+    }
     }
 
 
@@ -151,12 +159,29 @@ function(inheritance,events,doc,syntax,data,utils){
 
     ComponentBase.prototype.displayChild = function(child){
         
-        if(child.contentMode == 'replace'){
-            this.setContent(child,child.contentId);
+        var id = child.contentId || 'default';
+        var target = this.content[id];
+        var mode = child.contentMode;
+
+        if(mode == 'include'){
+            if(id == 'default') throw 'Unable to replace default container';
+            target.parentNode.replaceChild(child.node,target);            
+            //this.content id;
+            return;
         }
-        else if(child.contentMode == 'append'){
-            this.addContent(child,child.contentId);
+
+        if(mode == 'add'){
+            target.appendChild(child.node);
         }
+
+        if(mode == 'replace'){
+            //decode the type of child
+        }
+
+        if(mode == 'remove'){
+            //decode the type of child
+        }
+
                 
         child.onDisplay();
     }
@@ -173,7 +198,7 @@ function(inheritance,events,doc,syntax,data,utils){
 
         if(!this.parent) this.parent = DocumentBody;
         this.contentId = this.contentId || 'default';
-        this.contentMode = this.contentMode || 'append';
+        this.contentMode = this.contentMode || 'add';
 
         this.parent.displayChild(this);
         
@@ -191,14 +216,16 @@ function(inheritance,events,doc,syntax,data,utils){
         return this;
     }
 
+
     /**
      * Append content child and a content location
      */
-    ComponentBase.prototype.addContent = function(child,location){
+    ComponentBase.prototype.add = function(child,location){
         this.children = this.children || [];
         this.children.push(child);
 
-        child.parentContent = location || 'default';
+        child.contentId = location || 'default';
+        child.contentMode = 'add';
         child.parent = this;
 
         if(this.isDisplayed){
@@ -206,19 +233,21 @@ function(inheritance,events,doc,syntax,data,utils){
         }
     }
 
+    
     /**
      * Remove content child at location
      * if content location contains only a single child then
      * child parameter could be blank
      */
-    ComponentBase.prototype.removeContent = function(child,location){
+    ComponentBase.prototype.remove = function(child,location){
 
     }
 
+    
     /**
      * Replaces content at provided location
      */
-    ComponentBase.prototype.setContent = function(value, placement){
+    ComponentBase.prototype.replace = function(value, placement){
         //nothing to do here, if placement is not set
         if(!placement) return;
         
@@ -230,6 +259,7 @@ function(inheritance,events,doc,syntax,data,utils){
         }
         
     }
+
 
     ComponentBase.prototype.resize = function(x,y,width,height,d){
 
@@ -277,10 +307,10 @@ function(inheritance,events,doc,syntax,data,utils){
 
         var nodes = doc.select.nodes({childNodes:template.node.childNodes},
                 function(node){
-                    if(node.tagName == 'INCLUDE' || node.tagName == 'ELEMENT') return node;
+                    if(node.tagName == tags.include || node.tagName == tags.element) return node;
                 },
                 function(node){
-                    if(node.tagName == 'INCLUDE' || node.tagName == 'ELEMENT') return [];
+                    if(node.tagName == tags.include || node.tagName == tags.element) return [];
                     return node.childNodes;
                 }
             );
@@ -309,6 +339,10 @@ function(inheritance,events,doc,syntax,data,utils){
     }
 
 
+    function includeChild(parent,child,placement){
+        
+    }
+
 
     /** 
      * 
@@ -329,7 +363,7 @@ function(inheritance,events,doc,syntax,data,utils){
         for(var i=0; i < template.children.length; i++){
             var child = template.children[i];
             children[i] = runProxy(this,child);
-            children[i].contentMode = 'replace';
+            children[i].contentMode = 'include';
             children[i].contentId = anchors[i].getAttribute('sjs-content');
         }
 
@@ -504,7 +538,7 @@ function(inheritance,events,doc,syntax,data,utils){
 
   		var scope = this;
 
-  		if(	dom.tagName != 'INCLUDE' &&	dom.tagName != 'ELEMENT')
+  		if(	dom.tagName != tags.include &&	dom.tagName != tags.element)
   			return handle_INLINE_HTML.call(scope, dom, parent, true);
 
   		var	elements = 	doc.select.nodes({childNodes:dom.childNodes},
@@ -526,8 +560,8 @@ function(inheritance,events,doc,syntax,data,utils){
   		}
 
   		//proces current element
-  		if(dom.tagName === 'INCLUDE') return handle_INCLUDE(dom, parent, replace);
-  		if(dom.tagName === 'ELEMENT') return handle_ELEMENT(dom, parent, replace);
+  		if(dom.tagName === tags.include) return handle_INCLUDE(dom, parent, replace);
+  		if(dom.tagName === tags.element) return handle_ELEMENT(dom, parent, replace);
 
   	}
 
@@ -712,6 +746,7 @@ function(inheritance,events,doc,syntax,data,utils){
         var template = new Template(document.body).compile();
         template.clone = function(){return this.node;}
         this.loaded(template,scope);
+        this.content['default'] = document.body;
     }).extend(ComponentBase);
 
     DocumentApplication.prototype.start =  function(){
