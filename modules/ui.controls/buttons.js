@@ -15,13 +15,12 @@ define([
 	var Class = inheritance.Class;
 
 	//component factory
-    var ComponentFactory = component.ComponentFactory(require,{
+    var factory = component.ComponentFactory(require,{
         Splice:{  
             Buttons:{
                 CheckBox:null
             }
         }
-
     });
 
 	/** 
@@ -293,8 +292,8 @@ define([
 	// );
 
 	return {
-		Button		: ComponentFactory('Button:buttons.html',Button),
-		Label		: ComponentFactory('Label:buttons.html',Label),
-		CheckBox	: ComponentFactory('CheckBox:buttons.html',CheckBox)
+		Button		: factory.define('Button:buttons.html',Button),
+		Label		: factory.define('Label:buttons.html',Label),
+		CheckBox	: factory.define('CheckBox:buttons.html',CheckBox)
 	}
 });

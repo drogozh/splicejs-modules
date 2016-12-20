@@ -158,7 +158,8 @@ function(inheritance,events,doc,syntax,data,utils){
 
 
     ComponentBase.prototype.displayChild = function(child){
-        
+        //content id = cid
+        //content mode  = cmode
         var id = child.contentId || 'default';
         var target = this.content[id];
         var mode = child.contentMode;
@@ -221,16 +222,28 @@ function(inheritance,events,doc,syntax,data,utils){
      * Append content child and a content location
      */
     ComponentBase.prototype.add = function(child,location){
-        this.children = this.children || [];
-        this.children.push(child);
+        location = location || 'default';
+                
+        if(child instanceof ComponentBase){
+            this.children = this.children || [];
+            this.children.push(child);
 
-        child.contentId = location || 'default';
-        child.contentMode = 'add';
-        child.parent = this;
-
-        if(this.isDisplayed){
-            child.display();
+            child.contentId = location; 
+            child.contentMode = 'add';
+            child.parent = this;
+       
+            if(this.isDisplayed) child.display();
+            
+            return;    
         }
+
+        
+        this.displayChild({
+            node:document.createTextNode()
+        });
+        
+
+        
     }
 
     
@@ -336,11 +349,6 @@ function(inheritance,events,doc,syntax,data,utils){
     function Binding(path,type){
         this.property = path;
         this.type = type;
-    }
-
-
-    function includeChild(parent,child,placement){
-        
     }
 
 
