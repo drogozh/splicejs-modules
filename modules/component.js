@@ -224,26 +224,32 @@ function(inheritance,events,doc,syntax,data,utils){
     ComponentBase.prototype.add = function(child,location){
         location = location || 'default';
                 
+        
+        this.children = this.children || [];
+        
         if(child instanceof ComponentBase){
-            this.children = this.children || [];
             this.children.push(child);
-
             child.contentId = location; 
             child.contentMode = 'add';
             child.parent = this;
-       
             if(this.isDisplayed) child.display();
-            
             return;    
         }
 
+        child = {
+            node:document.createTextNode(child.toString()),
+            contentId:location,
+            contentMode:'add',
+            parent:this,
+            display:function(){
+                this.parent.displayChild(this);
+            }
+        };
         
-        this.displayChild({
-            node:document.createTextNode()
-        });
-        
+        this.children.push(child);
 
-        
+        if(this.isDisplayed) child.display();
+
     }
 
     
