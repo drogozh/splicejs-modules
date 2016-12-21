@@ -20,7 +20,8 @@ function(inheritance,events,doc,syntax,data,utils){
 
     var DataItem = data.DataItem
     ,   foreach = utils.foreach
-    ,   Class = inheritance.Class;
+    ,   Class = inheritance.Class
+    ,   mixin = utils.mixin;
 
   	var BINDING_TYPES = {
   			SELF 		 : 1
@@ -130,7 +131,8 @@ function(inheritance,events,doc,syntax,data,utils){
         //root node of the component's DOM
         this.node = templateInstance.node;
         //child collection
-        this.children = templateInstance.children;
+        this.children = this.children || {};
+        this.children = mixin(this.children,templateInstance.children);
         //content map
         this.content = buildContentMap(this.node);
         //notify controller
@@ -182,12 +184,14 @@ function(inheritance,events,doc,syntax,data,utils){
         if(mode == 'remove'){
             //decode the type of child
         }
-
-                
+        if(child instanceof ComponentBase)                
         child.onDisplay();
     }
 
     ComponentBase.prototype.display = function(){
+        //start display
+        var timeStart= window.performance.now();
+
         //component is displayed already
         if(this.isDisplayed == true) return this;
 
@@ -203,20 +207,42 @@ function(inheritance,events,doc,syntax,data,utils){
 
         this.parent.displayChild(this);
         
+        
+        var parent = this;
+        foreach(this.children,function(childList){
+            foreach(childList,function(child){
+                child.parent = parent;
+                child.display();    
+            });
+        });
+
+        //dislay after node is composed
+        //this.parent.displayChild(this);
+        
         //display children
-        if(this.children != null) {
-            for(var i=0; i<this.children.length; i++){
-                this.children[i].parent = this;
-                this.children[i].display();
-            }
-        }
+        // if(this.children != null) {
+        //     for(var i=0; i<this.children.length; i++){
+        //         this.children[i].parent = this;
+        //         this.children[i].display();
+        //     }
+        // }
 
         this.isDelayedDisplay = false;
         this.isDisplayed = true;
 
+        var timeEnd = window.performance.now();
+
+        console.log(this.constructor.name,timeStart,timeEnd, timeEnd-timeStart);
         return this;
     }
-
+    /**
+     * comp - component
+     * loc- location
+     */
+    function initChildCollection(comp,loc){
+        comp.children = comp.children || {};
+        comp.children[loc] = comp.children[loc] || []; 
+    }
 
     /**
      * Append content child and a content location
@@ -224,29 +250,27 @@ function(inheritance,events,doc,syntax,data,utils){
     ComponentBase.prototype.add = function(child,location){
         location = location || 'default';
                 
-        
-        this.children = this.children || [];
-        
+        initChildCollection(this,location);
+
         if(child instanceof ComponentBase){
-            this.children.push(child);
+            this.children[location].push(child);
             child.contentId = location; 
             child.contentMode = 'add';
             child.parent = this;
             if(this.isDisplayed) child.display();
             return;    
         }
-
+        //anything that is not a ComponentBase
         child = {
             node:document.createTextNode(child.toString()),
             contentId:location,
             contentMode:'add',
-            parent:this,
             display:function(){
                 this.parent.displayChild(this);
             }
         };
         
-        this.children.push(child);
+        this.children[location].push(child);
 
         if(this.isDisplayed) child.display();
 
@@ -270,6 +294,8 @@ function(inheritance,events,doc,syntax,data,utils){
         //nothing to do here, if placement is not set
         location = location || 'default';
         
+        initChildCollection(this,location);
+
         var node = this.content[location];
         
         if(value instanceof ComponentBase) {
@@ -376,12 +402,18 @@ function(inheritance,events,doc,syntax,data,utils){
             anchors[id] = a;
         }
 
-        var children = [];
+        var children = {};
         for(var i=0; i < template.children.length; i++){
             var child = template.children[i];
-            children[i] = runProxy(this,child);
-            children[i].contentMode = 'include';
-            children[i].contentId = anchors[i].getAttribute('sjs-content');
+            var key = anchors[i].getAttribute('sjs-content');
+            var list = children[key];
+            if(!list) {
+                list = children[key] = [];
+            } 
+            child = runProxy(this,child);
+            child.contentMode = 'include';
+            child.contentId = key;
+            list.push(child);
         }
 
         return {

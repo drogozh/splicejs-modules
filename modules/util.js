@@ -24,7 +24,8 @@ function mixin(_t, _s){
 
 
 function foreach(collection,callback){
-    var	keys = Object.keys(collection)
+    if(!collection) return;
+	var	keys = Object.keys(collection)
     ,   idx= 0;
     for(var key in keys ){
         callback(collection[keys[key]],keys[key],idx++);
