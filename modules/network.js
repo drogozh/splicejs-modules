@@ -1,10 +1,13 @@
-define(function(){
+define(['loader'
+],function(loader){
   "use strict";
-  /*
-  ----------------------------------------------------------
-  	HttpRequest
-  */
-	var HttpRequest = function HttpRequest(){
+
+  var context = loader.context;
+
+    /**
+     *  HttpRequest
+     */
+    var HttpRequest = function HttpRequest(){
 		var a = Array("Msxml2.XMLHTTP","Microsoft.XMLHTTP");
     	if (window.ActiveXObject)
         for (var i = 0; i < a.length; i++) {
@@ -14,21 +17,20 @@ define(function(){
 	};
 
 	HttpRequest.prototype.request = function(type,config){
-
-	 	var params = ''
-    ,   separator = ''
-	 	,   requestURL = config.url
+        var params = ''
+        ,   separator = ''
+		,   requestURL = config.url
 	 	,   self = this;
 
-    if (config.formData)
-    for(var d=0; d < config.formData.length; d++){
-    	params += separator + config.formData[d].name + '=' + encodeURIComponent(config.formData[d].value);
-       	separator = '&';
-    }
+        if (config.formData)
+        for(var d=0; d < config.formData.length; d++){
+            params += separator + config.formData[d].name + '=' + encodeURIComponent(config.formData[d].value);
+            separator = '&';
+        }
 
-    if(params.length > 0 && type === 'GET'){
-    	requestURL = requestURL + "?" + params;
-    }
+        if(params.length > 0 && type === 'GET'){
+            requestURL = requestURL + "?" + params;
+        }
 
 		this.transport.open(type,requestURL,true);
 
@@ -47,127 +49,144 @@ define(function(){
 		    this.transport.setRequestHeader('Content-Type', 'text/html; charset=utf-8');
 		}
 
+        /*
+            in ie8 onreadystatechange is attached to a quasy window object
+            [this] inside handler function will refer to window object and not transport object
+        */
+        function onLoadHandler(){
+            var transport = self.transport;
 
+            var response = {
+                text: transport.responseText,
+                xml:  transport.responseXML
+            };
 
-    /*
-        in ie8 onreadystatechange is attached to a quasy window object
-        [this] inside handler function will refer to window object and not transport object
-    */
-    function onLoadHandler(){
-        var transport = self.transport;
-
-        var response = {
-            text: transport.responseText,
-            xml:  transport.responseXML
-        };
-
-        switch (transport.status) {
-            case 200:
-                if(typeof config.onok == 'function') config.onok(response);
-                break;
-            case 400, 401, 402, 403, 404, 405, 406:
-            case 500:
-            default:
-                if (typeof config.onfail == 'function') config.onfail(response);
-                break;
+            switch (transport.status) {
+                case 200:
+                    if(typeof config.onok == 'function') config.onok(response);
+                    break;
+                case 400, 401, 402, 403, 404, 405, 406:
+                case 500:
+                default:
+                    if (typeof config.onfail == 'function') config.onfail(response);
+                    break;
+            }
         }
-    }
 
-    if(this.transport.onload !== undefined ) {
-        this.transport.onload = onLoadHandler;
-    }
-    else {
-        this.transport.onreadystatechange = function(e){
-            if(self.transport.readyState == 4 ) onLoadHandler();
-        }    
-    }
+        if(this.transport.onload !== undefined ) {
+            this.transport.onload = onLoadHandler;
+        }
+        else {
+            this.transport.onreadystatechange = function(e){
+                if(self.transport.readyState == 4 ) onLoadHandler();
+            }    
+        }
 
 
-    if (type == 'POST' && !params) params = config.data;
-		this.transport.send(params);
-		return this;
+        if (type == 'POST' && !params) params = config.data;
+		    this.transport.send(params);
+		
+        return this;
 	};
 
-	HttpRequest.post = function (config) {
+	function httpPost(config) {
 		return new HttpRequest().request('POST',config);
 	};
 
-	HttpRequest.get = function(config){
+	function httpGet(config){
 		return new HttpRequest().request('GET',config);
 	};
 
 
-  /*
-  ----------------------------------------------------------
-  	Remote Calls interface
-  */
-  function Remote(url, adapter){
-    this.endpoint = url;
-    this.adapter = adapter;
-  };
+    /**
+     * 
+     * Returns http request configuration
+     * rooted at the provided url
+     */
+    function relative(url){
+        var ctx = context(url,true);
+        return {
+            get:function(args){
+                args.url = ctx.resolve(args.url);
+                return new HttpRequest().request('GET',args);    
+            },
+            post:function(args){
+                args.url = ctx.resolve(args.url);
+                return new HttpRequest().request('POST',args);
+            }
+        }    
+    }
 
-  Remote.prototype.calls = function calls(remoteCalls){
-    registerCalls.call(this,remoteCalls, this.endpoint, this.adapter);
-    return this;
-  };
 
-
+    
+    /**
+     *  Remote Calls
+     */
+    function Remote(url, adapter){
+        this.endpoint = url;
+        this.adapter = adapter;
+    };
 
     //arguemnt array of remote calls - array of strings,
     //or an object to receive remote call declarations
-  function registerCalls(calls, endpoint, adapter) {
+    Remote.prototype.calls = function calls(calls, endpoint, adapter) {
 
-      if (!(calls instanceof Array)) calls = [calls];
-      var remote = this;
+        var endpoint = this.endpoint;
+        var adapter = this.adapter;  
 
-      for (var i = 0; i < calls.length; i++) {
-          remote = this;
+        if (!(calls instanceof Array)) calls = [calls];
+        var remote = this;
 
-          var call = calls[i]
-          , nparts = call.split('.')
-          , fullCall = call;
+        for (var i = 0; i < calls.length; i++) {
+            remote = this;
 
-          for (var n = 0; n < nparts.length - 1; n++) {
-              if (!remote[nparts[n]]) remote[nparts[n]] = {};
-              remote = remote[nparts[n]];
-          }
+            var call = calls[i]
+            , nparts = call.split('.')
+            , fullCall = call;
 
-          call = nparts[nparts.length - 1];
+            for (var n = 0; n < nparts.length - 1; n++) {
+                if (!remote[nparts[n]]) remote[nparts[n]] = {};
+                remote = remote[nparts[n]];
+            }
 
-          if (remote[call] != null && remote[call] != undefined) continue;
+            call = nparts[nparts.length - 1];
 
-          remote[call] = (function () {
-              var methodName = this.methodName;
-              var args = arguments;
+            if (remote[call] != null && remote[call] != undefined) continue;
 
-              return function (oncomplete, onfailure) {
-                  if (!oncomplete || typeof (oncomplete) !== 'function') return;
+            remote[call] = (function () {
+                var methodName = this.methodName;
+                var args = arguments;
 
-                  HttpRequest.post({
-                      /* TODO: server end point URL, turn into a configurable property */
-                      url: endpoint,
+                return function (oncomplete, onfailure) {
+                    if (!oncomplete || typeof (oncomplete) !== 'function') return;
 
-                      contentType: 'application/json;charset=UTF-8',
+                    HttpRequest.post({
+                        /* TODO: server end point URL, turn into a configurable property */
+                        url: endpoint,
 
-                      data: serialize(methodName, args, adapter),
+                        contentType: 'application/json;charset=UTF-8',
 
-                      onok: function (response) {
-                          if (typeof (oncomplete) === 'function')
-                          oncomplete(deserialize(response.text, adapter));
-                      },
+                        data: serialize(methodName, args, adapter),
 
-                      onfail: function (response) {
-                          if (typeof (onfailure) === 'function')
-                          onfailure(error(response.text));
-                      }
-                  });
-              }
-          }).bind({ methodName: fullCall });
-      }
-  };
+                        onok: function (response) {
+                            if (typeof (oncomplete) === 'function')
+                            oncomplete(deserialize(response.text, adapter));
+                        },
+
+                        onfail: function (response) {
+                            if (typeof (onfailure) === 'function')
+                            onfailure(error(response.text));
+                        }
+                    });
+                }
+            }).bind({ methodName: fullCall });
+        }
+    };
 
 
-
+    /**
+     * 
+     */
 	function error(response, adapter) {
 	    if (adapter != null) {
 	        if (typeof adapter.error !== 'function') {
@@ -178,18 +197,20 @@ define(function(){
 	    return "remote call error";
 	};
 
-
+    /**
+     * 
+     */
 	function deserialize(response, adapter){
-
 		if(adapter != null){
 			return adapter.deserialize(response);
 		}
-
 		var result = JSON.parse(response.text);
 		return result;
 	};
 
-
+    /**
+     * 
+     */
 	function serialize(methodName, args, adapter) {
 		var json = null;
 
@@ -213,7 +234,11 @@ define(function(){
     // module exports
     return {
         remote:remote,
-        http : { get:  HttpRequest.get, post: HttpRequest.post }
+        relative:relative,
+        http : { 
+            get:  httpGet, 
+            post: httpPost
+        }
     }
 
 });

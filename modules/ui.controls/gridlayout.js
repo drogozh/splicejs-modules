@@ -1,17 +1,18 @@
 define([	
 	'require',
-	'{splice.modules}/splice.inheritance',
-	'{splice.modules}/splice.component',
-	'{splice.modules}/splice.event',
-	'{splice.modules}/splice.view',
-	'{splice.modules}/splice.component.interaction',
-	'preload|{splice.modules}/splice.component.loader'
+	'{splice.modules}/inheritance',
+	'{splice.modules}/component',
+	'{splice.modules}/event',
+	'{splice.modules}/view',
+	'{splice.modules}/component.interaction',
+	'preload|{splice.modules}/component.loader'
 
 ],function(require,inheritance,component,event,view,interaction){
 
 	var	Class 		= inheritance.Class
 	,	DragAndDrop = interaction.DragAndDrop
 	,   proxy 		= component.proxy
+    ,   componentFactory = component.ComponentFactory(require)
 	;
 
 	/**

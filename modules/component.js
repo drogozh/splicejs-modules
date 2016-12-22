@@ -806,7 +806,6 @@ function(inheritance,events,doc,syntax,data,utils){
         this.display();
     };
 
-
     return {
         Template:Template,
         ComponentFactory:   ComponentFactory,

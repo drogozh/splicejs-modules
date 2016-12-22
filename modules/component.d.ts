@@ -4,7 +4,13 @@ declare class ComponentBase {
     public onLoaded():  void
     public onDisplay(): void
     public onResize(): void
-    public addContent(component: ComponentBase, location: string);
+    public add(component: ComponentBase, location?: string);
+    public replace(component: ComponentBase, location?: string);
+    public remove(component:ComponentBase,location:string);
+}
+
+interface ComponentFactory {
+    define<T extends ComponentBase>(template:string,controller:IClass<T>) : Component<T>
 }
 
 interface Component<T extends ComponentBase> {
@@ -19,7 +25,7 @@ interface Factory{
     <T extends ComponentBase>(templateName: string, controller: IClass<T>) : Component<T>
 }
 
-export function ComponentFactory(require: Function, scope: any): Factory;
+export function ComponentFactory(require: Function, scope: any): ComponentFactory;
 
 
 

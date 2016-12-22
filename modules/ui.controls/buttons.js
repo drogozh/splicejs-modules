@@ -28,7 +28,7 @@ define([
  	 */
     var Button = Class(function Button(args){
 		if(args)
-        	this.caption = args.caption || 'button';
+        	this.caption = args.caption != null ? args.caption  : 'button';
 	}).extend(component.ComponentBase);
 	
 	Button.prototype.onInit = function(){
@@ -40,7 +40,7 @@ define([
     Button.prototype.onLoaded = function(){
         var args = this.args;
         //set caption if available
-        if(this.caption) { 
+        if(this.caption != null) { 
             this.setCaption(this.caption);    
         }
 

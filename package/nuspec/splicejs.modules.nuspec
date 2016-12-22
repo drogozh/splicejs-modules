@@ -2,19 +2,19 @@
 <package >
   <metadata>
     <id>SpliceJS.Modules</id>
-    <version>1.0.0</version>
+    <version>0.0.0.24</version>
     <authors>Dmitry Rogozhkin (JonahGroup)</authors>
     <owners>Dmitry Rogozhkin</owners>
-    <licenseUrl>http://LICENSE_URL_HERE_OR_DELETE_THIS_LINE</licenseUrl>
+    <licenseUrl>https://opensource.org/licenses/MIT</licenseUrl>
     <projectUrl>http://www.splicejs.org</projectUrl>
-    <iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl>
+    <iconUrl>http://github.com/jonahgroup/SpliceJS.Modules/raw/master/splice.modules.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>JavaScript librarcy </description>
     <releaseNotes>Initial release</releaseNotes>
     <copyright>Copyright 2016</copyright>
     <tags>JavaScript</tags>
     <dependencies>
-		<dependency id="SpliceJS" version="1.0.0"/>
+		<dependency id="SpliceJS" version="0.0.0.482"/>
     </dependencies>
   </metadata>
 	<files>
