@@ -17,6 +17,10 @@ function(inheritance,events,doc,syntax,data,utils){
         element:'ELEMENT'
     }
 
+    var log = {
+        debug:function(){}
+    };
+
 
     var DataItem = data.DataItem
     ,   foreach = utils.foreach
@@ -232,7 +236,7 @@ function(inheritance,events,doc,syntax,data,utils){
 
         var timeEnd = window.performance.now();
 
-        console.log(this.constructor.name,timeStart,timeEnd, timeEnd-timeStart);
+        log.debug(this.constructor.name,timeStart,timeEnd, timeEnd-timeStart);
         return this;
     }
     /**
@@ -808,7 +812,8 @@ function(inheritance,events,doc,syntax,data,utils){
         ComponentFactory:   ComponentFactory,
         ComponentBase:      ComponentBase,
         DocumentApplication: DocumentApplication,
-        proxy:proxy
+        proxy:proxy,
+        logTo:function(lg){log = lg;}
     }
 
 });
