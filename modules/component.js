@@ -256,28 +256,16 @@ function(inheritance,events,doc,syntax,data,utils){
                 
         initChildCollection(this,location);
 
-        if(child instanceof ComponentBase){
-            this.children[location].push(child);
-            child.contentId = location; 
-            child.contentMode = 'add';
-            child.parent = this;
-            if(this.isDisplayed) child.display();
-            return;    
-        }
-        //anything that is not a ComponentBase
-        child = {
-            node:document.createTextNode(child.toString()),
-            contentId:location,
-            contentMode:'add',
-            display:function(){
-                this.parent.displayChild(this);
-            }
-        };
-        
+        if(!(child instanceof ComponentBase))
+            child = new ValueComponent(child);
+
         this.children[location].push(child);
+        child.contentId = location; 
+        child.contentMode = 'add';
+        child.parent = this;
 
         if(this.isDisplayed) child.display();
-
+       
     }
 
     
@@ -303,8 +291,9 @@ function(inheritance,events,doc,syntax,data,utils){
         var node = this.content[location];
         
         if(value instanceof ComponentBase) {
-            node.parentNode.replaceChild(value.node,node);
-            this.content[placement] = value.node;
+            value.contentMode = 'replace';
+            value.contentId = 'location';
+            this.children[location] = value;
             return;
         }
         
@@ -318,9 +307,22 @@ function(inheritance,events,doc,syntax,data,utils){
     }
 
 
+    /**
+     * 
+     */
+    function ValueComponent(value){
+        this.node = document.createTextNode(value);
+    }
+
+    //do nothing on display
+    ValueComponent.prototype.display = function(){
+        if(!this.parent) return;
+        this.parent.displayChild(this);
+    }; 
+
     /** 
      * 
-    */
+     */
     function Template(node){
         this.node = node;
         this.children = [];

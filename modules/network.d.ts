@@ -1,2 +1,5 @@
 export var remote: any;
-export var http: any;
+declare namespace http {
+    function get();
+    function post();
+}

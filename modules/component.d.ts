@@ -27,5 +27,9 @@ interface Factory{
 
 export function ComponentFactory(require: Function, scope: any): ComponentFactory;
 
+export class DocumentApplication extends ComponentBase {
+    constructor(scope:any)
+}
+
 
 
