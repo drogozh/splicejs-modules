@@ -5,15 +5,18 @@ define([
 	'{splice.modules}/event',
 	'{splice.modules}/view',
 	'{splice.modules}/component.interaction',
-	'preload|{splice.modules}/component.loader'
+    '{splice.modules}/util',
+	'preload|{splice.modules}/component.loader',
+    '!gridlayout.css'
 
-],function(require,inheritance,component,event,view,interaction){
+],function(require,inheritance,component,event,view,interaction,utils){
 
-	var	Class 		= inheritance.Class
+	
+ 
+    var	Class 		= inheritance.Class
 	,	DragAndDrop = interaction.DragAndDrop
 	,   proxy 		= component.proxy
-    ,   componentFactory = component.ComponentFactory(require)
-	;
+    ,   mixin = utils.mixin;
 
 	/**
 	 * 
@@ -74,54 +77,60 @@ define([
 	 * 
 	 */
 	var CellContainer = Class(function CellContainerController(args){
+        mixin(this,args);
+
 	}).extend(component.ComponentBase);
 
+    CellContainer.prototype.onInit = function(){
 
-	CellContainer.prototype.onInit = function(args){
+//        event.attach(this,{ onResize        : event.MulticastEvent});
+        //workaround for event attacher
+        this.onResize = null;
 
-		event.attach(this,{
+   		event.attach(this,{
 			onAdd 			: event.MulticastEvent,
-			onStartMove 	: event.multicast,
-			onMove 	  		: event.multicast,
-			onEndMove 		: event.multicast,
-			onStartResize   : event.multicast,
-			onResize 	    : event.multicast,
-			onEndResize     : event.multicast,
-			onCellSize 	    : event.multicast,
-			onRemove 		: event.multicast,
-			onMaximize 		: event.multicast
+			onStartMove 	: event.MulticastEvent,
+			onMove 	  		: event.MulticastEvent,
+			onEndMove 		: event.MulticastEvent,
+			onStartResize   : event.MulticastEvent,
+			onEndResize     : event.MulticastEvent,
+			onCellSize 	    : event.MulticastEvent,
+			onRemove 		: event.MulticastEvent,
+            onResize        : event.MulticastEvent,
+			onMaximize 		: event.MulticastEvent
 		})
 
-
 		this.onStartResize.subscribe(this.startResize, this);
-		this.onResize.subscribe(this.resize, this);
 		this.onEndResize.subscribe(this.endResize, this);
 		this.onStartMove.subscribe(this.startMove,this);
 
+    }
 
+
+	CellContainer.prototype.onLoaded = function(args){
 
 
 		//initialize user interraction events
-		event(this.views.leftEdge).attach({
-			onmousedown : event.unicast
+		event.attach(this.content.leftEdge,{
+			onmousedown : event.UnicastEvent
 		}).onmousedown.subscribe(
 			function(e){this.onStartResize(e,left);}, this
 		);
 
-		event(this.views.topEdge).attach({
-			onmousedown : event.unicast
+		event.attach(this.content.topEdge,{
+			onmousedown : event.UnicastEvent
 		}).onmousedown.subscribe(
 			function(e){this.onStartResize(e,top);}, this
 		);
 
-		event(this.views.rightEdge).attach({
-			onmousedown : event.unicast
+		event.attach(this.content.rightEdge,{
+			onmousedown : event.UnicastEvent
 		}).onmousedown.subscribe(
 			function(e){this.onStartResize(e,right);}, this
 		);
 
-		event(this.views.bottomEdge).attach({
-			onmousedown	:	event.unicast
+		event.attach(this.content.bottomEdge,{
+			onmousedown	:	event.UnicastEvent
 		}).onmousedown.subscribe(
 			function(e){this.onStartResize(e,bottom);}, this
 		);
@@ -133,7 +142,7 @@ define([
 
 		var self = this;
 		DragAndDrop.ondrag =  function(p,offset){
-			self.onResize({mouse:p,direction:direction, src:self});
+			self.resize({mouse:p,direction:direction, src:self});
 			self.onCellSize(self);
 		}
 	};
@@ -171,11 +180,11 @@ define([
 	*	Grid Layout implementation
 	* @constructor
 	*/
-	var GridLayout = Class(function GridLayoutController(){
-		this.base();
+	var GridLayout = Class(function GridLayoutController(args){
+		mixin(this,args);
 
-		event(this).attach({
-			onRemoveCell : event.multicast
+		event.attach(this,{
+			onRemoveCell : event.MulticastEvent
 		});
 
 
@@ -194,26 +203,24 @@ define([
 		// cell sequence counter
 		this.cellSequence = 1;
 
-		this.onDisplay.subscribe(this.display, this);
-
-	}).extend(UIControl);
+	}).extend(component.ComponentBase);
 
 
-	GridLayout.prototype.initialize = function(){
+	GridLayout.prototype.onInit = function(){
 		/*
 			hook into window resize event only if grid layout
 			is configured as a toplevel component
 		*/
 		if(this.attachToWindow === true ) {
-			event(window).attach({
-				onresize : event.multicast}
-			).onresize.subscribe(this.reflow	,this);
-	 }
+			event.attach(window,{
+                onresize : event.MulticastEvent
+            }).onresize.subscribe(function(){this.reflow();},this);
+	    }
 	};
 
 
 
-	GridLayout.prototype.display = function(){
+	GridLayout.prototype.onDisplay = function(){
 
 		/* processes layout cells */
 		if(this.cells && this.cells.length > 0){
@@ -267,27 +274,39 @@ define([
 		,	rowSpan = position[2]
 		,	colSpan = position[3];
 
-		var _CellContainer = proxy.call(scope,
-		{	type:'CellContainer',
+		
+        
+        
+        // var _CellContainer = proxy.call(scope,
+		// {	type:'CellContainer',
+		// 	row:row,
+		// 	col:col,
+		// 	colspan:colSpan,
+		// 	rowspan:rowSpan,
+		// 	content:{body: content}
+		// });
+
+		var cellIndex = this.cellSequence++;
+
+		var cell =  new CellContainerComponent({
 			row:row,
 			col:col,
 			colspan:colSpan,
 			rowspan:rowSpan,
-			content:{body: content}
-		});
-
-		var cellIndex = this.cellSequence++;
-
-		var cell =  new _CellContainer({parent:this, index:cellIndex});
+        });
 
 		cell.onResize.subscribe(this.resizeCell, this);
 		cell.onRemove.subscribe(this.removeCell, this);
 		cell.onMaximize.subscribe(this.maximizeCell,this);
 
-		this.layoutCells[cell.index] = cell;
-		this.content(cell).add();
-		cell.onAttach();
-		cell.onDisplay();
+		this.layoutCells[cellIndex] = cell;
+		
+        this.add(cell);
+		
+        cell.add(content);
+
+        //cell.onAttach();
+		//cell.onDisplay();
 		cell.onAdd(cell);
 
 		return cell;
@@ -331,11 +350,21 @@ define([
 
 	};
 
+    /**
+     * 
+     */
 	GridLayout.prototype.addCell = function(){
 		var cell = addCell.apply(this,arguments);
 		this.reflow();
 		return cell;
 	};
+
+    /**
+     * 
+     */
+    GridLayout.prototype.onDisplay = function(){
+        this.reflow();
+    };
 
 
 	/**
@@ -492,11 +521,12 @@ define([
 	};
 
 	GridLayout.prototype.reflow = function(cellIndex){
+        if(!this.content || !this.content.default) return;
 
 		var margin 		 = this.margin;
 		var outer_margin = this.outerMargin;
 
-		var DOM = this.views.root.htmlElement;
+		var DOM = this.content.default;
 
 
 		var grid = this.grid;
@@ -539,7 +569,7 @@ define([
 			/* update grid */
 		//	grid.fillGrid(cards[i].row, cards[i].col, cards[i].rowspan, cards[i].colspan, cards[i]);
 
-			cards[i].reflow({left:l,top:t},{width:w, height:h});
+			cards[i].reflow(l,t,w,h);
 		}
 	};
 
@@ -592,15 +622,17 @@ define([
 
 
 	//component factory
-    var ComponentFactory = component.ComponentFactory(require,{});
+    var scope = {};
+    var componentFactory = component.ComponentFactory(require,scope);
 
-
+   var CellContainerComponent =  componentFactory.define('CellContainer:gridlayout.html',CellContainer);
+   var GridLayoutComponent = componentFactory.define('GridLayout:gridlayout.html',GridLayout);
 
 
 	return  {
 		Grid : Grid,
-		CellContainer : CellContainer,
-		GridLayout:GridLayout
+        CellContainer : CellContainerComponent,
+		GridLayout : GridLayoutComponent
 	}
 
 });

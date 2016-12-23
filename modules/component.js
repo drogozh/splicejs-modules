@@ -5,10 +5,11 @@ define([
     'syntax',
     'dataitem',
     'util',
+    'animation',
     'preload|component.loader'
 ],
 
-function(inheritance,events,doc,syntax,data,utils){
+function(inheritance,events,doc,syntax,data,utils,animation){
     "use strict";
 
     var tags = {
@@ -108,7 +109,12 @@ function(inheritance,events,doc,syntax,data,utils){
         displayChild:function(child){
             if(!child || !child.node) return;
             if(document.body == child.node) return;
+            
+            child.node.opacity = 0;
             document.body.appendChild(child.node);
+            animation.Animate(child.node).opacity(0, 100, 300);
+
+            child.onDisplay();
         }
     };
 
@@ -170,6 +176,8 @@ function(inheritance,events,doc,syntax,data,utils){
         var target = this.content[id];
         var mode = child.contentMode;
 
+        child.node.opacity = 0;    
+
         if(mode == 'include'){
             if(id == 'default') throw 'Unable to replace default container';
             target.parentNode.replaceChild(child.node,target);            
@@ -182,14 +190,18 @@ function(inheritance,events,doc,syntax,data,utils){
         }
 
         if(mode == 'replace'){
-            //decode the type of child
+            target.innerHTML = '';
+            target.appendChild(child.node);
         }
 
         if(mode == 'remove'){
             //decode the type of child
         }
+
+        animation.Animate(child.node).opacity(0, 100, 300);
+
         if(child instanceof ComponentBase)                
-        child.onDisplay();
+            child.onDisplay();
     }
 
     ComponentBase.prototype.display = function(){
@@ -257,7 +269,7 @@ function(inheritance,events,doc,syntax,data,utils){
         initChildCollection(this,location);
 
         if(!(child instanceof ComponentBase))
-            child = new ValueComponent(child);
+            child = new ValueComponent(child.toString());
 
         this.children[location].push(child);
         child.contentId = location; 
@@ -282,28 +294,42 @@ function(inheritance,events,doc,syntax,data,utils){
     /**
      * Replaces content at provided location
      */
-    ComponentBase.prototype.replace = function(value, location){
+    ComponentBase.prototype.replace = function(child, location){
         //nothing to do here, if placement is not set
         location = location || 'default';
         
         initChildCollection(this,location);
 
-        var node = this.content[location];
-        
-        if(value instanceof ComponentBase) {
-            value.contentMode = 'replace';
-            value.contentId = 'location';
-            this.children[location] = value;
+        var current = this.children[location];
+
+        if(current instanceof ValueComponent) {
+            //child = new ValueComponent(child.toString());
+            current.setValue(child.toString());
             return;
-        }
-        
-        node.innerHTML = value.toString();
-        
+        } //else
+
+        if(!(child instanceof ComponentBase))
+            child = new ValueComponent(child.toString());
+
+        this.children[location] = [child];                
+        child.contentMode = 'replace';
+        child.contentId = location;
+        child.parent = this;
+               
+        if(this.isDisplayed) child.display();
     }
 
 
-    ComponentBase.prototype.resize = function(x,y,width,height,d){
+    ComponentBase.prototype.reflow = function(x,y,w,h,d){
+        if(!this.node) return;
 
+        var style = this.node.style;
+
+        style.left = x + 'px';
+        style.top = y + 'px';
+        
+        style.width = w + 'px';
+        style.height = h + 'px';
     }
 
 
@@ -319,6 +345,10 @@ function(inheritance,events,doc,syntax,data,utils){
         if(!this.parent) return;
         this.parent.displayChild(this);
     }; 
+
+    ValueComponent.prototype.setValue = function(value){
+        this.node.value = value.toString();
+    }
 
     /** 
      * 

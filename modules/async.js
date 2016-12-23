@@ -1,13 +1,15 @@
 define(function(){
 
 //todo: add loop JOIN method to put them on the same timer
-    var asyncLoop = function asyncLoop(from, to, pageSize, oncallback, oncomplete, onpage){
+    function loop(from, to, pageSize, pageTimeOut, oncallback, oncomplete, onpage){
 		var page_size = 20
-		,	length = 0;
+		,	length = 0
+        ,   page_time_out = 1;
 
         var length = to - from + 1;
 
 		if(pageSize) page_size = pageSize;
+        if(pageTimeOut) page_time_out = pageTimeOut;
 
 		var	pages = Math.floor(length / page_size) + ( (length % page_size) > 0 ? 1 : 0)  
 		,	count = {p:0};
@@ -26,61 +28,28 @@ define(function(){
 			}
 			count.p++;
 			if(typeof onpage === 'function') onpage();
-			setTimeout(fn,1);
+			setTimeout(fn,page_time_out);
 		}
 
 		fn();
 	};
 
+    /**
+     * 
+     * 
+     */
+    function asyncLoop(from, to, pageSize, pageTimeOut){
+        return {
+            go:function(oncallback,oncomplete,onpage){
+               loop(from, to, pageSize, pageTimeOut, oncallback, oncomplete, onpage);
+            }
+        }
+    }
 
-//async promise
-function AsyncPromise(exer,name,pageSize){
-	this.onok = [];
-	this.onfail = [];
-	this.name = name;
-	this.pageSize = pageSize != null?pageSize : 100;
-	//resolve
-	exer((function(okResult){
-		//ok
-		this.okResult = okResult;
-		if(this.onok != null) {
-			
-			asyncLoop(0,this.onok.length-1,this.pageSize, (function(i){
-				this.okResult = this.onok[i](this.okResult);
-				return true;
-			}).bind(this));
-
-			// for(var i=0; i<this.onok.length; i++) {
-			// 	this.okResult = this.onok[i](this.okResult);
-			// }
-		}
-		else this.okResult = okResult;
-	}).bind(this),
-	//reject 
-	(function(failResult){
-		//fail
-		if(this.onfail != null) this.onfail(failResult);
-		else this.failResult = failResult;
-	}).bind(this));
-}
-AsyncPromise.prototype.then = function(fn){
-	this.onok.push(fn);
-	if(this.okResult !== undefined) 
-		this.okResult = fn(this.okResult);
-	
-	
-	return this;
-}
-AsyncPromise.prototype['catch'] = function(fn){
-	this.onfail = fn;
-	if(this.failResult !== undefined) fn(this.failResult);
-	return this;
-}
 
 
 return {
-	AsyncLoop:asyncLoop,
-	AsyncPromise:AsyncPromise
+	loop:asyncLoop
 }
 
 
