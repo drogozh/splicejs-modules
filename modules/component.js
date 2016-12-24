@@ -9,7 +9,7 @@ define([
     'preload|component.loader'
 ],
 
-function(inheritance,events,doc,syntax,data,utils,animation){
+function(inheritance,events,doc,syntax,data,utils,effects){
     "use strict";
 
     var tags = {
@@ -26,7 +26,9 @@ function(inheritance,events,doc,syntax,data,utils,animation){
     var DataItem = data.DataItem
     ,   foreach = utils.foreach
     ,   Class = inheritance.Class
-    ,   mixin = utils.mixin;
+    ,   mixin = utils.mixin
+    ,   Animation = effects.Animation;
+
 
   	var BINDING_TYPES = {
   			SELF 		 : 1
@@ -73,7 +75,7 @@ function(inheritance,events,doc,syntax,data,utils,animation){
      * Component genesis
      */
     function ComponentFactory(require,scope){
-        return {define:function(template,controller){
+        return {define:function(template,controller,defaultArgs){
             var parts = template.split(":");
             var listener = new Listener();
             scope[utils.functionName(controller)] = controller;
@@ -81,6 +83,8 @@ function(inheritance,events,doc,syntax,data,utils,animation){
                 listener.loaded(t);
             });
             return function Component(args,parent){
+                defaultArgs = defaultArgs || {};
+                args = mixin(defaultArgs,args);
                 var comp = new controller(args);
                     comp.parent = parent;
                 if(!listener.isLoaded){
@@ -110,9 +114,10 @@ function(inheritance,events,doc,syntax,data,utils,animation){
             if(!child || !child.node) return;
             if(document.body == child.node) return;
             
-            child.node.opacity = 0;
+            var animation = isAnimation.call(child);
             document.body.appendChild(child.node);
-            animation.Animate(child.node).opacity(0, 100, 300);
+            
+            if(animation) animation.animate();
 
             child.onDisplay();
         }
@@ -122,7 +127,7 @@ function(inheritance,events,doc,syntax,data,utils,animation){
     /**
      * Base Component
      */
-    function ComponentBase(controller){
+    function ComponentBase(){
     }
 
     //interface callbacks, intended for override
@@ -154,6 +159,10 @@ function(inheritance,events,doc,syntax,data,utils,animation){
 
     ComponentBase.prototype.init = function(args){
         this.__init_args__ = args;
+        //read out arguments
+        if(args){
+            this.animated =args.animated;
+        }
         this.onInit(args);
     }
 
@@ -167,7 +176,24 @@ function(inheritance,events,doc,syntax,data,utils,animation){
             }
         }).bind(this));
     }
+    
+    /**
+     * 
+     */
+    function isAnimation(){
+        var animation = null;
+        if(this.animated && this instanceof ComponentBase){
+            var style = this.node.style;
+            style.opacity = 0;
+            animation = new effects.StoryBoard([new Animation(0,100,300,Animation.cubicEaseIn,
+            function(value){
+                style.opacity = value * 0.1 / 10;
+                style.left = -100 + value + 'px';
+            })]);  
 
+        }
+        return animation;
+    }
 
     ComponentBase.prototype.displayChild = function(child){
         //content id = cid
@@ -176,13 +202,14 @@ function(inheritance,events,doc,syntax,data,utils,animation){
         var target = this.content[id];
         var mode = child.contentMode;
 
-        child.node.opacity = 0;    
-
+        var animation = isAnimation.call(child);
+        
+        
         if(mode == 'include'){
             if(id == 'default') throw 'Unable to replace default container';
             target.parentNode.replaceChild(child.node,target);            
             //this.content id;
-            return;
+            //return;
         }
 
         if(mode == 'add'){
@@ -198,7 +225,7 @@ function(inheritance,events,doc,syntax,data,utils,animation){
             //decode the type of child
         }
 
-        animation.Animate(child.node).opacity(0, 100, 300);
+        if(animation != null) animation.animate();
 
         if(child instanceof ComponentBase)                
             child.onDisplay();

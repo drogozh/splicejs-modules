@@ -292,7 +292,7 @@ define([
 	// );
 
 	return {
-		Button		: factory.define('Button:buttons.html',Button),
+		Button		: factory.define('Button:buttons.html',Button,{animated:true}),
 		Label		: factory.define('Label:buttons.html',Label),
 		CheckBox	: factory.define('CheckBox:buttons.html',CheckBox)
 	}
