@@ -40,16 +40,22 @@ define(function(){
      */
     function asyncLoop(from, to, pageSize, pageTimeOut){
         return {
-            go:function(oncallback,oncomplete,onpage){
+            for:function(oncallback,oncomplete,onpage){
                loop(from, to, pageSize, pageTimeOut, oncallback, oncomplete, onpage);
             }
         }
     }
 
 
+    function execute(fn,delay){
+        if(delay == null || delay <= 0) delay = 1;
+        setTimeout(fn,delay);
+    }
+
 
 return {
-	loop:asyncLoop
+	loop:asyncLoop,
+    exec:execute
 }
 
 

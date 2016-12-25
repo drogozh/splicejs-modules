@@ -12,7 +12,8 @@ define([
 ],function(require,inheritance,component,event,view){
 
 
-	var Class = inheritance.Class;
+	var Class = inheritance.Class
+    ,   ComponentBase = component.ComponentBase;
 
 	//component factory
     var factory = component.ComponentFactory(require,{
@@ -52,8 +53,9 @@ define([
     Button.prototype.setCaption = function(caption){
         this.caption = caption
         this.replace(caption); 
-    }    
-		
+    }
+
+
 	/**
 	 *	Label Component 
 	 */

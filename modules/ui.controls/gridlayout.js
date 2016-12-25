@@ -6,17 +6,17 @@ define([
 	'{splice.modules}/view',
 	'{splice.modules}/component.interaction',
     '{splice.modules}/util',
+    '{splice.modules}/async',
 	'preload|{splice.modules}/component.loader',
     '!gridlayout.css'
 
-],function(require,inheritance,component,event,view,interaction,utils){
-
-	
+],function(require,inheritance,component,event,view,interaction,utils,async){
  
     var	Class 		= inheritance.Class
 	,	DragAndDrop = interaction.DragAndDrop
 	,   proxy 		= component.proxy
-    ,   mixin = utils.mixin;
+    ,   foreach     = utils.foreach
+    ,   mixin       = utils.mixin;
 
 	/**
 	 * 
@@ -81,9 +81,9 @@ define([
 
 	}).extend(component.ComponentBase);
 
-    CellContainer.prototype.onInit = function(){
+    CellContainer.prototype.onInit = function(args){
 
-//        event.attach(this,{ onResize        : event.MulticastEvent});
+        //event.attach(this,{ onResize        : event.MulticastEvent});
         //workaround for event attacher
         this.onResize = null;
 
@@ -159,10 +159,6 @@ define([
 	};
 
 
-	CellContainer.prototype.reflowChildren = function(position, size, bubbleup){
-		UIControl.prototype.reflowChildren.call(this,{left:0, top:0}, size, bubbleup);
-	};
-
 	CellContainer.prototype.remove = function(){
 		this.onRemove(this);
 	};
@@ -188,51 +184,56 @@ define([
 		});
 
 
-		/* default gap values */
+		//default gap values
 		if(!this.margin) 		this.margin = 10;
 		if(!this.outerMargin) 	this.outerMargin = 10;
 
-		/* default grid configuration */
-		if(!this.grid)			this.grid = {columns:2, rows:2};
-		this.grid = new Grid(this.grid.rows, this.grid.columns);
-
-
 
 		// a collection of cells, contained in a null object
-		this.layoutCells = Object.create(null);
+        this.layoutCells = {};
 		// cell sequence counter
 		this.cellSequence = 1;
 
 	}).extend(component.ComponentBase);
 
 
-	GridLayout.prototype.onInit = function(){
-		/*
-			hook into window resize event only if grid layout
-			is configured as a toplevel component
-		*/
-		if(this.attachToWindow === true ) {
+	GridLayout.prototype.onInit = function(args){
+		
+		//	hook into window resize event only if grid layout
+		//	is configured as a toplevel component
+		if(this.attachToParent === true ) {
 			event.attach(window,{
                 onresize : event.MulticastEvent
             }).onresize.subscribe(function(){this.reflow();},this);
 	    }
+
+        //determine grid dimensions
+        var cols = utils.max(args.cells,function(cell){return cell.col+1;}, 2 || args.cols);
+        var rows = utils.max(args.cells,function(cell){return cell.row+1;}, 2 || args.rows);
+		this.grid = new Grid(rows, cols);
+
+        //add cells
+        foreach(args.cells,(function(cell){
+            this.addCell(cell.body,[cell.row,cell.col,1,1]);    
+        }).bind(this));
+
 	};
 
 
 
-	GridLayout.prototype.onDisplay = function(){
+	// GridLayout.prototype.onDisplay = function(){
 
-		/* processes layout cells */
-		if(this.cells && this.cells.length > 0){
+	// 	/* processes layout cells */
+	// 	if(this.cells && this.cells.length > 0){
 
-			for(var i=0; i< this.cells.length; i++) {
-				addCell.call(this,	this.cells[i].content,
-					[this.cells[i].row, this.cells[i].col,
-					this.cells[i].rowspan, this.cells[i].colspan]);
-			}
-			this.reflow();
-		}
-	};
+	// 		for(var i=0; i< this.cells.length; i++) {
+	// 			addCell.call(this,	this.cells[i].content,
+	// 				[this.cells[i].row, this.cells[i].col,
+	// 				this.cells[i].rowspan, this.cells[i].colspan]);
+	// 		}
+	// 		this.reflow();
+	// 	}
+	// };
 
 
 	/* private */
@@ -363,7 +364,10 @@ define([
      * 
      */
     GridLayout.prototype.onDisplay = function(){
-        this.reflow();
+       async.exec(
+           (function(){this.reflow();}).bind(this)
+           );
+        
     };
 
 

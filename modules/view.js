@@ -145,41 +145,51 @@ function remove(view){
   		}
   	}
 
-  function _box(element){
 
-  	var css = window.getComputedStyle(element,null);
+    var unitRegex = /^([0-9.]+)([a-zA-Z%]+)$/;
+    function _unit(value){
+        var result = unitRegex.exec(value);
+        return {
+            value:+result[1],
+            unit:result[2]
+        }
+    }    
 
-  	var w  = css.getPropertyValue('width')
-  	,	h  = css.getPropertyValue('height')
-  	,	pl = css.getPropertyValue('padding-left')
-  	,	pt = css.getPropertyValue('padding-top')
-  	,	pr = css.getPropertyValue('padding-right')
-  	,	pb = css.getPropertyValue('padding-bottom')
-  	, bl = css.getPropertyValue('border-left-width')
-  	,	bt = css.getPropertyValue('border-top-width')
-  	,	br = css.getPropertyValue('border-right-width')
-  	,	bb = css.getPropertyValue('border-bottom-width')
-  	,	ml = css.getPropertyValue('margin-left')
-  	,	mt = css.getPropertyValue('margin-top')
-  	,	mr = css.getPropertyValue('margin-right')
-  	,	mb = css.getPropertyValue('margin-bottom');
+    function _box(element){
 
-  	return {
-  		height:	h,
-  		width:	w,
-  		padding: {left:pl, top:pt, right:pr, bottom:pb},
-  		border:  {left:bl, top:bt, right:br, bottom:bb},
-  		margin:  {left:ml, top:mt, right:mr, bottom:mb},
-  		unit:function(){return {
-  				height:	+_unit(h),
-  				width:	+_unit(w),
-  				padding: {left: +_unit(pl), top: +_unit(pt), right: +_unit(pr), bottom: +_unit(pb)},
-  				border:  {left: +_unit(bl), top: +_unit(bt), right: +_unit(br), bottom: +_unit(bb)},
-  				margin:  {left: +_unit(ml), top: +_unit(mt), right: +_unit(mr), bottom: +_unit(mb)}
-  			}
-  		}
-  	}
-  };
+        var css = window.getComputedStyle(element,null);
+
+        var w  = css.getPropertyValue('width')
+        ,	h  = css.getPropertyValue('height')
+        ,	pl = css.getPropertyValue('padding-left')
+        ,	pt = css.getPropertyValue('padding-top')
+        ,	pr = css.getPropertyValue('padding-right')
+        ,	pb = css.getPropertyValue('padding-bottom')
+        ,   bl = css.getPropertyValue('border-left-width')
+        ,	bt = css.getPropertyValue('border-top-width')
+        ,	br = css.getPropertyValue('border-right-width')
+        ,	bb = css.getPropertyValue('border-bottom-width')
+        ,	ml = css.getPropertyValue('margin-left')
+        ,	mt = css.getPropertyValue('margin-top')
+        ,	mr = css.getPropertyValue('margin-right')
+        ,	mb = css.getPropertyValue('margin-bottom');
+
+        return {
+            height:	h,
+            width:	w,
+            padding: {left:pl, top:pt, right:pr, bottom:pb},
+            border:  {left:bl, top:bt, right:br, bottom:bb},
+            margin:  {left:ml, top:mt, right:mr, bottom:mb},
+            unit:function(){return {
+                    height:	_unit(h),
+                    width:	_unit(w),
+                    padding: {left: _unit(pl), top: _unit(pt), right: _unit(pr), bottom: _unit(pb)},
+                    border:  {left: _unit(bl), top: _unit(bt), right: _unit(br), bottom: _unit(bb)},
+                    margin:  {left: _unit(ml), top: _unit(mt), right: _unit(mr), bottom: _unit(mb)}
+                }
+            }
+        }
+    };
 
 
 
@@ -638,7 +648,8 @@ return {
 		}, 
     DomMulticastEvent:new DomMulticastEvent(),
     DomMulticastStopEvent: new DomMulticastStopEvent(),
-		cancelEventBubble:cancelBubble
+	cancelEventBubble:cancelBubble,
+    box:_box
   }
 
 

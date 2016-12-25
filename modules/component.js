@@ -6,10 +6,11 @@ define([
     'dataitem',
     'util',
     'animation',
+    'view',
     'preload|component.loader'
 ],
 
-function(inheritance,events,doc,syntax,data,utils,effects){
+function(inheritance,events,doc,syntax,data,utils,effects,view){
     "use strict";
 
     var tags = {
@@ -83,8 +84,7 @@ function(inheritance,events,doc,syntax,data,utils,effects){
                 listener.loaded(t);
             });
             return function Component(args,parent){
-                defaultArgs = defaultArgs || {};
-                args = mixin(defaultArgs,args);
+                args = utils.blend(defaultArgs,args);
                 var comp = new controller(args);
                     comp.parent = parent;
                 if(!listener.isLoaded){
@@ -159,9 +159,14 @@ function(inheritance,events,doc,syntax,data,utils,effects){
 
     ComponentBase.prototype.init = function(args){
         this.__init_args__ = args;
+        
+        //default layout mode
+        this.layout = 'css';
+        
         //read out arguments
         if(args){
             this.animated =args.animated;
+            this.layout = args.layout || this.layout; 
         }
         this.onInit(args);
     }
@@ -188,7 +193,6 @@ function(inheritance,events,doc,syntax,data,utils,effects){
             animation = new effects.StoryBoard([new Animation(0,100,300,Animation.cubicEaseIn,
             function(value){
                 style.opacity = value * 0.1 / 10;
-                style.left = -100 + value + 'px';
             })]);  
 
         }
@@ -351,12 +355,39 @@ function(inheritance,events,doc,syntax,data,utils,effects){
         if(!this.node) return;
 
         var style = this.node.style;
-
-        style.left = x + 'px';
-        style.top = y + 'px';
+        if(x != null)
+            style.left = x + 'px';
+        if(y != null)
+            style.top = y + 'px';
         
-        style.width = w + 'px';
-        style.height = h + 'px';
+
+        var box = view.box(this.node).unit();
+
+        if(w !=null ) {
+            w = w - box.padding.left.value 
+                  - box.padding.right.value
+                  - box.margin.left.value
+                  - box.margin.right.value;
+
+            style.width = w + 'px';
+        }
+
+        if(h != null) {
+            h = h - box.padding.top.value
+                  - box.padding.bottom.value
+                  - box.margin.top.value
+                  - box.margin.bottom.value;
+
+            style.height = h + 'px';
+        }
+
+        //reflow children
+        utils.formany(this.children,function(child){
+            if(child instanceof ComponentBase &&  child.layout == "container"){
+                child.reflow(null,null,w,h);
+            }    
+        });
+
     }
 
 
@@ -431,7 +462,7 @@ function(inheritance,events,doc,syntax,data,utils,effects){
         for(var i=0; i<nodes.length; i++){
             var node = nodes[i]
             ,	parent = node.parentNode
-            ,	json = convertToProxyJson.call(scope, node, node.tagName);
+            ,	json = convertToProxyJson.call(scope, node, node.tagName,false,this);
                        
             var a = template.addChild(json);
             parent.replaceChild(a,node);
@@ -646,12 +677,12 @@ function(inheritance,events,doc,syntax,data,utils,effects){
     /**
      * 
      */
-  	function convertToProxyJson(dom, parent, replace){
+  	function convertToProxyJson(dom, parent, replace,template){
 
   		var scope = this;
 
   		if(	dom.tagName != tags.include &&	dom.tagName != tags.element)
-  			return handle_INLINE_HTML.call(scope, dom, parent, true);
+  			return handle_INLINE_HTML.call(scope, dom, parent, true,template);
 
   		var	elements = 	doc.select.nodes({childNodes:dom.childNodes},
   				function(node){
@@ -667,18 +698,20 @@ function(inheritance,events,doc,syntax,data,utils,effects){
   		if(elements && elements.length > 0){
   			for(var i=0; i< elements.length; i++){
   				var node = elements[i];
-  				convertToProxyJson.call(scope,node, dom, true);
+  				convertToProxyJson.call(scope,node, dom, true,template);
   			}
   		}
 
   		//proces current element
-  		if(dom.tagName === tags.include) return handle_INCLUDE(dom, parent, replace);
-  		if(dom.tagName === tags.element) return handle_ELEMENT(dom, parent, replace);
+  		if(dom.tagName === tags.include) return handle_INCLUDE.call(scope,dom, parent, replace,template);
+  		if(dom.tagName === tags.element) return handle_ELEMENT.call(scope,dom, parent, replace,template);
 
   	}
 
-
-  	function handle_INCLUDE(node, parent, replace){
+    /**
+     * 
+     */
+  	function handle_INCLUDE(node, parent, replace,template){
 
   		var attributes = collectAttributes(node,RESERVED_ATTRIBUTES)
   		,	json = '';
@@ -703,7 +736,11 @@ function(inheritance,events,doc,syntax,data,utils,effects){
   		return json;
   	}
 
-  	function handle_ELEMENT(node, parent, replace){
+    
+    /**
+     * 
+     */
+    function handle_ELEMENT(node, parent, replace,template){
   		var type = node.getAttribute('sjs-type')
   		,	attributes = collectAttributes(node,RESERVED_ATTRIBUTES);
 
@@ -720,12 +757,14 @@ function(inheritance,events,doc,syntax,data,utils,effects){
   		return json;
   	}
 
-
-    function handle_INLINE_HTML(node, parent, replace){
+    /**
+     * 
+     */
+    function handle_INLINE_HTML(node, parent, replace,template){
   		var scope = this
   		,	attributes = collectAttributes(node,RESERVED_ATTRIBUTES);
 
-  		var _type = '__inlineTemplate__'+(scope.__sjs_components__.sequence++)
+  		var _type = '__inlineTemplate__'+(scope.sequence++)
   		,	json = '';
 
   		if(attributes) attributes = ',' + attributes;

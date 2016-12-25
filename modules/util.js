@@ -1,5 +1,6 @@
-define(['exports'],
-function(exports){
+define([
+    'exports'
+], function(exports){
 "use strict";
 
 function fileExt(f){
@@ -22,6 +23,13 @@ function mixin(_t, _s){
 	return _t;
 }
 
+/**
+ * Blends properties of two objects into one
+ * in case of duplicate properties values in the source object win
+ */
+function blend(target,source){
+    return mixin(mixin({},target),source);
+}
 
 function foreach(collection,callback){
     if(!collection) return;
@@ -31,6 +39,37 @@ function foreach(collection,callback){
         callback(collection[keys[key]],keys[key],idx++);
     }    
 }
+
+function max(collection,callback,min){
+    if(!collection) return min;
+	var	keys = Object.keys(collection)
+    ,   idx= 0
+    ,   max = -Infinity;
+    for(var key in keys ){
+        var _x = callback(collection[keys[key]],keys[key],idx++);
+        if(_x > max) max = _x;
+    }    
+
+    if(max < min) max = min;
+    return max;
+}
+
+function formany(groups, callback){
+    if(!groups) return;
+	var	keys = Object.keys(groups);
+  
+    for(var key in keys ){
+        var collection = groups[keys[key]];
+        var subkeys = Object.keys(collection)
+        ,   idx= 0;
+        for(var subkey in keys ){
+            callback(collection[subkeys[subkey]],subkeys[subkey],idx++);
+        }
+        
+    }
+}
+
+
 
 
 function trim(s){if(!s) return s;
@@ -158,6 +197,12 @@ exports.File = {
     ext:fileExt
 };
 
-return {Namespace:Namespace,foreach:foreach};
+return {
+    Namespace:Namespace,
+    foreach:foreach,
+    formany:formany,
+    blend:blend,
+    max:max,
+};
 
 });
