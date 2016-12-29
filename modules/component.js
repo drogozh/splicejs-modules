@@ -51,7 +51,10 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
         events.attach(this,{'onloaded':events.MulticastEvent});
     }
 
-    Listener.prototype.loaded = function(t){	
+    /**
+     * @param scope - scope object passed to a component factory
+     */
+    Listener.prototype.loaded = function(t,scope){	
         if(this.isLoaded) return; //already loaded
         
         //compile templates
@@ -59,7 +62,7 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
 
   		for(var i=0; i< keys.length; i++) {
             if(t[keys[i]].isCompiled) continue;
-            t[keys[i]] = new Template(t[keys[i]].node).compile();
+            t[keys[i]] = new Template(t[keys[i]].node).compile(scope);
   		}
         
         this.t = t;
@@ -436,17 +439,18 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
   	 *
   	 * @param template - template to compile
   	 * @returns Template a DOM of the template (aka build version).
+     * @param scope - component factory scope argument  
   	 */
-    Template.prototype.compile = function(){
+    Template.prototype.compile = function(scope){
 
-        var scope = {}
-        ,   template = this;
+        var template = this;
 
         template.isCompiled = true;
 
         /* select top level includes */
         var inclusions = [];
 
+        //selects only direct child nodes
         var nodes = doc.select.nodes({childNodes:template.node.childNodes},
                 function(node){
                     if(node.tagName == tags.include || node.tagName == tags.element) return node;
@@ -461,10 +465,14 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
 
         for(var i=0; i<nodes.length; i++){
             var node = nodes[i]
-            ,	parent = node.parentNode
-            ,	json = convertToProxyJson.call(scope, node, node.tagName,false,this);
-                       
+            ,	parent = node.parentNode;
+            
+            var	json = convertToProxyJson.call(scope, node, node.tagName,false,this);
+            
+            //create placeholder anchor           
             var a = template.addChild(json);
+            
+            //replace current node with a placeholder anchor
             parent.replaceChild(a,node);
         }
 
@@ -894,7 +902,7 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
      * Uses document.body as a template instance
      */
     var DocumentApplication = Class(function DocumentApplication(scope){
-        var template = new Template(document.body).compile();
+        var template = new Template(document.body).compile(scope);
         template.clone = function(){return this.node;}
         this.loaded(template,scope);
         this.content['default'] = document.body;
