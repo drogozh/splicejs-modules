@@ -29,7 +29,7 @@ define([
  	 */
     var Button = Class(function Button(args){
 		if(args)
-        	this.caption = args.caption != null ? args.caption  : 'button';
+        	this.caption = args.content != null ? args.content  : 'button';
 	}).extend(component.ComponentBase);
 	
 	Button.prototype.onInit = function(){

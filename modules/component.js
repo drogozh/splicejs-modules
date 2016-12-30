@@ -84,7 +84,7 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
             var listener = new Listener();
             scope[utils.functionName(controller)] = controller;
             require('!'+[parts[1]],function(t){
-                listener.loaded(t);
+                listener.loaded(t,scope);
             });
             return function Component(args,parent){
                 args = utils.blend(defaultArgs,args);
@@ -447,7 +447,11 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
 
         template.isCompiled = true;
 
-        /* select top level includes */
+        //set adhoc component counter
+        if(scope.__sjs_adhoc__ == null) scope.__sjs_adhoc__ = 0; 
+
+
+        //select top level includes
         var inclusions = [];
 
         //selects only direct child nodes
@@ -688,7 +692,7 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
   	function convertToProxyJson(dom, parent, replace,template){
 
   		var scope = this;
-
+        //any tag other than <include> or <element> is processed as html tag 
   		if(	dom.tagName != tags.include &&	dom.tagName != tags.element)
   			return handle_INLINE_HTML.call(scope, dom, parent, true,template);
 
@@ -772,7 +776,7 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
   		var scope = this
   		,	attributes = collectAttributes(node,RESERVED_ATTRIBUTES);
 
-  		var _type = '__inlineTemplate__'+(scope.sequence++)
+  		var _type = '__adhoc_component__'+(scope.__sjs_adhoc__++)
   		,	json = '';
 
   		if(attributes) attributes = ',' + attributes;
@@ -786,22 +790,25 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
   		if(replace === true)
   			node.parentNode.replaceChild(document.createTextNode(json),node);
 
-  		/*
-  			build new template and store within scope
-  			run template compiler
-  		*/
-  		var sjs_node = document.createElement('sjs-component');
+  		
+  		// build new template and store within scope
+  		// run template compiler
+          var template = new Template(node).compile(scope);
 
-  		sjs_node.appendChild(node);
-  		var template = new Template(sjs_node);
-  		template.type = _type;
+  		// if(parent.tagName == 'SJS-ELEMENT'){
+  		// 	sjs_node.attributes['sjs-controller'] = 'Controller';
+  		// }
 
+  		
 
-  		if(parent.tagName == 'SJS-ELEMENT'){
-  			sjs_node.attributes['sjs-controller'] = 'Controller';
-  		}
-
-  		compileTemplate.call(scope, template);
+        scope[_type] = function Component(args,parent){
+            var comp = new ComponentBase(args);
+            comp.parent = parent;
+            comp.init(args);
+            comp.resolve(parent != null ? parent.scope : null);
+            comp.loaded(template,scope);
+            return comp;
+        };  
 
   		return json
   	}
