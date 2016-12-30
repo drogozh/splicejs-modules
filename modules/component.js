@@ -42,6 +42,7 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
   		/* Look for properties within a root of the parent chain */
   		,	TYPE 		 : 5
   		/* Indicates type lookup lookup */
+        ,   PATH        :  6
   	};
 
     /**
@@ -62,7 +63,7 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
 
   		for(var i=0; i< keys.length; i++) {
             if(t[keys[i]].isCompiled) continue;
-            t[keys[i]] = new Template(t[keys[i]].node).compile(scope);
+            t[keys[i]] = new Template(t[keys[i]].node,keys[i]).compile(scope);
   		}
         
         this.t = t;
@@ -88,8 +89,9 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
             });
             return function Component(args,parent){
                 args = utils.blend(defaultArgs,args);
-                var comp = new controller(args);
+                var comp = new controller(args,parent);
                     comp.parent = parent;
+                    comp.__templatename__ = parts[0]; 
                 if(!listener.isLoaded){
                     comp.init(args);
                     comp.resolve(parent != null ? parent.scope : null);
@@ -142,7 +144,9 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
     ComponentBase.prototype.loaded = function(template,scope){
         this.isLoaded = true;
         this.scope = scope;
-               
+        this.content = {};
+        this.contentOverride = {};
+
         //template instance is created here
         var templateInstance = 
             getTemplateInstance.call(this,template);
@@ -152,7 +156,7 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
         this.children = this.children || {};
         this.children = mixin(this.children,templateInstance.children);
         //content map
-        this.content = buildContentMap(this.node);
+        buildContentMap.call(this);
         //notify controller
         this.onLoaded();
 
@@ -202,6 +206,8 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
         return animation;
     }
 
+  
+
     ComponentBase.prototype.displayChild = function(child){
         //content id = cid
         //content mode  = cmode
@@ -213,7 +219,7 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
         
         
         if(mode == 'include'){
-            if(id == 'default') throw 'Unable to replace default container';
+            target = this.content[child.includeId];
             target.parentNode.replaceChild(child.node,target);            
             //this.content id;
             //return;
@@ -302,6 +308,12 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
                 
         initChildCollection(this,location);
 
+        //child is a proxy object
+        if(child.__sjs_isproxy__ === true){
+            child = child(this);
+        }
+
+
         if(!(child instanceof ComponentBase))
             child = new ValueComponent(child.toString());
 
@@ -332,9 +344,21 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
         //nothing to do here, if placement is not set
         location = location || 'default';
         
+        var target = this.contentOverride[location] || this.content[location];
+        if(target instanceof ComponentBase){
+            target.replace(child);
+            return;
+        }
+
         initChildCollection(this,location);
 
         var current = this.children[location];
+
+        //child is a proxy object
+        if(child.__sjs_isproxy__ === true){
+            child = child(this);
+        }
+
 
         if(current instanceof ValueComponent) {
             //child = new ValueComponent(child.toString());
@@ -349,8 +373,14 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
         child.contentMode = 'replace';
         child.contentId = location;
         child.parent = this;
-               
+
+
         if(this.isDisplayed) child.display();
+
+        //highjack content
+        if(child instanceof ComponentBase && child.__content__ != null){
+            this.contentOverride[child.__content__] = child;
+        }
     }
 
 
@@ -414,8 +444,9 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
     /** 
      * 
      */
-    function Template(node){
+    function Template(node,name){
         this.node = node;
+        this.name = name;
         this.children = [];
     }
 
@@ -487,9 +518,16 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
     /**
      * 
      */
-    function Binding(path,type){
+    function Binding(path,kind){
         this.property = path;
-        this.type = type;
+        this.kind = kind;
+        this.targetType = null;
+    }
+
+    Binding.prototype.parent = function(typeName){
+        this.targetType = typeName;
+        this.kind = BINDING_TYPES.PARENT;
+        return this;
     }
 
 
@@ -510,16 +548,21 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
 
         var children = {};
         for(var i=0; i < template.children.length; i++){
-            var child = template.children[i];
+            var json = template.children[i];
             var key = anchors[i].getAttribute('sjs-content');
             var list = children[key];
             if(!list) {
                 list = children[key] = [];
             } 
-            child = runProxy(this,child);
+            var child = runProxy(this,json)(this);
             child.contentMode = 'include';
-            child.contentId = key;
+            child.includeId = key;
             list.push(child);
+
+            //set child as content receiver
+            if(child.__content__){
+                this.content[child.__content__] = child;
+            }
         }
 
         return {
@@ -535,14 +578,19 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
     /**
      * 
      */
-    function buildContentMap(element){
+    function buildContentMap(){
+
+        var element = this.node;
+
         if(element.tagName == 'TEMPLATE')
             element = element.content;
 
         var contentNodes = element.querySelectorAll('[sjs-content]')
-        ,	cMap = {};
+        ,	cMap = this.content;
 
-        if(!contentNodes) return;
+        if(!contentNodes || contentNodes.length < 1) {
+            return cMap['default'] = element;
+        }
         var node = element;
         for(var i=0; i<=contentNodes.length; i++){
             if(!node.getAttribute) { 
@@ -574,11 +622,18 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
      *  @param args - constructor arguments
     */
     function proxy(component,pArgs){
-        var _type = new DataItem(component.scope).path(pArgs.type).getValue();
-        var instance = null;
-        if(_type != null)
-            instance = new _type(pArgs.args,component);
-        return instance;
+        var prx =  function proxy(parent){
+            var _type = new DataItem(component.scope).path(pArgs.type).getValue();
+            var instance = null;
+            if(_type != null) {
+                instance = new _type(pArgs.args,parent);
+            }
+            instance.__content__ = pArgs.content;     
+            return instance;
+        }
+
+        prx.__sjs_isproxy__ = true;
+        return prx;
     }
 
 
@@ -602,7 +657,7 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
      * 
      */
     function binding(property){
-        return new Binding(property,BINDING_TYPES.TYPE);      
+        return new Binding(property,BINDING_TYPES.PATH);      
     }
 
     /**
@@ -617,7 +672,7 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
         //target of the binding
         var target = new DataItem(instance).path(key);
 
-  		switch(binding.type){
+  		switch(binding.kind){
             case BINDING_TYPES.SELF:
                 break;
 
@@ -633,8 +688,9 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
 
             case BINDING_TYPES.ROOT:
                 break;
-
             case BINDING_TYPES.TYPE:
+                break;
+            case BINDING_TYPES.PATH:
                 source = new DataItem(instance).path(binding.property);
                 break;
   		} //end switch statement
@@ -815,7 +871,7 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
 
 
 
-    var RESERVED_ATTRIBUTES = ["type", "name", "singleton", "class", "width", "height", "layout", "controller"];
+    var RESERVED_ATTRIBUTES = ["type", "name", "singleton", "class", "width", "height", "layout", "controller","content"];
   	function collectAttributes(node, filter){
   		if(!node) return null;
 

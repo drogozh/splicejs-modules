@@ -186,18 +186,16 @@ if(!log.info) 	log.info  = function(){};
 if(!log.warn) 	log.warn = function(){};
 if(!log.log) 	log.log = function(){};
 
-exports.log = log;
-exports.mixin = mixin; 
-exports.fname = exports.functionName = fname;
-exports.Text = {
-    join:join, trim:trim
-};
-
-exports.File = {
-    ext:fileExt
-};
 
 return {
+    log:log,
+    mixin:mixin,
+    fname:fname,
+    functionName:fname,
+    Text:{
+        join:join, trim:trim
+    },
+    ext:fileExt,
     Namespace:Namespace,
     foreach:foreach,
     formany:formany,
