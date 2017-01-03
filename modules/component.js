@@ -92,16 +92,14 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
                 var comp = new controller(args,parent);
                     comp.parent = parent;
                     comp.__templatename__ = parts[0]; 
-                if(!listener.isLoaded){
                     comp.init(args);
                     comp.resolve(parent != null ? parent.scope : null);
+                if(!listener.isLoaded){
                     listener.subscribe((function(t){
                         this.loaded(t[parts[0]],scope)
                     }).bind(comp));
                 } else {
                     // component is created
-                    comp.init(args);
-                    comp.resolve(parent != null ? parent.scope : null);
                     comp.loaded(listener.t[parts[0]],scope);
                 }
                 return comp;
@@ -145,7 +143,7 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
         this.isLoaded = true;
         this.scope = scope;
         this.content = {};
-        this.contentOverride = {};
+       
 
         //template instance is created here
         var templateInstance = 
@@ -217,12 +215,19 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
 
         var animation = isAnimation.call(child);
         
-        
+        //contentid is not relevant on includes
+        //includeId is relevant
         if(mode == 'include'){
             target = this.content[child.includeId];
+            // this here means that include child is no londer required
+            if(!target.parentNode){
+                //delete all the references of the include is
+                delete this.content[child.includeId]; 
+                delete this.children[child.includeId];
+                return;
+            }
             target.parentNode.replaceChild(child.node,target);            
-            //this.content id;
-            //return;
+            
         }
 
         if(mode == 'add'){
@@ -344,7 +349,9 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
         //nothing to do here, if placement is not set
         location = location || 'default';
         
-        var target = this.contentOverride[location] || this.content[location];
+        //we could be dealing with an object that is yet to be loaded
+        var target = this.content != null ? this.content[location] : null;
+        
         if(target instanceof ComponentBase){
             target.replace(child);
             return;
@@ -377,10 +384,7 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
 
         if(this.isDisplayed) child.display();
 
-        //highjack content
-        if(child instanceof ComponentBase && child.__content__ != null){
-            this.contentOverride[child.__content__] = child;
-        }
+       
     }
 
 
