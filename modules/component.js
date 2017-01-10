@@ -158,6 +158,11 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
         //notify controller
         this.onLoaded();
 
+        //process replacement queue
+        var _x = null;
+        while(this.toReplace && (_x = this.toReplace.shift()) ) {
+            this.replace(_x.child,_x.location);
+        }
         if(this.isDelayedDisplay) this.display(); 
     }
 
@@ -346,6 +351,12 @@ function(inheritance,events,doc,syntax,data,utils,effects,view){
      * Replaces content at provided location
      */
     ComponentBase.prototype.replace = function(child, location){
+        //queue replacement if component is not loaded yet
+        if(!this.isLoaded ) {
+            this.toReplace = this.toReplace || [];
+            this.toReplace.push({child:child, location:location});
+            return;
+        }
         //nothing to do here, if placement is not set
         location = location || 'default';
         
