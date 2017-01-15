@@ -95,12 +95,11 @@ define([
     CheckBox.prototype.check = function(){
         //set class to reflect the state
         if(this.isChecked == true){
-            //view.css.addClass(this.content.default,'checked');
-            this.onChanged(true);
+            view.css.addClass(this.elements.root,'checked');
         } else {
-           // view.css.removeClass(this.content.default,'checked');
-            this.onChanged(true);
+            view.css.removeClass(this.elements.root,'checked');
         }
+        this.onChanged(this);
     }
 
 	// var Button = Class(function ButtonController(args){
@@ -298,6 +297,6 @@ define([
 	return {
 		Button		: factory.define('Button:buttons.html',Button,{animated:true}),
 		Label		: factory.define('Label:buttons.html',Label),
-		CheckBox	: factory.define('CheckBox:buttons.html',CheckBox)
+		CheckBox	: factory.define('CheckBox:buttons.html',CheckBox,'cb','cb')
 	}
 });

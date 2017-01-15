@@ -19,19 +19,23 @@ define([
         this.parent = parent;
         this.resolve(args,parent);
         this.loaded(new Template(document.createElement('span')));
-        
+
+        this.domContent = args.content;
+
+        if(!args.range) return;
+
         if(args) {
-            this.from = args.from ? args.from : 0;
-            this.to = args.to ? args.to : 1;
+            this.from = args.range ? args.range[0] : 0;
+            this.to = args.range ? args.range[1] : 1;
         }
         
-        this.domContent = args.content;
+       
 
         if(args && args.content){
             for(var i=this.from; i<this.to; i++){
                 var c = args.content(this);
                 this.add(c);
-                c.replace('foo' + i,'subtitle');
+                c.replace(i);
             }
         }
     }).extend(ComponentBase);

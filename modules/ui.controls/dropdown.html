@@ -1,18 +1,18 @@
-<sjs-component sjs-type="DropDownSelector" sjs-controller="DropDownController" sjs-export>
+<template sjs-name="DropDownSelector">
 	<div class="-splicejs-dropdown-selector">
 		<div class="selector" sjs-element="selector" sjs-content="default selector">Select Item</div>
 	</div>
-</sjs-component>
+</template>
 
 <!-- Container that stretches with the content -->
-<sjs-component sjs-type="DropDownContainer" sjs-controller="DropDownContainerController">
+<template sjs-name="DropDownContainer">
 	<div class="-splicejs-dropdown-container" sjs-element="root content" sjs-content="default"></div>
-</sjs-component>
+</template>
 
 <!-- Container of fixed size with a scrollbar -->
-<sjs-component sjs-type="DropDownContainerResizable" sjs-controller="DropDownContainerController">
+<template sjs-type="DropDownContainerResizable">
 	<div class="-splicejs-dropdown-container" sjs-element="root">
 		<div sjs-element="content" sjs-content="default"></div>
 		<div class="resize-bottom"  sjs-element="bottomEdge"></div>
 	</div>
-</sjs-component>
+</template>

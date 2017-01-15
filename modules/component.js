@@ -45,7 +45,10 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
      * @param scope - scope object passed to a component factory
      */
     Listener.prototype.loaded = function(t,scope){	
-        if(this.isLoaded) return; //already loaded
+        if(this.isLoaded) { 
+            console.log('already loaded');
+            return; 
+        }//already loaded
         
         //compile templates
         var keys = Object.keys(t);
@@ -56,8 +59,9 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
   		}
         
         this.t = t;
-        this.onloaded(t);
         this.isLoaded = true;
+        this.onloaded(t);
+       
     }
 
     Listener.prototype.subscribe = function(callback){
@@ -69,9 +73,10 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
      * Component genesis
      */
     function ComponentFactory(require,scope){
-        return {define:function(template,controller,defaultArgs){
+        return {define:function(template,controller,defaultArgs,p){
             var parts = template.split(":");
             var listener = new Listener();
+            listener.p = p;
             scope[utils.functionName(controller)] = controller;
             require('!'+[parts[1]],function(t){
                 listener.loaded(t,scope);
@@ -82,14 +87,17 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
                     comp.parent = parent;
                     comp.__name__ = parts[0]; 
                     comp.init(args);
-                    comp.resolve(args,parent);
+                   
+                   
                 if(!listener.isLoaded){
-                    listener.subscribe((function(t){
+                   listener.subscribe((function(t){
                         this.loaded(t[parts[0]],scope)
+                        this.resolve(args,parent);
                     }).bind(comp));
                 } else {
                     // component is created
                     comp.loaded(listener.t[parts[0]],scope);
+                    comp.resolve(args,parent);
                 }
                 return comp;
             }
@@ -129,6 +137,10 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
     ComponentBase.prototype.onResize  = function(){};
 
     ComponentBase.prototype.loaded = function(template,scope){
+        
+        if(this.__init_args__ && this.__init_args__.fuckbox){
+            console.log(this.includeId);
+        }
         this.isLoaded = true;
         this.scope = scope;
         this.content = {};
@@ -143,6 +155,8 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
         //child collection
         this.children = this.children || [];
 
+        //construc element map
+        buildElementMap.call(this);
 
         //1. content map
         buildContentMap.call(this);
@@ -440,6 +454,8 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
                 var c = content[keys[i]];
                 this.replace(c,l);
             }        
+        } else {
+            this.replace(content.toString());
         }
     }
 
@@ -610,7 +626,28 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
         };
     }
 
+    function buildElementMap(){
+        var element = this.node;
+        var elementNodes = element.querySelectorAll('[sjs-element]');
+        
+        var elementMap = this.elements = {};
+        var node = element;
+        for(var i=-1; i <elementNodes.length; i++){
+            if(i>-1)  node = elementNodes[i];
 
+            var attr = node.getAttribute('sjs-element');
+            if(!attr) continue;
+            var keys = attr.split(' ');
+            for(var k=0; k<keys.length; k++){
+                var key = keys[k];
+                if(elementMap[key]) throw 'Duplicate name map key ' + key;
+                
+                elementMap[key] = node;
+            }
+            
+        }
+        return elementMap;
+    }
 
 
     /**
@@ -666,6 +703,10 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
             if(_type != null) {
                 instance = new _type(pArgs.args,parent);
             }
+            if(instance == null) {
+                throw 'type not found [' + pArgs.type +']';
+            }
+
             instance.__parent_content__ = pArgs.parentContent;     
             return instance;
         }

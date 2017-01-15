@@ -39,3 +39,71 @@ Tempalte elements may be decorated with sjs-content attributes.
 }
 </include>
 ```
+
+# Gotchas
+Using a component inside the same type of component ie recursive nesting
+
+As shown below, one CheckBox includes another checkbox 
+```html
+<include sjs-type="Controls.Button" sjs-override="subtitle">
+{
+    content:<include sjs-type="Controls.CheckBox" sjs-override="default" >
+            {
+                isChecked:true,
+                content:<div sjs-override="default"  class="-sub-label">
+                            <include sjs-type="Controls.Button" sjs-override="default">
+                            {
+                                content:'test',
+                                onClick:binding('buttonClicked').name('SampleApplication')
+                            }
+                            </include>
+                            <include sjs-type="Controls.CheckBox"> 
+                            {
+                                isChecked:true
+                            }
+                            </include>
+                        </div>
+            }
+            </include>      
+}
+</include>
+```
+
+
+```javascript
+function ComponentFactory(require,scope){
+    return {define:function(template,controller,defaultArgs,p){
+        var parts = template.split(":");
+        var listener = new Listener();
+        listener.p = p;
+        scope[utils.functionName(controller)] = controller;
+        require('!'+[parts[1]],function(t){
+            listener.loaded(t,scope);
+        });
+        return function Component(args,parent){
+            args = utils.blend(defaultArgs,args);
+            var comp = new controller(args,parent);
+                comp.parent = parent;
+                comp.__name__ = parts[0]; 
+                comp.init(args);
+                comp.resolve(args,parent);
+            //when component type is nested within itself
+            //the compnent constuctor will run inside template
+            //loading handler which is triggered by the parent
+            //component of the same type
+            //thus it is necessary to set listener.isLoaded= true
+            //before running onload handler    
+            if(!listener.isLoaded){
+                listener.subscribe((function(t){
+                    this.loaded(t[parts[0]],scope)
+                }).bind(comp));
+            } else {
+                // component is created
+                comp.loaded(listener.t[parts[0]],scope);
+            }
+            return comp;
+        }
+    }
+}
+}
+```

@@ -77,7 +77,7 @@ define(
               spec.innerHTML = response.text;
               var delay = 1;
               if(/buttons.html$/.test(spec.fileName))
-                delay = 1000;
+                delay = 1;
               setTimeout(function(){
                 loader.notify(spec);
               },delay);
