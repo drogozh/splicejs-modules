@@ -95,9 +95,11 @@ define([
     CheckBox.prototype.check = function(){
         //set class to reflect the state
         if(this.isChecked == true){
-            view.css.addClass(this.content.default,'checked');
+            //view.css.addClass(this.content.default,'checked');
+            this.onChanged(true);
         } else {
-            view.css.removeClass(this.content.default,'checked');
+           // view.css.removeClass(this.content.default,'checked');
+            this.onChanged(true);
         }
     }
 
