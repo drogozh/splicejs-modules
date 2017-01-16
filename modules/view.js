@@ -9,89 +9,94 @@ function(imports){
  	"use strict";
 
 
-  var Tokenizer = imports.Syntax.Tokenizer
-  , 	Document = imports.Document
-  ,  	Class = imports.Inheritance.Class
-  ,  	Events = imports.Events
-  ;
+var Tokenizer = imports.Syntax.Tokenizer
+, 	Document = imports.Document
+,  	Class = imports.Inheritance.Class
+,  	Events = imports.Events
+;
 
-	/**
-	 * Runs Depth-First-Search on DOM tree 
-	 */
-	function dfs(dom, target, filterFn, nodesFn){
-  	if(!dom) return;
+/**
+ * Runs Depth-First-Search on DOM tree 
+ */
+function dfs(dom, target, filterFn, nodesFn){
+    if(!dom) return;
 
     if(typeof filterFn === 'function') {
-      var node = filterFn(dom);
-      if(node) target.push(node);
+        var node = filterFn(dom);
+        if(node) target.push(node);
     } else {
-      target.push(dom);
+        target.push(dom);
     }
 
     var children = [];
     if(typeof nodesFn === 'function'){
-      children = nodesFn(dom);
+        children = nodesFn(dom);
     }
     else {
-      children = dom.childNodes;
+        children = dom.childNodes;
     }
 
     for(var i=0; i < children.length; i++){
-      var n = dom.childNodes[i];
-      dfs(n,target,filterFn, nodesFn);
+        var n = dom.childNodes[i];
+        dfs(n,target,filterFn, nodesFn);
     }
-	}
+}
 
-  function selectNodes(dom,filterFn, nodesFn){
-  	var nodes = new Array();
+function selectNodes(dom,filterFn, nodesFn){
+    var nodes = new Array();
     dfs(dom,nodes,filterFn, nodesFn);
     if(nodes.length < 1) nodes = null;
     return nodes;
-  }
+}
 
-  function selectTextNodes(dom,filterFn){
+function selectTextNodes(dom,filterFn){
     var nodes = new Array();
     //nodeType 3 is a text node
     dfs(dom,nodes,function(node){
-      if(node.nodeType === 3) {
+        if(node.nodeType === 3) {
         if(typeof filterFn === 'function')	return filterFn(node);
         return node;
-      }
-      return null;
+        }
+        return null;
     });
     if(nodes.length < 1) nodes = null;
     return nodes;
-  };
+};
 
-	function _propertyValueLocator(path){
-				var npath = path.split('.')
-				,	result = this;
+//returns zero or a value
+function z(n){
+    if(!n) return 0;
+    return n;
+}
 
-				//loop over path parts
-				for(var i=0; i < npath.length-1; i++ ){
-					result = result[npath[i]];
-					if(result == null) console.warn('Property ' + path + ' is not found in object ' + result);
-				}
-				var p = npath[npath.length - 1];
-				if(result && result[p] == undefined) console.warn('Property ' + path + ' is not found in object ' + result);
+function _propertyValueLocator(path){
+            var npath = path.split('.')
+            ,	result = this;
 
-				//hash map object
-				return Object.defineProperty(Object.create(null),'value',{
-					get:function(){
-						if(!result) return null;
-						return result[p];
-					},
-					set:function(newValue){
-						if(!result) return;
-						result[p] = newValue;
-					}
-				});
-	};
+            //loop over path parts
+            for(var i=0; i < npath.length-1; i++ ){
+                result = result[npath[i]];
+                if(result == null) console.warn('Property ' + path + ' is not found in object ' + result);
+            }
+            var p = npath[npath.length - 1];
+            if(result && result[p] == undefined) console.warn('Property ' + path + ' is not found in object ' + result);
 
-	function propertyValue(obj){
-		return _propertyValueLocator.bind(obj);
-	};
+            //hash map object
+            return Object.defineProperty(Object.create(null),'value',{
+                get:function(){
+                    if(!result) return null;
+                    return result[p];
+                },
+                set:function(newValue){
+                    if(!result) return;
+                    result[p] = newValue;
+                }
+            });
+}
 
+function propertyValue(obj){
+    return _propertyValueLocator.bind(obj);
+}
 
 function display(view,target){
 	target = target || document.body;
@@ -108,175 +113,173 @@ function remove(view){
 	view.visualParent.removeChild(view.htmlElement);
 }
 
-  	display.clear = function(view) {
-  		if(!view) return {display : display};
+display.clear = function(view) {
+    if(!view) return {display : display};
 
-  		if(view instanceof View ){
-  			document.body.removeChild(view.htmlElement);
-  			return {display : display };
-  		}
+    if(view instanceof View ){
+        document.body.removeChild(view.htmlElement);
+        return {display : display };
+    }
 
-  		document.body.innerHTML = '';
-  		return {display : display };
+    document.body.innerHTML = '';
+    return {display : display };
 
-  	};
+};
 
-  	function close(controller) {
-  	    controller.concrete.dom.parentNode.removeChild(controller.concrete.dom);
-  	};
+function close(controller) {
+    controller.concrete.dom.parentNode.removeChild(controller.concrete.dom);
+};
 
-  	function _viewQueryMode(){
-  		return {
-  			id:function(id){
-  				var d = document.getElementById(id);
-  				if(d) return new View(d);
-  				return null;
-  			},
-  			query:function(query){
-  				var collection = document.querySelectorAll(query);
-  				if(!collection) return null;
-  				return {
-  					foreach:function(fn){},
-  					first:function(){
-  							return new View(collection[0]);
-  					}
-  				}
-  			}
-  		}
-  	}
-
-
-    var unitRegex = /^([0-9.]+)([a-zA-Z%]+)$/;
-    function _unit(value){
-        var result = unitRegex.exec(value);
-        return {
-            value:+result[1],
-            unit:result[2]
-        }
-    }    
-
-    function _box(element){
-
-        var css = window.getComputedStyle(element,null);
-
-        var w  = css.getPropertyValue('width')
-        ,	h  = css.getPropertyValue('height')
-        ,	pl = css.getPropertyValue('padding-left')
-        ,	pt = css.getPropertyValue('padding-top')
-        ,	pr = css.getPropertyValue('padding-right')
-        ,	pb = css.getPropertyValue('padding-bottom')
-        ,   bl = css.getPropertyValue('border-left-width')
-        ,	bt = css.getPropertyValue('border-top-width')
-        ,	br = css.getPropertyValue('border-right-width')
-        ,	bb = css.getPropertyValue('border-bottom-width')
-        ,	ml = css.getPropertyValue('margin-left')
-        ,	mt = css.getPropertyValue('margin-top')
-        ,	mr = css.getPropertyValue('margin-right')
-        ,	mb = css.getPropertyValue('margin-bottom');
-
-        return {
-            height:	h,
-            width:	w,
-            padding: {left:pl, top:pt, right:pr, bottom:pb},
-            border:  {left:bl, top:bt, right:br, bottom:bb},
-            margin:  {left:ml, top:mt, right:mr, bottom:mb},
-            unit:function(){return {
-                    height:	_unit(h),
-                    width:	_unit(w),
-                    padding: {left: _unit(pl), top: _unit(pt), right: _unit(pr), bottom: _unit(pb)},
-                    border:  {left: _unit(bl), top: _unit(bt), right: _unit(br), bottom: _unit(bb)},
-                    margin:  {left: _unit(ml), top: _unit(mt), right: _unit(mr), bottom: _unit(mb)}
+function _viewQueryMode(){
+    return {
+        id:function(id){
+            var d = document.getElementById(id);
+            if(d) return new View(d);
+            return null;
+        },
+        query:function(query){
+            var collection = document.querySelectorAll(query);
+            if(!collection) return null;
+            return {
+                foreach:function(fn){},
+                first:function(){
+                        return new View(collection[0]);
                 }
             }
         }
-    };
+    }
+}
+
+
+var unitRegex = /^([0-9.]+)([a-zA-Z%]+)$/;
+function _unit(value){
+    var result = unitRegex.exec(value);
+    return {
+        value:+result[1],
+        unit:result[2]
+    }
+}    
+
+function _box(element){
+
+    var css = window.getComputedStyle(element,null);
+
+    var w  = css.getPropertyValue('width')
+    ,	h  = css.getPropertyValue('height')
+    ,	pl = css.getPropertyValue('padding-left')
+    ,	pt = css.getPropertyValue('padding-top')
+    ,	pr = css.getPropertyValue('padding-right')
+    ,	pb = css.getPropertyValue('padding-bottom')
+    ,   bl = css.getPropertyValue('border-left-width')
+    ,	bt = css.getPropertyValue('border-top-width')
+    ,	br = css.getPropertyValue('border-right-width')
+    ,	bb = css.getPropertyValue('border-bottom-width')
+    ,	ml = css.getPropertyValue('margin-left')
+    ,	mt = css.getPropertyValue('margin-top')
+    ,	mr = css.getPropertyValue('margin-right')
+    ,	mb = css.getPropertyValue('margin-bottom');
+
+    return {
+        height:	h,
+        width:	w,
+        padding: {left:pl, top:pt, right:pr, bottom:pb},
+        border:  {left:bl, top:bt, right:br, bottom:bb},
+        margin:  {left:ml, top:mt, right:mr, bottom:mb},
+        unit:function(){return {
+                height:	_unit(h),
+                width:	_unit(w),
+                padding: {left: _unit(pl), top: _unit(pt), right: _unit(pr), bottom: _unit(pb)},
+                border:  {left: _unit(bl), top: _unit(bt), right: _unit(br), bottom: _unit(bb)},
+                margin:  {left: _unit(ml), top: _unit(mt), right: _unit(mr), bottom: _unit(mb)}
+            }
+        }
+    }
+};
 
 
 
-  function buildContentMap(element){
+function buildContentMap(element){
     var contentNodes = element.querySelectorAll('[sjs-content]')
     ,	cMap = {};
 
     if(!contentNodes) return;
     var node = element;
     for(var i=0; i<=contentNodes.length; i++){
-      var attr = node.getAttribute('sjs-content');
-      if(!attr) {
+        var attr = node.getAttribute('sjs-content');
+        if(!attr) {
         node = contentNodes[i];
         continue;
-      }
-      var keys = attr.split(' ');
-      for(var k=0; k<keys.length; k++){
+        }
+        var keys = attr.split(' ');
+        for(var k=0; k<keys.length; k++){
         var key = keys[k];
         if(cMap[key]) throw 'Duplicate content map key ' + key;
         cMap[key] = {source:node, cache:null, n:0};
-      }
-      node = contentNodes[i];
+        }
+        node = contentNodes[i];
     }
     return cMap;
-  };
+};
 
 
 
-    	function domEventArgs(e){
-    		return {
-    			mouse: mousePosition(e),
-    		  source: e.srcElement,
-          domEvent:e,     // source event
-    			cancel: function(){
-                	this.cancelled = true;
-                	e.__jsj_cancelled = true;
-                }
-    		}
-    	};
+function domEventArgs(e){
+    return {
+        mouse: mousePosition(e),
+        source: e.srcElement,
+        domEvent:e,     // source event
+        cancel: function(){
+            this.cancelled = true;
+            e.__jsj_cancelled = true;
+        }
+    }
+};
 
 
-  function mousePosition(e){
-        //http://www.quirksmode.org/js/events_properties.html#position
+function mousePosition(e){
+    //http://www.quirksmode.org/js/events_properties.html#position
     var posx = 0
     ,   posy = 0;
 
     if (e.pageX || e.pageY) 	{
-      posx = e.pageX;
-      posy = e.pageY;
+        posx = e.pageX;
+        posy = e.pageY;
     }
     else if (e.clientX || e.clientY) 	{
-      posx = e.clientX + document.body.scrollLeft
+        posx = e.clientX + document.body.scrollLeft
         + document.documentElement.scrollLeft;
-      posy = e.clientY + document.body.scrollTop
+        posy = e.clientY + document.body.scrollTop
         + document.documentElement.scrollTop;
     }
 
     return {x:posx,y:posy};
-  };
+};
 
 
 
-  /**
-  */
-  function ViewReflow(){
-  }
+/**
+ */
+function ViewReflow(){
+}
 
-  ViewReflow.prototype.simple = function(){
-  	return this;
-  }
+ViewReflow.prototype.simple = function(){
+    return this;
+}
 
-  ViewReflow.prototype.fitparent = function(){
-  	return this;
-  }
+ViewReflow.prototype.fitparent = function(){
+    return this;
+}
 
-  ViewReflow.prototype.size = function(left, top, width, height){
-  	var box = _box(this.htmlElement).unit()
-  	, s = this.htmlElement.style;
+ViewReflow.prototype.size = function(left, top, width, height){
+    var box = _box(this.htmlElement).unit()
+    , s = this.htmlElement.style;
 
-  	s.width = (width - box.padding.left
-  									- box.padding.right
-  									- box.border.left
-  									- box.border.right) + 'px';
-
-
-  	return this;
-  }
+    s.width = (width - box.padding.left
+                                    - box.padding.right
+                                    - box.border.left
+                                    - box.border.right) + 'px';
+    return this;
+}
 
 
 
@@ -640,17 +643,95 @@ var DomMulticastStopEvent = Class(function DomMulticastStopEvent(){
   	element.className = clean;
   };
 
+/** 
+ *      Element positioning utilies
+ * 
+ */
+var Positioning =  {
+
+//@ Take mouse event object to return mouse position coordinates
+mouse:function(e){
+    //http://www.quirksmode.org/js/events_properties.html#position
+    var posx = 0;
+    var posy = 0;
+    if (!e) var e = window.event;
+    if (e.pageX || e.pageY) 	{
+        posx = e.pageX;
+        posy = e.pageY;
+    }
+    else if (e.clientX || e.clientY) 	{
+        posx = e.clientX + document.body.scrollLeft
+            + document.documentElement.scrollLeft;
+        posy = e.clientY + document.body.scrollTop
+            + document.documentElement.scrollTop;
+    }
+    return {x:posx,y:posy};
+},
+
+/*
+    Returns element coordinates in
+    document.body coordinate space
+*/
+abs: function(obj) {
+    var n = obj;
+        if(obj instanceof View)
+            n = obj.htmlElement;
+        var location  = [0,0];
+
+    while (n != undefined) {
+        location[0] += z(n.offsetLeft);
+        location[1] += z(n.offsetTop);
+        location[1] -= n.scrollTop;
+        n = n.offsetParent;
+    }
+
+    return {
+        x:location[0] + z(document.body.scrollLeft),
+        y:location[1] + z(document.body.scrollTop)
+    };
+},
+
+containsPoint:function(element,p) {
+    pos = this.abs(element);
+
+        pos.height = element.clientHeight;
+        pos.width = element.clientWidth;
+
+        if( p.x >= pos.x && p.x <= (pos.x + pos.width)) {
+            if(p.y >= pos.y && p.y <= pos.y + (pos.height / 2))
+            return 1;
+            else if(p.y >= pos.y + (pos.height / 2) && p.y <= pos.y + pos.height )
+            return -1;
+        }
+    return 0;
+},
+
+docsize:function(){
+    var docWidth = document.body.offsetWidth?document.body.offsetWidth:window.innerWidth;
+    var docHeight = document.body.offsetHeight?document.body.offsetHeight:window.innerHeight;
+
+    return {width:docWidth, height:docHeight};
+},
+
+windowsize: function () {
+    return { width: window.innerWidth, height: window.innerHeight };
+}
+};
+
+
+
 return {
     View:View,
-		css:{
-			addClass:addClass,
-			removeClass:removeClass
-		}, 
-    DomMulticastEvent:new DomMulticastEvent(),
-    DomMulticastStopEvent: new DomMulticastStopEvent(),
-	cancelEventBubble:cancelBubble,
-    box:_box
-  }
+    css:{
+        addClass:   addClass,
+        removeClass:removeClass
+    }, 
+    DomMulticastEvent:      new DomMulticastEvent(),
+    DomMulticastStopEvent:  new DomMulticastStopEvent(),
+	cancelEventBubble:      cancelBubble,
+    box:                    _box,
+    Positioning:            Positioning
+}
 
 
 });

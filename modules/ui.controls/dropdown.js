@@ -1,110 +1,126 @@
 define([
 
-	{ Inheritance   : '/{$jshome}/modules/splice.inheritance.js'},
-	{ Events		: '/{$jshome}/modules/splice.event.js'},
-	{ Component		: '/{$jshome}/modules/splice.component.core.js'	},
-	{ Views 		: '/{$jshome}/modules/splice.view.js'	},
-	{'SpliceJS.UI'  : '../splice.ui.js'},
-	{'Doc'          : '/{$jshome}/modules/splice.document.js'},
-	'splice.controls.selectors.css',
-	'splice.controls.selectors.html'
+	'require',
+	'{splice.modules}/inheritance',
+	'{splice.modules}/component',
+	'{splice.modules}/event',
+	'{splice.modules}/view',
+    '!dropdown.css',
 ],
-function(){
+function(require,inheritance,component,event,view){
 	"use strict";
 
-	var scope = this
-	,	sjs = scope.imports.$js;
-
-	/* framework imports */
-	var imports = scope.imports
-	;
-
 	/* dependency imports */
-	var	Positioning = imports.SpliceJS.UI.Positioning
-	,	dom         = imports.Doc.dom
-	,	UIControl   = imports.SpliceJS.UI.UIControl
-	,	Class       = imports.Inheritance.Class
-	, 	Controller  = imports.Component.Controller
-	,	Events      = imports.Events
-	, 	Views 		= imports.Views
-	,	DomMulticastEvent = imports.Views.DomMulticastEvent
-	, 	Component = imports.Component
-	, 	MulticastEvent = imports.Events.MulticastEvent
+	var	Positioning = view.Positioning
+	,	Class       = inheritance.Class
 	;
-	
-	function _offFocusReaper(){
-		_hide();
-	};
 
-	//define components
-	var components = Component.defineComponents(scope);
+	var scope = {
+
+    };
+
+    //get component factory
+    var factory = component.ComponentFactory(require,scope);
 
 	//static single instance
 	var dropDownContainer = null
 	,	selectorElement = null;
 
-	//
-	var DropDownController = Class(function DropDownController(args){
-		this.base(args);
 
-		Events.attach(this,{
-			onDropDown : Events.MulticastEvent
+	function _offFocusReaper(){
+		_hide();
+	};
+
+
+    /**
+     *      Simple drop-down container
+     *  
+     */
+  	var DropDownContainer = Class(function DropDownContainer(){
+	}).extend(component.ComponentBase);
+
+    scope.DropDownContainer = 
+    factory.define('DropDownContainer:dropdown.html',DropDownContainer);
+
+
+
+    /**
+     *  
+     *      Resizeable drop-down container
+     */
+  	var DropDownContainerResizable = Class(function DropDownContainerResizable(){
+	}).extend(component.ComponentBase);
+
+    scope.DropDownContainerResizable = 
+    factory.define('DropDownContainerResizable:dropdown.html',DropDownContainerResizable);
+
+
+
+	/**
+     *      DropDown view model
+     * 
+     */
+	var DropDown = Class(function DropDown(args){
+
+		event.attach(this,{
+			onDropDown : event.MulticastEvent
 		});
 
-		this.dropDownItem = this.dropDownItem;
+		this.dropDownItem = args.dropDownItem;
 		if(!this.isIgnoreSelector)	this.isIgnoreSelector = false;
 
 		this.dropDownContainerSize = {left:0,top:0};
 		this.dataPath = '';
 
-	}).extend(UIControl);
+	}).extend(component.ComponentBase);
 
 
-	DropDownController.prototype.initialize = function(){
+	DropDown.prototype.onLoaded = function(){
 		/*
 		Subscribe to onclick instead of mousedown, because firing mousedown
 		will immediately execute event within dropDown() closing the dropdown
 		*/
-		Events.attach(this.views.root,{
-			onmousedown : Views.DomMulticastStopEvent
+		event.attach(this.elements.root,{
+			onmousedown : view.DomMulticastStopEvent
 		})
 		.onmousedown.subscribe(function(e){
 			this.dropDown();
 		},this);
 
 		//create instance of dropdown container
-		dropDownContainer = new components.DropDownContainerResizable();
+		this.dropDownContainer = new scope.DropDownContainer();
 	}
 
-	DropDownController.prototype.setItemTemplate = function(tmpl){
+	DropDown.prototype.setItemTemplate = function(tmpl){
 		this.itemTemplate = tmpl;
 		this.content(tmpl).replace();
 	}
 
-	DropDownController.prototype.onDataIn = function(item){
+	DropDown.prototype.onDataIn = function(item){
 		if(!this.itemTemplate)
 			this.content(item.getValue()).replace();
 	};
 
-	DropDownController.prototype.onDataItemChanged = function(item){
+	DropDown.prototype.onDataItemChanged = function(item){
 		this.onDataIn(item);
 	};
 
 
-	DropDownController.prototype.close = function () {
+	DropDown.prototype.close = function () {
 	    _hide();
 	};
 
 
 	function _hide() {
 	    dropDownContainer.remove();
-		selectorElement.cl('-sjs-dropdown-open').remove();
+		
+        selectorElement.cl('-sjs-dropdown-open').remove();
 	};
 
 
-	DropDownController.prototype.clientSize = function(client){
+	DropDown.prototype.clientSize = function(client){
 
-		var s = dropDownContainer.concrete.dom.style;
+		var s = this.dropDownContainer.elements.root.style;
 
 		var content = dom(client.concrete.dom);
 		/*
@@ -120,33 +136,35 @@ function(){
 		}
 	};
 
-	DropDownController.prototype.dropDown = function(){
+	DropDown.prototype.dropDown = function(){
 
-		var left = this.views.selector.htmlElement.offsetLeft
-		,	height = this.views.selector.htmlElement.offsetHeight
+		var left = this.elements.selector.offsetLeft
+		,	height = this.elements.selector.offsetHeight
 		,	top = height
-		,	s = dropDownContainer.views.root.htmlElement.style
-		,	pos = Positioning.abs(this.views.selector)
+		,	s = this.dropDownContainer.elements.root.style
+		,	pos = Positioning.abs(this.elements.selector)
 		,	self = this
 		;
 
 		//release previous selector if any
 		if(selectorElement){
-			selectorElement.cl('-sjs-dropdown-open').remove();
+			view.css.removeClass(selectorElement,'-sjs-dropdown-open');
 		}
 
 		//create instance of the dropdown content item
-		if(!this.dropDownItemInst && this.dropDownItem) {
-			this.dropDownItemInst = new this.dropDownItem({parent:this});
-		}
+		// if(!this.dropDownItemInst && this.dropDownItem) {
+		// 	this.dropDownItemInst = new this.dropDownItem({parent:this});
+		// }
 
 		//keep track of the current drop down controller statically
-		selectorElement = this.views.selector.cl('-sjs-dropdown-open').add();
-
+		view.css.addClass(this.elements.selector,'-sjs-dropdown-open');
+        selectorElement = this.elements.selector;
 
 		//append drop down to the document root
 		// add content to the content element
-		dropDownContainer.display().content(this.dropDownItemInst).replace();
+        this.dropDownContainer.wtf = true;
+		this.dropDownContainer.applyContent(this.dropDownItem);
+        this.dropDownContainer.display();
 
 
 		left = pos.x;
@@ -163,26 +181,16 @@ function(){
 		s.display='block';
 
 
-		Events.attach(window, {
-		 	onmousedown	:	Views.DomMulticastStopEvent
+		event.attach(window, {
+		 	onmousedown	:	view.DomMulticastStopEvent
 		}).onmousedown.subscribe(_offFocusReaper,dropDownContainer);
 
 		this.onDropDown(this.data);
 
 	};
 
-	var DropDownContainerController = Class(function DropDownContainerController(){
-	}).extend(Controller);
 
-
-	/* scope exports for template consumption*/
-	scope.add(
-		DropDownController, DropDownContainerController
-	);
-
-	/* module exports */
-	scope.exports(
-		DropDownController
-	)
-
+    return {
+        DropDown : factory.define('DropDownSelector:dropdown.html',DropDown)
+    }   
 });

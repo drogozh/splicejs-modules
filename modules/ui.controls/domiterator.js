@@ -31,11 +31,11 @@ define([
         
        
 
-        if(args && args.content){
+        if(this.domContent){
             for(var i=this.from; i<this.to; i++){
-                var c = args.content(this);
+                var c = this.domContent(this);
                 this.add(c);
-                c.replace(i);
+                c.applyContent(i);
             }
         }
     }).extend(ComponentBase);

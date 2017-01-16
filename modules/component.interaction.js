@@ -1,4 +1,9 @@
-define(function(){
+define([	
+    '{splice.modules}/inheritance',
+    '{splice.modules}/event'
+],function(inheritance, event){
+
+var Class = inheritance.Class
 
 /**
  *      DragAndDrop Interaction
@@ -79,8 +84,40 @@ var DragAndDrop =
     }
 };
 
+/**
+ *      Global KeyListener
+ *
+ */
+var KeyListener = Class(function KeyListener(){
+
+    event.attach(this,{
+        onEsc	: event.MulticastEvent,
+        onEnter	: event.MulticastEvent,
+        onRight : event.MulticastEvent,
+        onLeft  : event.MulticastEvent,
+        onUp	: event.MulticastEvent,
+        onDown 	: event.MulticastEvent
+    });
+
+    event.attach(window, 'onkeydown').subscribe(
+    function(args){
+        switch(args.keyCode){
+            case 27: this.onEsc(); 		break;
+            case 13: this.onEnter(); 	break;
+            case 37: this.onLeft(); 	break;
+            case 38: this.onUp();		break;
+            case 39: this.onRight(); 	break;
+            case 40: this.onDown();		break;
+        }
+    }, this);
+
+});
+
+
+
 return {
-    DragAndDrop : DragAndDrop
+    DragAndDrop : DragAndDrop,
+    KeyListener: KeyListener
 }
 
 });

@@ -454,7 +454,11 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
                 var c = content[keys[i]];
                 this.replace(c,l);
             }        
-        } else {
+        } 
+        else if(content.__sjs_isproxy__){
+            this.replace(content(this));
+        }
+        else {
             this.replace(content.toString());
         }
     }
