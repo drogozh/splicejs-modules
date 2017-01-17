@@ -381,6 +381,7 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
 
         if(this.isDisplayed) child.display();
        
+        return child;
     }
 
     
@@ -402,7 +403,7 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
         if(!this.isLoaded ) {
             this.toReplace = this.toReplace || [];
             this.toReplace.push({child:child, location:location});
-            return;
+            return child;
         }
         //nothing to do here, if placement is not set
         location = location || 'default';
@@ -415,7 +416,7 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
 
         if(target instanceof ComponentBase){
             target.replace(child);
-            return;
+            return null;
         }
         
 
@@ -424,11 +425,9 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
             child = child(this);
         }
 
-
         if(target instanceof ValueComponent) {
-            //child = new ValueComponent(child.toString());
-            target.setValue(child.toString());
-            return;
+             target.setValue(child.toString());
+            return null;
         } //else
 
         if(!(child instanceof ComponentBase))
@@ -440,10 +439,17 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
         child.contentId = location;
         child.parent = this;
 
-
         if(this.isDisplayed) child.display();
+        return child;
   }
-
+    /**
+     * Content can be:
+     * 1. base object
+     * 2. Array
+     * 3. Value type
+     * 4. proxy
+     * 5. ComponentBase instance
+     */
     ComponentBase.prototype.applyContent = function(content){
         //its a keys content
         if( content.constructor == Object.prototype.constructor || 
@@ -463,6 +469,29 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
         }
     }
 
+    /**
+     * Converts anything to a component
+     */
+    function toComponent(s, parent){
+        //check for proxy
+        //todo: see if we care what the resulting proxy instance is
+        if(typeof s === 'function' && s.__sjs_isproxy__ === true ){
+            var proxyInstance = s(parent);
+            return;
+        }
+
+        //on ComponentBase instances, just return
+        if(s instanceof ComponentBase){
+            return s;
+        }
+
+        //on ValueComponent instances, return
+        if(s instanceof ValueComponent){
+            return s;
+        }
+        //all else is a new ValueComponent
+        return new ValueComponent(s.toString());
+    }
 
     ComponentBase.prototype.reflow = function(x,y,w,h,d){
         if(!this.node) return;
@@ -935,6 +964,7 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
         ComponentBase:      ComponentBase,
         DocumentApplication: DocumentApplication,
         proxy:proxy,
+        toComponent:toComponent,
         logTo:function(lg){log = lg;}
     }
 
