@@ -96,7 +96,7 @@ function(data){
 
       //1. if source is event, subscribe to it
       if(sourceValue && sourceValue.__sjs_event__ === true &&
-        typeof(targetValue) == 'function'){
+        typeof(targetValue) == 'function' && !targetValue.__sjs_event__ ){
         sourceValue.subscribe(targetValue,instance);
         return;
       }

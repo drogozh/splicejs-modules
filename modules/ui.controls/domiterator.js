@@ -5,9 +5,10 @@ define([
 	'{splice.modules}/component',
 	'{splice.modules}/event',
 	'{splice.modules}/view',
+    '{splice.modules}/async',
 	'preload|{splice.modules}/component.loader',
 
-],function(require,inheritance,component,event,view){
+],function(require,inheritance,component,event,view,async){
 
 
 	var Class = inheritance.Class
@@ -28,32 +29,52 @@ define([
             this.from = args.range ? args.range[0] : 0;
             this.to = args.range ? args.range[1] : 1;
         }
-        
-       
 
         if(this.domContent){
-            for(var i=this.from; i<this.to; i++){
-                var c = this.domContent(this);
-                this.add(c);
-                c.applyContent(i);
-            }
+            // for(var i=this.from; i<this.to; i++){
+            // }
+            async.loop(this.from,this.to,1,10).for((function(i){
+                var c = this.add(this.domContent).set(i);
+                return true;
+            }).bind(this))
         }
+
     }).extend(ComponentBase);
+
 
     DomIterator.prototype.onDisplay = function(){
 
     }
+
     /**
      * Input must be a collection or an object
      */
     DomIterator.prototype.dataIn = function(data){
         var keys = Object.keys(data);
         for(var i=0; i<keys.length; i++){
-            var c = this.domContent(this);
-            this.add(c);
-            c.applyContent(data[keys[i]]);
+            applyContent.call(this.add(this.domContent),data[keys[i]]);
         }
     }
+
+
+    function applyContent(content){
+        //its a keys content
+        if( content.constructor == Object.prototype.constructor || 
+            content instanceof Array){
+            var keys = Object.keys(content);
+            for(var i=0; i<keys.length; i++){
+                var l = keys[i];
+                var c = content[keys[i]];
+                this.set(c,l);
+            }        
+        } else {
+            this.set(content.toString());
+        } 
+
+        return this;
+    }
+
+
 
     return DomIterator;
 

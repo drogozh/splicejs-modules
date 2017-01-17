@@ -184,9 +184,10 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
         this.onLoaded();
 
         //process replacement queue
+        //todo: review off-screen state tracking
         var _x = null;
         while(this.toReplace && (_x = this.toReplace.shift()) ) {
-            this.replace(_x.child,_x.location);
+            this.set(_x.child,_x.location);
         }
         if(this.isDelayedDisplay) this.display(); 
     }
@@ -197,16 +198,19 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
     // 4. content key value object
     function processCompositionContent(content){
         //content is proxy
-        if(content.__sjs_isproxy__)
+        if(content.__sjs_isproxy__){
             content = content(this);
+            content._parent = this;  //visual parent  
+        }
         if(content instanceof ComponentBase){
             var cnt = content.__parent_content__;
+            content._parent = this; //visual parent    
             if(!cnt) return;
             
             this.override[cnt] = this.content[cnt];
             this.content[cnt] = content;
             content.__sjs_useoverride__ = true;
-            this.replace(content,cnt);    
+            this.set(content,cnt);    
             console.log('user content');    
         }
     }
@@ -305,7 +309,7 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
             child.onDisplay();
     }
 
-    ComponentBase.prototype.display = function(){
+    ComponentBase.prototype.display = function(parent){
         //start display
         var timeStart= window.performance.now();
 
@@ -318,34 +322,24 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
             return this;
         }
 
-        if(!this.parent) this.parent = DocumentBody;
+        if(!this._parent) this._parent = DocumentBody;
         this.contentId = this.contentId || 'default';
         this.contentMode = this.contentMode || 'add';
 
-        this.parent.displayChild(this);
+        this._parent.displayChild(this);
         
         
         var keys = Object.keys(this.includes);
         for(var key in keys){
-            this.includes[keys[key]].display();
+            this.includes[keys[key]].display()._parent = this;
         }
 
-        var parent = this;
-        foreach(this.children,function(child){
-            child.parent = parent;
-            child.display(parent);    
-        });
-
-        //dislay after node is composed
-        //this.parent.displayChild(this);
         
-        //display children
-        // if(this.children != null) {
-        //     for(var i=0; i<this.children.length; i++){
-        //         this.children[i].parent = this;
-        //         this.children[i].display();
-        //     }
-        // }
+        foreach(this.children,(function(child){
+            child._parent = this;
+            child.display(this);    
+        }).bind(this));
+
 
         this.isDelayedDisplay = false;
         this.isDisplayed = true;
@@ -363,23 +357,16 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
     ComponentBase.prototype.add = function(child,location){
         location = location || 'default';
 
-
-        //child is a proxy object
-        if(child.__sjs_isproxy__ === true){
-            child = child(this);
-        }
-
-
-        if(!(child instanceof ComponentBase))
-            child = new ValueComponent(child.toString());
+        child = toComponent(child,this);
 
         this.children = this.children || [];    
         this.children.push(child);
         child.contentId = location; 
         child.contentMode = 'add';
         child.parent = this;
+        child._parent = this;
 
-        if(this.isDisplayed) child.display();
+        if(this.isDisplayed) child.display(this);
        
         return child;
     }
@@ -398,7 +385,7 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
     /**
      * Replaces content at provided location
      */
-    ComponentBase.prototype.replace = function(child, location){
+    ComponentBase.prototype.set = function(child, location){
         //queue replacement if component is not loaded yet
         if(!this.isLoaded ) {
             this.toReplace = this.toReplace || [];
@@ -415,7 +402,7 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
 
 
         if(target instanceof ComponentBase){
-            target.replace(child);
+            target.set(child);
             return null;
         }
         
@@ -438,46 +425,28 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
         child.contentMode = 'replace';
         child.contentId = location;
         child.parent = this;
+        child._parent = this;
 
-        if(this.isDisplayed) child.display();
+        if(this.isDisplayed) child.display(this);
         return child;
   }
+
+
     /**
+     * Converts anything to a component
      * Content can be:
      * 1. base object
      * 2. Array
      * 3. Value type
      * 4. proxy
      * 5. ComponentBase instance
-     */
-    ComponentBase.prototype.applyContent = function(content){
-        //its a keys content
-        if( content.constructor == Object.prototype.constructor || 
-            content instanceof Array){
-            var keys = Object.keys(content);
-            for(var i=0; i<keys.length; i++){
-                var l = keys[i];
-                var c = content[keys[i]];
-                this.replace(c,l);
-            }        
-        } 
-        else if(content.__sjs_isproxy__){
-            this.replace(content(this));
-        }
-        else {
-            this.replace(content.toString());
-        }
-    }
-
-    /**
-     * Converts anything to a component
+     * 6. Anything else is turned to a string
      */
     function toComponent(s, parent){
         //check for proxy
         //todo: see if we care what the resulting proxy instance is
         if(typeof s === 'function' && s.__sjs_isproxy__ === true ){
-            var proxyInstance = s(parent);
-            return;
+            return s(parent);
         }
 
         //on ComponentBase instances, just return
@@ -489,6 +458,7 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
         if(s instanceof ValueComponent){
             return s;
         }
+        
         //all else is a new ValueComponent
         return new ValueComponent(s.toString());
     }
@@ -546,9 +516,10 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
         this.parent.displayChild(this);
     }; 
 
-    ValueComponent.prototype.setValue = function(value){
+
+    ValueComponent.prototype.set = function(value){
         this.node.value = value.toString();
-    }
+    };
 
     /** 
      * 
@@ -649,6 +620,7 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
             var child = runProxy(this,json)(this);
             child.contentMode = 'include';
             child.includeId = key;
+            child._parent = this; //visual parent
             children[key]= child;
         }
 
@@ -740,7 +712,9 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
                 throw 'type not found [' + pArgs.type +']';
             }
 
-            instance.__parent_content__ = pArgs.parentContent;     
+            instance.__parent_content__ = pArgs.parentContent;
+            if(pArgs.__sjs_name__)
+                instance.__include_name__ = pArgs.__sjs_name__;     
             return instance;
         }
 
@@ -812,7 +786,7 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
      */
   	function handle_INCLUDE(node, parent, replace,template){
 
-  		var attributes = collectAttributes(node)
+  		var attributes = collectAttributes(node).json
   		,	json = '';
 
   		//empty configuration of the include tag
@@ -844,15 +818,16 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
   		,	attributes = collectAttributes(node);
 
   		var _type = '__adhoc_component__'+(scope.__sjs_adhoc__++)
-  		,	json = '';
+  		,	json = ''
+        ,   jsonAttr = attributes.json;
 
-  		if(attributes) attributes = ',' + attributes;
-  		else attributes = '';
+  		if(jsonAttr) jsonAttr = ',' + jsonAttr;
+  		else jsonAttr = '';
 
   		if(parent.tagName == 'SJS-ELEMENT')
   			json = 'null, type:\'' + _type + '\'';
   		else
-  			json = 'proxy(scope,{type:\''+ _type + '\''+ attributes +'})';
+  			json = 'proxy(scope,{type:\''+ _type + '\''+ jsonAttr +'})';
 
   		if(replace === true)
   			node.parentNode.replaceChild(document.createTextNode(json),node);
@@ -860,10 +835,16 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
   		
   		// build new template and store within scope
   		// run template compiler
-          var template = new Template(node).compile(scope);
+        var template = new Template(node).compile(scope);
+        var vm = ComponentBase;
+        //locate adhoc vm
+        if(attributes.values.vm){
+            vm = new DataItem(scope).path(attributes.values.vm).getValue();
+            console.log(vm);
+        }
 
         scope[_type] = function Component(args,parent){
-            var comp = new ComponentBase(args);
+            var comp = new vm(args);
             comp.parent = parent;
             comp.init(args);
             comp.resolve(parent != null ? parent.scope : null);
@@ -875,17 +856,21 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
   	}
 
 
+    //todo: add 'style' attribute that will be get to the root of the
+    //      component's node to allow inline styling  
 
-    var reservedAttr = ["sjs-type", "sjs-content","sjs-override"];
-    var reservedAttrPropNames = ['type','content','parentContent'];
+    //todo: add sjs-name attribute for named includes
+    var reservedAttr = ['sjs-type', 'sjs-content','sjs-override','sjs-vm','sjs-name'];
+    var reservedAttrPropNames = ['type','content','parentContent','vm','name'];
   	function collectAttributes(node, filter){
-  		if(!node) return null;
+        if(!node) return {};
 
   		var attributes = node.attributes;
-  		if(!attributes) return '';
+          if(!attributes) return {json:'',value:{}};
 
   		var result = ''
-  		,	separator = '';
+  		,	separator = ''
+        ,   values = {};
 
   		for(var i=0; i<attributes.length; i++){
   			var attr = attributes[i];
@@ -904,9 +889,10 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
   				continue;
   			}
   			result = result + separator + name + ':\'' + attr.value + '\'';
-  			separator = ', ';
+  		    separator = ', ';
+            values[name]=attr.value;
   		}
-  		return result;
+        return {json:result,values:values};
   	};
 
 

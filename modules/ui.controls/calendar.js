@@ -1,22 +1,13 @@
-$js.module({
-prerequisite:[
-  '/{$jshome}/modules/splice.module.extensions.js'
-],
-imports:[
-	{ Inheritance 	: '/{$jshome}/modules/splice.inheritance.js'},
-	{ Component		: '/{$jshome}/modules/splice.component.core.js'},
-	{ Events		: '/{$jshome}/modules/splice.event.js'},
-	'splice.controls.calendar.html',
-	'splice.controls.calendar.css'
-],
-definition:function(){
+define([
+    'require', 'context', 'loader',
+    '{splice.modules}/inheritance',
+    '{splice.modules}/component',
+    '{splice.modules}/event',
+    '!calendar.css',
+    'preload|{splice.modules}/component.loader'
+],function(require,context,loader,inheritance,component,event){
 	"use strict"
-	var scope = this
-	;
 
-    var sjs = scope.imports.$js
-    	imports = scope.imports
-    ;
 
 	var	DAYS_MONTH = [
 		/* non leap year*/ 	 [31,28,31,30,31,30,31,31,30,31,30,31],
@@ -80,7 +71,7 @@ definition:function(){
 
 		var overflow = 7-start_week_day+ 7;
 
-		this.content({currentDate:MONTHS_NAME[month] + ', ' + year}).replace();
+		this.set(MONTHS_NAME[month] + ', ' + year,'currentDate');
 		//cde.innerHTML = MONTHS_NAME[month] + ', ' + year;
 
 		/*
@@ -143,7 +134,7 @@ definition:function(){
 
 	function getCell(row, col) {
 		try {
-		var t = this.views.grid.htmlElement;
+		var t = this.elements.grid;
 		var r = t.rows[row];
 		return r.cells[col]; } catch(e) {return null;}
 	};
@@ -201,23 +192,17 @@ definition:function(){
 				return null;
 			}
 	};
-
-
 	
-	
-	var	Class 	    = imports.Inheritance.Class
-	,	event		= imports.Events.event
-	, 	Controller 	= imports.Component.Controller
-	,	Component 	= imports.Component
-	;
 
-	var components = Component.defineComponents(scope);
+    var scope = {};
+	
+	var	Class = inheritance.Class
+    ,   factory = component.ComponentFactory(require,scope);
 
 	var Calendar = Class(function CalendarController(){
-		this.base();
-
-		event(this).attach({
-			onDateSelected : event.multicast
+	
+		event.attach(this,{
+			onDateSelected : event.MulticastEvent
 		});
 
 		var dt = new Date();
@@ -228,27 +213,27 @@ definition:function(){
 
 		this.selectedDate = new Date();
 
-	}).extend(Controller);
+	}).extend(component.ComponentBase);
 
-	Calendar.prototype.initialize = function(){
-		event(this.views.grid).attach({
-			onmousedown : event.multicast.stop
-		}).onmousedown.subscribe(function(e){
-				this.selectedDate = e.source.__sjs__date
-				this.onDateSelected(this.selectedDate);
-		},this);
+	Calendar.prototype.onLoaded = function(){
+		// event(this.elements.grid).attach({
+		// 	onmousedown : event.multicast.stop
+		// }).onmousedown.subscribe(function(e){
+		// 		this.selectedDate = e.source.__sjs__date
+		// 		this.onDateSelected(this.selectedDate);
+		// },this);
 
-		event(this.views.previous).attach({
-			onmousedown : event.multicast.stop
-		}).onmousedown.subscribe(function(e){
-			this.previousMonth();
-		},this);
+		// event(this.views.previous).attach({
+		// 	onmousedown : event.multicast.stop
+		// }).onmousedown.subscribe(function(e){
+		// 	this.previousMonth();
+		// },this);
 
-		event(this.views.next).attach({
-			onmousedown : event.multicast.stop
-		}).onmousedown.subscribe(function(e){
-			this.nextMonth();
-		},this);
+		// event(this.views.next).attach({
+		// 	onmousedown : event.multicast.stop
+		// }).onmousedown.subscribe(function(e){
+		// 	this.nextMonth();
+		// },this);
 
 		this.update();
 	};
@@ -268,8 +253,6 @@ definition:function(){
 		renderMonth.call(this, new Date(this.year, this.month, this.day));
 	};
 
-	scope.exports(
-		Calendar
-	);
+    return factory.define('Calendar:calendar.html',Calendar);
 
-}});
+});

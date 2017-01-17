@@ -88,7 +88,7 @@ function(require,inheritance,component,event,view){
 		},this);
 
 		//create instance of dropdown container
-		this.dropDownContainer = new scope.DropDownContainer();
+        this.dropDownContainer = new scope.DropDownContainer({},this);
 	}
 
 	DropDown.prototype.setItemTemplate = function(tmpl){
@@ -162,8 +162,7 @@ function(require,inheritance,component,event,view){
 
 		//append drop down to the document root
 		// add content to the content element
-        this.dropDownContainer.wtf = true;
-		this.dropDownContainer.applyContent(this.dropDownItem);
+		this.dropDownContainer.set(this.dropDownItem);
         this.dropDownContainer.display();
 
 

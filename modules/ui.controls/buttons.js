@@ -52,7 +52,7 @@ Button.prototype.onLoaded = function(){
 
 Button.prototype.setCaption = function(caption){
     this.caption = caption
-    this.replace(caption); 
+    this.set(caption); 
 }
 
 
