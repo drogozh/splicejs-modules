@@ -167,9 +167,14 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
         //   includes are special types of children and processed separately from any other content child
         //   this is because they are a part of template composition
         this.includes = templateInstance.children;
+        this.namedIncludes = {};
         var keys = Object.keys(this.includes);
         for(var key in keys){
             var c = this.includes[keys[key]].__parent_content__;
+            if(this.includes[keys[key]].__include_name__){
+                this.namedIncludes[this.includes[keys[key]].__include_name__] = 
+                    this.includes[keys[key]];
+            }
             if(!c) continue;
             this.content[c] = this.includes[keys[key]];             
         }
@@ -197,22 +202,36 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
     // 3. component instance
     // 4. content key value object
     function processCompositionContent(content){
+        content = toComponent(content);
+        content._parent = this;  //visual parent  
+
         //content is proxy
-        if(content.__sjs_isproxy__){
-            content = content(this);
-            content._parent = this;  //visual parent  
-        }
-        if(content instanceof ComponentBase){
+        // if(content.__sjs_isproxy__){
+        //     content = content(this);
+        //     content._parent = this;  //visual parent  
+        // }
+        if(content.__parent_content__){
             var cnt = content.__parent_content__;
-            content._parent = this; //visual parent    
-            if(!cnt) return;
-            
             this.override[cnt] = this.content[cnt];
             this.content[cnt] = content;
             content.__sjs_useoverride__ = true;
             this.set(content,cnt);    
             console.log('user content');    
+            return;
         }
+        this.set(content);
+
+        // if(content instanceof ComponentBase){
+        //     var cnt = content.__parent_content__;
+        //     content._parent = this; //visual parent    
+        //     if(!cnt) return;
+            
+        //     this.override[cnt] = this.content[cnt];
+        //     this.content[cnt] = content;
+        //     content.__sjs_useoverride__ = true;
+        //     this.set(content,cnt);    
+        //     console.log('user content');    
+        // }
     }
 
     ComponentBase.prototype.init = function(args){
@@ -241,6 +260,11 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
         }).bind(this));
     }
     
+    ComponentBase.prototype.getInclude = function(name){
+        if(!this.namedIncludes) return null;
+        return this.namedIncludes[name];
+    }
+
     /**
      * 
      */
@@ -417,7 +441,8 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
             return null;
         } //else
 
-        if(!(child instanceof ComponentBase))
+        if(!(child instanceof ComponentBase) && 
+            !(child instanceof ValueComponent))
             child = new ValueComponent(child.toString());
         
         this.children = this.children || [];  
@@ -520,12 +545,21 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
     ValueComponent.prototype.set = function(value){
         this.node.value = value.toString();
     };
+    //override toString
+    ValueComponent.prototype.toString = function(){
+        return this.node.value.toString();
+    }
 
     /** 
-     * 
+     *  Template
      */
     function Template(node,name){
         this.node = node;
+        if(node.tagName == tags.include) {
+            this.node = document.createElement('span');
+            this.node.appendChild(node);    
+        }
+
         this.name = name;
         this.children = [];
     }

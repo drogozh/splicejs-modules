@@ -24,17 +24,15 @@ define([
 
 	var factory = component.ComponentFactory(require,scope);
 
-	var DatePicker = Class(function DatePickerController(){
-		this.base();
-
+	var DatePicker = Class(function DatePicker(args){
 		event.attach(this,{
 			onDateSelected : event.MulticastEvent
 		});
 
-		var date = new Date();
+		this.currentDate = new Date();
 
-		if(this.format){
-			date = format('{0:'+this.format+'}',date);
+		if(args && args.format){
+			this.format = args.format;
 		}
 
 	}).extend(component.ComponentBase);
@@ -52,6 +50,15 @@ define([
 	    this.onData(date);
 	    this.children.selector.close();
 	};
+
+    DatePicker.prototype.onLoaded = function(){
+        var selector = this.getInclude('selector');
+        var d = this.currentDate; 
+        if(this.format)
+            d = format('{0:'+this.format+'}',this.currentDate);
+
+        selector.set(d);
+    };
 
     //sets dates and will not trigger events
 	DatePicker.prototype.setDate = function (date) {

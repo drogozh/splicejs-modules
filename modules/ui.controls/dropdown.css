@@ -40,3 +40,15 @@
     -moz-box-shadow: 0px 12px 22px 0px rgba(0,0,0,0.41);
     box-shadow: 0px 12px 22px 0px rgba(0,0,0,0.41);
 }
+
+.selector.-sjs-dropdown-open {
+    background-color:#464646;
+       -webkit-box-shadow: 0px 12px 22px 0px rgba(0,0,0,0.41);
+    -moz-box-shadow: 0px 12px 22px 0px rgba(0,0,0,0.41);
+    box-shadow: 0px 12px 22px 0px rgba(0,0,0,0.41);
+    color:#fefefe;
+    border:1px solid #464646;
+}
+.selector.-sjs-dropdown-open:hover {
+    background-color:#464646;
+}
