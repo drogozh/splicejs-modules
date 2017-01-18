@@ -1,0 +1,15 @@
+<template sjs-name="DatePicker">
+    <div>
+	<include sjs-type="Controls.Selectors.DropDown" sjs-name="selector">
+	{
+        dataIn: binding('onDateSelected').parent,
+        dropDownItem:
+        <include sjs-type="Controls.Calendar">
+        {
+            onDateSelected: binding('receiveFromCalendar').name('DatePicker')
+        }
+        </include>
+	}
+	</include>
+    </div>
+</template>

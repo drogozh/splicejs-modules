@@ -529,7 +529,7 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
         this.name = name;
         this.children = [];
     }
-
+    //todo: figure out how to deal with top level <include> tags in the template
     Template.prototype.addChild = function(child){
   	    this.children.push(child);
   		var childId =  this.children.length-1;
