@@ -7,24 +7,23 @@ define([
     },
     '!treeview.css',
 ],function(require,inheritance,component,controls){
-    var scope = controls;
 	
-	var Class       = inheritance.Class;
+	var Class = inheritance.Class
+    ,	factory = component.ComponentFactory(require,controls);
 
 	var TreeView = Class( function TreeView(){
-		this.onDataIn.subscribe(renderTree, this);
 	}).extend(component.ComponentBase);
+
+
+    TreeView.prototype.dataIn = function(data){
+
+    };
+
 
 
 	var Tree = Class(function Tree(){
-		this.base();
-		this.onDataIn.subscribe(function(data){
-			this.elements.treeRoot.innerHTML = data;
-			this.onTreeRefresh();
-		},this);
 	}).extend(component.ComponentBase);
 
-	Tree.prototype.onTreeRefresh = Event;
 
 
 	function renderTree(data){
@@ -73,5 +72,9 @@ define([
 		return str;
 	}
 
-	
+	controls.TreeView = factory.define('TreeView:treeview.html',TreeView);
+    controls.Tree = factory.define('Tree:treeview.html',Tree);
+
+    return controls.TreeView
+
 });

@@ -1,15 +1,6 @@
 <template sjs-name="TreeView">
 	<div class="-splicejs-treeview" sjs-element="root">
-		<include sjs-type="Controls.ScrollPanel">
-		{
-            content:
-            <include sjs-type="Tree" sjs-name="binding('tree').type('TreeView')">
-                {
-                    onTreeRefresh: binding('reflow').parent
-                }
-            </include>		
-		}
-		</include>
+		<include sjs-type="ScrollPanel"> </include>
 	</div>
 </template>
 
@@ -19,7 +10,7 @@
 
 
 <template sjs-name="TreeViewRoot">
-	<li>@content<ul class="-splicejs-tree-root" sjs-element="treeRoot"></ul></li>		
+    <li><span sjs-content="default"></span><ul class="-splicejs-tree-root" sjs-element="treeRoot"></ul></li>		
 </template>
 
 <template sjs-type="TreeViewItem">
