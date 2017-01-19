@@ -1,44 +1,28 @@
-$js.module({
-prerequisite:[
-	'/{$jshome}/modules/splice.module.extensions.js'
-],
-imports:[
-	{ Inheritance : '/{$jshome}/modules/splice.inheritance.js'},
-	{ Events			: '/{$jshome}/modules/splice.event.js'},
-	{'SpliceJS.UI':'../splice.ui.js'},
-	{'SpliceJS.Controls':'splice.controls.scrollpanel.js'},
-	'splice.controls.treeview.css',
-	'splice.controls.treeview.html'
-]
-,
-definition:function(){
-	var scope = this;
+define([
+    'require',
+    '{splice.modules}/inheritance',
+    '{splice.modules}/component',
+    {
+        ScrollPanel:'{splice.controls}/scrollpanel'
+    },
+    '!treeview.css',
+],function(require,inheritance,component,controls){
+    var scope = controls;
 	
-	var
-		sjs = scope.imports.$js
-    ,   imports = scope.imports
-	;
+	var Class       = inheritance.Class;
 
-	var
-		Class       = imports.Inheritance.Class
-	,	UIControl 	= imports.SpliceJS.UI.UIControl
-	,	Event       = imports.Events.event;
-	;
-
-	var TreeView = Class( function TreeViewController(){
-		this.base();
+	var TreeView = Class( function TreeView(){
 		this.onDataIn.subscribe(renderTree, this);
-	}).extend(UIControl);
+	}).extend(component.ComponentBase);
 
 
-	var Tree = Class(function TreeController(){
+	var Tree = Class(function Tree(){
 		this.base();
-
 		this.onDataIn.subscribe(function(data){
 			this.elements.treeRoot.innerHTML = data;
 			this.onTreeRefresh();
 		},this);
-	}).extend(UIControl);
+	}).extend(component.ComponentBase);
 
 	Tree.prototype.onTreeRefresh = Event;
 
@@ -90,7 +74,4 @@ definition:function(){
 	}
 
 	
-}
-
-
 });

@@ -29,7 +29,7 @@ define([
             this.from = args.range ? args.range[0] : 0;
             this.to = args.range ? args.range[1] : 1;
         }
-
+        console.log('processing dom iterator');
         if(this.domContent){
             // for(var i=this.from; i<this.to; i++){
             // }
@@ -44,6 +44,10 @@ define([
 
     DomIterator.prototype.onDisplay = function(){
 
+    }
+
+    DomIterator.prototype.onChildDisplay = function(child){
+       this.parent.onChildChanged();
     }
 
     /**

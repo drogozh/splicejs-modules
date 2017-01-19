@@ -5,13 +5,14 @@ define([
 	'{splice.modules}/component',
 	'{splice.modules}/event',
 	'{splice.modules}/view',
+    '{splice.modules}/component.interaction',
     '!dropdown.css',
 ],
-function(require,inheritance,component,event,view){
+function(require,inheritance,component,event,view,interaction){
 	"use strict";
 
 	/* dependency imports */
-	var	Positioning = view.Positioning
+	var	Positioning = interaction.Positioning
 	,	Class       = inheritance.Class
 	;
 

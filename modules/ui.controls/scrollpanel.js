@@ -17,7 +17,9 @@ define([
 	, 	isMobile 	= false;
 
 	var	Class = inheritance.Class
-	,	factory = component.ComponentFactory(require,scope);
+	,	factory = component.ComponentFactory(require,scope)
+    ,   DragAndDrop = interaction.DragAndDrop
+    ,   Positioning = view.Positioning;
 
 
 	var ScrollPanel = Class(function ScrollPanelController(args){
@@ -50,17 +52,25 @@ define([
 		this.client = this.elements.scrollClient;
 		/* */
 		this.clippingArea = this.elements.clippingArea;
-	}
+        
+
+
+    }
 
 	ScrollPanel.prototype.onInit = function(){
 	};
 
 
 	ScrollPanel.prototype.onDisplay = function(){
-		this.display();
 		this.reflow();
+        console.log('displaying scroll panel');
 	};
 
+
+    ScrollPanel.prototype.onChildChanged = function(){
+        console.log('reflowing');
+        this.reflow();
+    };
 
 	ScrollPanel.prototype.onTouchStart = function(e){
 		this.touchStart = {x:e.touches[0].pageX, y:e.touches[0].pageY};

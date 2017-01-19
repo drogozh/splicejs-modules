@@ -134,6 +134,8 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
     ComponentBase.prototype.onInit = 
     ComponentBase.prototype.onLoaded = 
     ComponentBase.prototype.onDisplay = 
+    ComponentBase.prototype.onChildChanged =
+    ComponentBase.prototype.onChildDisplay =
     ComponentBase.prototype.onResize  = function(){};
 
     ComponentBase.prototype.loaded = function(template,scope){
@@ -329,8 +331,9 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
 
         if(animation != null) animation.animate();
 
-        if(child instanceof ComponentBase)                
-            child.onDisplay();
+        // if(child instanceof ComponentBase)                
+        //     child.onDisplay();
+
     }
 
     ComponentBase.prototype.display = function(parent){
@@ -361,7 +364,8 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
         
         foreach(this.children,(function(child){
             child._parent = this;
-            child.display(this);    
+            child.display(this);
+            this.onChildDisplay(child);     
         }).bind(this));
 
 
@@ -371,6 +375,7 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
         var timeEnd = window.performance.now();
 
         log.debug(this.constructor.name,timeStart,timeEnd, timeEnd-timeStart);
+        this.onDisplay();
         return this;
     }
        
@@ -390,7 +395,10 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
         child.parent = this;
         child._parent = this;
 
-        if(this.isDisplayed) child.display(this);
+        if(this.isDisplayed) {
+            child.display(this);
+            this.onChildDisplay(child);
+        }
        
         return child;
     }
@@ -452,7 +460,10 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
         child.parent = this;
         child._parent = this;
 
-        if(this.isDisplayed) child.display(this);
+        if(this.isDisplayed) { 
+            child.display(this);
+            this.onChildDisplay(child);
+        }
         return child;
   }
 
@@ -549,6 +560,9 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
     ValueComponent.prototype.toString = function(){
         return this.node.value.toString();
     }
+
+    //todo: how about tryng string-based template components
+    //to utilize innerHTML behavior for complex data controls
 
     /** 
      *  Template
@@ -874,7 +888,6 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
         //locate adhoc vm
         if(attributes.values.vm){
             vm = new DataItem(scope).path(attributes.values.vm).getValue();
-            console.log(vm);
         }
 
         scope[_type] = function Component(args,parent){

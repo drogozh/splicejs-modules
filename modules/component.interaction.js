@@ -5,6 +5,88 @@ define([
 
 var Class = inheritance.Class
 
+
+//returns zero or a value
+function z(n){
+    if(!n) return 0;
+    return n;
+}
+
+/** 
+ *      Element positioning utilies
+ * 
+ */
+var Positioning =  {
+
+//@ Take mouse event object to return mouse position coordinates
+mouse:function(e){
+    //http://www.quirksmode.org/js/events_properties.html#position
+    var posx = 0;
+    var posy = 0;
+    if (!e) var e = window.event;
+    if (e.pageX || e.pageY) 	{
+        posx = e.pageX;
+        posy = e.pageY;
+    }
+    else if (e.clientX || e.clientY) 	{
+        posx = e.clientX + document.body.scrollLeft
+            + document.documentElement.scrollLeft;
+        posy = e.clientY + document.body.scrollTop
+            + document.documentElement.scrollTop;
+    }
+    return {x:posx,y:posy};
+},
+
+/*
+    Returns element coordinates in
+    document.body coordinate space
+*/
+abs: function(obj) {
+    var n = obj
+    ,   location  = [0,0];
+
+    while (n != undefined) {
+        location[0] += z(n.offsetLeft);
+        location[1] += z(n.offsetTop);
+        location[1] -= n.scrollTop;
+        n = n.offsetParent;
+    }
+
+    return {
+        x:location[0] + z(document.body.scrollLeft),
+        y:location[1] + z(document.body.scrollTop)
+    };
+},
+
+containsPoint:function(element,p) {
+    pos = this.abs(element);
+
+        pos.height = element.clientHeight;
+        pos.width = element.clientWidth;
+
+        if( p.x >= pos.x && p.x <= (pos.x + pos.width)) {
+            if(p.y >= pos.y && p.y <= pos.y + (pos.height / 2))
+            return 1;
+            else if(p.y >= pos.y + (pos.height / 2) && p.y <= pos.y + pos.height )
+            return -1;
+        }
+    return 0;
+},
+
+docsize:function(){
+    var docWidth = document.body.offsetWidth?document.body.offsetWidth:window.innerWidth;
+    var docHeight = document.body.offsetHeight?document.body.offsetHeight:window.innerHeight;
+
+    return {width:docWidth, height:docHeight};
+},
+
+windowsize: function () {
+    return { width: window.innerWidth, height: window.innerHeight };
+}
+};
+
+
+
 /**
  *      DragAndDrop Interaction
  */
@@ -113,11 +195,10 @@ var KeyListener = Class(function KeyListener(){
 
 });
 
-
-
 return {
-    DragAndDrop : DragAndDrop,
-    KeyListener: KeyListener
+    DragAndDrop: DragAndDrop,
+    KeyListener: KeyListener,
+    Positioning: Positioning
 }
 
 });
