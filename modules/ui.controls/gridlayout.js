@@ -629,8 +629,8 @@ define([
     var scope = {};
     var componentFactory = component.ComponentFactory(require,scope);
 
-   var CellContainerComponent =  componentFactory.define('CellContainer:gridlayout.html',CellContainer);
-   var GridLayoutComponent = componentFactory.define('GridLayout:gridlayout.html',GridLayout);
+   	var CellContainerComponent =  componentFactory.define('CellContainer:gridlayout.html',CellContainer);
+   	var GridLayoutComponent = componentFactory.define('GridLayout:gridlayout.html',GridLayout);
 
 
 	return  {

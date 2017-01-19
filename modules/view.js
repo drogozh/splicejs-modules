@@ -719,6 +719,9 @@ windowsize: function () {
 };
 
 
+function create(name){
+    return new View(document.createElement(name));
+}
 
 return {
     View:View,
@@ -730,6 +733,7 @@ return {
     DomMulticastStopEvent:  new DomMulticastStopEvent(),
 	cancelEventBubble:      cancelBubble,
     box:                    _box,
+    create:                 create,
     Positioning:            Positioning
 }
 

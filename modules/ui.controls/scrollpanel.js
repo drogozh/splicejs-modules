@@ -1,40 +1,29 @@
-$js.module({
-prerequisite:[
-	'/{$jshome}/modules/splice.module.extensions.js'
-],
-imports:[
-	{ Inheritance   : '/{$jshome}/modules/splice.inheritance.js'},
-	{ Events	    : '/{$jshome}/modules/splice.event.js'},
-	{ Component		: '/{$jshome}/modules/splice.component.core.js'	},
-	{'SpliceJS.UI'  : '../splice.ui.js'},
-	{'Doc'          : '/{$jshome}/modules/splice.document.js'},
-	'splice.controls.scrollpanel.css',
-	'splice.controls.scrollpanel.html'
-]
-,
-definition:function(){
-	var scope = this
-	,	sjs = scope.imports.$js;
+define([
+
+	'require',
+	'{splice.modules}/inheritance',
+	'{splice.modules}/component',
+	'{splice.modules}/event',
+	'{splice.modules}/view',
+    '{splice.modules}/async',
+	'{splice.modules}/component.interaction',
+	'preload|{splice.modules}/component.loader',
+	'!scrollpanel.css'
+
+],function(require,inheritance,component,event,view,async,interaction){
+	var scope = {}
 
 	var isTouch 	= false
 	, 	isMobile 	= false;
 
-    var imports = scope.imports
-    ;
+	var	Class = inheritance.Class
+	,	factory = component.ComponentFactory(require,scope);
 
-	var	select = imports.Doc.select
-	,	create = imports.Doc.create
-	, 	UIControl 	= imports.SpliceJS.UI.UIControl
-	, 	DragAndDrop = imports.SpliceJS.UI.DragAndDrop
-	,	Controller = imports.Component.Controller
-	,	Class = imports.Inheritance.Class
-	,	event = imports.Events.event
-    ;
 
 	var ScrollPanel = Class(function ScrollPanelController(args){
 		this.base(args);
-		event(this).attach({
-			onScroll : event.multicast
+		event.attach(this,{
+			onScroll : event.MulticastEvent
 		});
 
 		this.horizontalDisable = this.isDisableHorizontal;
@@ -48,29 +37,27 @@ definition:function(){
 
 		/* Setup touch events on touch enabled platforms */
 		if(isTouch && !isMobile){
-			this.clippingArea.addEventListener( 'touchstart', function(e){self.onTouchStart(e);},	false );
-			this.clippingArea.addEventListener( 'touchend',   function(e){self.onTouchEnd(e);}, 	false );
-			this.clippingArea.addEventListener( 'touchmove',  function(e){self.onTouchMove(e);}, 	false );
+			this.elements.clippingArea.addEventListener( 'touchstart', function(e){self.onTouchStart(e);},	false );
+			this.elements.clippingArea.addEventListener( 'touchend',   function(e){self.onTouchEnd(e);}, 	false );
+			this.elements.clippingArea.addEventListener( 'touchmove',  function(e){self.onTouchMove(e);}, 	false );
 		}
 
-		this.onDisplay.subscribe(function(){
-			self.display();
-		});
+	}).extend(component.ComponentBase);
 
-	}).extend(UIControl);
-
-	ScrollPanel.prototype.initialize = function(){
-		this.domRoot = this.views.root.htmlElement;
-
+	ScrollPanel.prototype.onLoaded = function(){
+		this.domRoot = this.elements.root;
 		/* Scrollable content client */
-		this.client = this.views.scrollClient.htmlElement;
+		this.client = this.elements.scrollClient;
 		/* */
-		this.clippingArea = this.views.clippingArea.htmlElement;
+		this.clippingArea = this.elements.clippingArea;
+	}
 
+	ScrollPanel.prototype.onInit = function(){
 	};
 
 
-	ScrollPanel.prototype.display = function(){
+	ScrollPanel.prototype.onDisplay = function(){
+		this.display();
 		this.reflow();
 	};
 
@@ -122,7 +109,7 @@ definition:function(){
 
 	ScrollPanel.prototype.reflow = function(args){
 
-		this.reflowChildren(null,null,true);
+		//this.reflowChildren(null,null,true);
 
 		/* nothing to reflow on mobile platforms*/
 		if(isMobile) return;
@@ -136,7 +123,7 @@ definition:function(){
 		var scrollBar = ScrollPanel.prototype.attachScrollBars.call(
 			this,
 			this.domRoot,{
-				scrollClient:this.views.scrollClient.htmlElement,
+				scrollClient:this.elements.scrollClient,
 				horizontalDisable:this.horizontalDisable
 			}
 		);
@@ -150,7 +137,7 @@ definition:function(){
 		}
 
 		else {
-			this.views.clippingArea.className = 'clipping';
+			this.elements.clippingArea.className = 'clipping';
 			/*
 			this.views.scrollClient.className = 'client';
 			this.views.staticContainer.className = 'static';
@@ -165,10 +152,10 @@ definition:function(){
 
 		parent.style.overflow = 'hidden';
 		var self = this;
-		var client = this.views.scrollClient;
-		var staticContainer = this.views.staticContainer;
+		var client = this.elements.scrollClient;
+		var staticContainer = this.elements.staticContainer;
 
-		var content = this.views.scroll.htmlElement;
+		var content = this.elements.scroll;
 
 		var size  = {	width:client.clientWidth, height:client.clientHeight};
 		var cSize = {	width:	Math.max(content.clientWidth,content.scrollWidth, content.offsetWidth),
@@ -183,12 +170,12 @@ definition:function(){
 		 * create new ones if not
 		 * */
 		if(!thumb.vertical) {
-			thumb.vertical = create('div').cl.add('-scroll-bar-thumb-vertical').element;
+			thumb.vertical = view.create('div').cl('-scroll-bar-thumb-vertical').add().htmlElement;
 			parent._scroll_bar_vertical = thumb.vertical;
 		}
 
 		if(!thumb.horizontal) {
-			thumb.horizontal = create('div').cl.add('-scroll-bar-thumb-horizontal').element;
+			thumb.horizontal = view.create('div').cl('-scroll-bar-thumb-horizontal').add().htmlElement;
 			parent._scroll_bar_horizontal = thumb.horizontal;
 		}
 
@@ -356,13 +343,5 @@ definition:function(){
 		return status;
 	}; //end attach scrollbars
 
-	//scope exports
-	scope.add(
-		ScrollPanel
-	);
-	//module exports
-	scope.exports(
-		ScrollPanel
-	);
-
-}});
+	return factory.define('ScrollPanel:scrollpanel.html',ScrollPanel);
+});
