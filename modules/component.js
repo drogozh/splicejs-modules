@@ -9,7 +9,8 @@ define([
     'binding',
     'preload|component.loader'
 ],
-
+//todo: Component mode supports data-driven component selection
+//requires unicast event hander to return a value
 function(inheritance,events,doc,data,utils,effects,view,_binding){
     "use strict";
 
@@ -87,17 +88,15 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
                     comp.parent = parent;
                     comp.__name__ = parts[0]; 
                     comp.init(args);
-                   
+                    comp.resolve(args,parent);
                    
                 if(!listener.isLoaded){
                    listener.subscribe((function(t){
                         this.loaded(t[parts[0]],scope)
-                        this.resolve(args,parent);
                     }).bind(comp));
                 } else {
                     // component is created
                     comp.loaded(listener.t[parts[0]],scope);
-                    comp.resolve(args,parent);
                 }
                 return comp;
             }
@@ -155,6 +154,9 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
         this.node = templateInstance.node;
 
         //child collection
+        //todo: this property should be turned into 'private' 
+        //otherwise it could unintentionally overwritten
+        //causing strange and hard to debug behaviour
         this.children = this.children || [];
 
         //construc element map
@@ -465,7 +467,23 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
             this.onChildDisplay(child);
         }
         return child;
-  }
+    }
+
+    ComponentBase.prototype.applyContent = function(content){
+        //its a keys content
+        if( content.constructor == Object.prototype.constructor || 
+            content instanceof Array){
+            var keys = Object.keys(content);
+            for(var i=0; i<keys.length; i++){
+                var l = keys[i];
+                var c = content[keys[i]];
+                this.set(c,l);
+            }        
+        } else {
+            this.set(content.toString());
+        } 
+        return this;
+    }
 
 
     /**
@@ -980,14 +998,14 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
      * Document Application
      * Uses document.body as a template instance
      */
-    var DocumentApplication = Class(function DocumentApplication(scope){
+    var DocumentApplication = Class(function DocumentApplication(){
+    }).extend(ComponentBase);
+
+    DocumentApplication.prototype.start =  function(scope){
         var template = new Template(document.body).compile(scope);
         template.clone = function(){return this.node;}
         this.loaded(template,scope);
         this.content['default'] = document.body;
-    }).extend(ComponentBase);
-
-    DocumentApplication.prototype.start =  function(){
         this.display();
     };
 

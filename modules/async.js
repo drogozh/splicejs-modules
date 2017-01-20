@@ -47,6 +47,20 @@ define(function(){
     }
 
 
+    /** 
+     * 
+     * 
+     */
+    function asyncIterator(obj){
+        return {
+            for:function(){},
+            recursive:function(){
+                
+            }
+        }
+    }
+
+
     function execute(fn,delay){
         if(delay == null || delay <= 0) delay = 1;
         setTimeout(fn,delay);
@@ -55,6 +69,7 @@ define(function(){
 
 return {
 	loop:asyncLoop,
+    iterator:asyncIterator,
     exec:execute
 }
 

@@ -1,6 +1,5 @@
 /*
 	TreeView
-------------------------------------------- 
 */
 
 .-splicejs-treeview ul.-splicejs-tree-root {
@@ -38,11 +37,11 @@
 }
 
 .-splicejs-treeview .-sc-tree-node-expanded {
-	background: url('resources/treeview/black/downarrow.png') no-repeat left 0px center;
+	background: url('resources/black/downarrow.png') no-repeat left 0px center;
 }
 
 .-splicejs-treeview .-sc-tree-node-collapsed {
-	background: url('resources/treeview/black/rightarrow.png') no-repeat left 0px center;
+	background: url('resources/black/rightarrow.png') no-repeat left 0px center;
 }
 
 .-splicejs-treeview ul.-splicejs-tree-root div.-splicejs-tree-item:hover {

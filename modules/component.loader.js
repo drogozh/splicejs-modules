@@ -76,7 +76,8 @@ define(
             onok:function(response){
               spec.innerHTML = response.text;
               var delay = 1;
-              if(/buttons.html$/.test(spec.fileName))
+              if(/buttons.html$/.test(spec.fileName) || 
+                /treeview.html$/.test(spec.fileName))
                 delay = 1;
               setTimeout(function(){
                 loader.notify(spec);

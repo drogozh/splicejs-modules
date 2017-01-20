@@ -26,9 +26,11 @@
 
 .-sjs-button:hover {
 	background-color: #1CD0FA;
-
 }
 
+.-sjs-label {
+    display:inline-block;
+} 
 
 .-sjs-textfield {
 	font-size: 13px;
