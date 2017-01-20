@@ -1,0 +1,25 @@
+<template sjs-name="StretchListBox">
+	<div class="-sjs-list-box-base" sjs-content="default"></div>
+</template>
+
+
+<template sjs-type="ScrollableListBox" sjs-controller="ListBoxController" sjs-export>
+	<div class="-sjs-list-box" sjs-element="root">
+		<include sjs-type="SpliceJS.Controls.ScrollPanel" 
+				 sjs-name="scrollPanel">
+			{
+				content:
+				<include sjs-type="ContentClient"> </include>
+			}</include>
+	</div>
+</template>
+
+
+<template sjs-type="ContentClient">
+	<div sjs-content="default"></div>
+</template>
+
+
+<template sjs-type="GroupedListItem" sjs-export>
+	<div class="-splicejs-list-grouped-listitem"></div>
+</template>

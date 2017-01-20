@@ -37,7 +37,7 @@ define(
         node = node.children[0];
       }
       else {
-        var root = new document.createElement('div');
+        var root = document.createElement('div');
         var children = node.children;
         for(var i=0; i<children.length; i++){
           root.appendChild(children[i]);

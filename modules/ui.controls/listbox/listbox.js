@@ -1,22 +1,15 @@
-$js.module({
-prerequisite:[
-	'/{$jshome}/modules/splice.module.extensions.js'
-],
-imports:[
-	{ Inheritance: 	'/{$jshome}/modules/splice.inheritance.js'},
-	{ Events: 		'/{$jshome}/modules/splice.event.js'},
-	{ Views: 		'/{$jshome}/modules/splice.view.js'},
-  	{ Async: 		'/{$jshome}/modules/splice.async.js'},
-	{ Component:	'/{$jshome}/modules/splice.component.core.js'},	
-	{'SpliceJS.UI':'../splice.ui.js'},
-	{'SpliceJS.Controls':'splice.controls.scrollpanel.js'},
-	{'Doc':'/{$jshome}/modules/splice.document.js'},
-	{ Utils			: '/{$jshome}/modules/splice.util.js'},
-	'splice.controls.listbox.css',
-	'splice.controls.listbox.html'
-]
-,
-definition:function(){
+define([
+	'require',
+	'{splice.modules}/inheritance',
+	'{splice.modules}/component',
+	'{splice.modules}/event',
+	'{splice.modules}/view',
+	'{splice.modules}/component.interaction',
+    '{splice.modules}/util',
+    '{splice.modules}/async',
+	'preload|{splice.modules}/component.loader',
+	'!listbox.css'
+],function(require,inheritance,component,event,view,interaction,utils,async){
 	"use strict";
 
 	var scope = this
@@ -257,5 +250,4 @@ definition:function(){
 
 }
 
-
-});
+);
