@@ -47,6 +47,34 @@ define(function(){
     }
 
 
+    function iterator(obj, children, oncallback, pageSize, delay){
+        if(!delay || delay <= 0 ) delay  = 1;
+
+        var frameStack = [];
+        frameStack.push({
+            keys:Object.keys(obj),
+            count:0
+        });
+        
+        var p = {cf:null};
+        var fn = function(){
+            if(!p.cf) return;
+            // do work here
+            var key = p.cf.keys[p.cf.count];
+            oncallback(obj[key]);
+            p.cf.count--;
+
+            //decend into children
+            var ch = children(obj[key]);
+
+            if(p.cf.count == 0)
+                p.cf = frameStack.pop();
+
+            setTimeout(fn,delay);
+        }
+
+    }
+
     /** 
      * 
      * 
@@ -54,7 +82,7 @@ define(function(){
     function asyncIterator(obj){
         return {
             for:function(){},
-            recursive:function(){
+            recursive:function(children,oncallback){
                 
             }
         }
