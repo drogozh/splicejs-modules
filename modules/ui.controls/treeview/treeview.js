@@ -7,7 +7,7 @@ define([
     },
     '{splice.modules}/async',
     '!treeview.css',
-],function(require,inheritance,component,controls){
+],function(require,inheritance,component,controls,_async){
 	
 	var Class = inheritance.Class
     ,	factory = component.ComponentFactory(require,controls);
@@ -28,50 +28,56 @@ define([
          collectTreeViewArgs.call(this,args);
          this.tree = new Tree();
 
+         this.nodes = [];
+
 	}).extend(component.ComponentBase);
 
 
     TreeView.prototype.dataIn = function(data){
         
-        for(var i=0; i<data.length; i++){
-            var comp = data[i][this.childProp] ? new Node(): new Leaf();
-            plantTree.call(this,data[i][this.childProp],comp);
+
+     this.dataIterator = 
+     _async.iterator(data).recursive(
+         // child selector
+        (function(d){
+            return d[this.childProp];
+        }).bind(this),
+
+        // onchild action
+        (function(node,parent,n,np){
             
+           var parent = this.nodes[np];
+           var comp = node[this.childProp] ? new Node(): new Leaf();
+
             if(this.itemTemplate){ 
                 var c = new this.itemTemplate(this);
-                c.applyContent(data[i]);
+                c.applyContent(node);
                 comp.set(c);
             } else {
-                comp.set(data[i]);
+                comp.set(node);
             }
-            this.tree.add(comp);
-        }
+           
+            this.nodes[n] = comp;
+
+            if(!parent) this.tree.add(comp);
+            else parent.add(comp,'children');
+        }).bind(this),
         
+        //oncomplete action
+        function(){
+            console.log('complete');
+        },
+
+        //on page action, good time reflow layout etc..
+        (function(){
+            this.getInclude('scrollPanel').reflow();
+        }).bind(this));
+
+
         this.set(this.tree);
-        var scrollPanel = this.getInclude('scrollPanel');
-        scrollPanel.reflow();
     };
 
 
-    function plantTree(data,parent){
-         if(!data) return;
-         for(var i=0; i<data.length; i++){
-            var comp = data[i][this.childProp] ? new Node(): new Leaf();
-            
-            if(this.itemTemplate){ 
-                var c = new this.itemTemplate(this);
-                c.applyContent(data[i]);
-                comp.set(c);
-            } else {
-                comp.set(data[i]);
-            }
-
-
-            plantTree.call(this,data[i][this.childProp],comp);
-            parent.add(comp,'children');
-        }
-        return parent;
-    }
 
 
     function collectTreeViewArgs(args){

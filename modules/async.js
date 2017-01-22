@@ -46,33 +46,78 @@ define(function(){
         }
     }
 
-
-    function iterator(obj, children, oncallback, pageSize, delay){
-        if(!delay || delay <= 0 ) delay  = 1;
-
-        var frameStack = [];
-        frameStack.push({
-            keys:Object.keys(obj),
-            count:0
-        });
-        
-        var p = {cf:null};
-        var fn = function(){
-            if(!p.cf) return;
-            // do work here
-            var key = p.cf.keys[p.cf.count];
-            oncallback(obj[key]);
-            p.cf.count--;
-
-            //decend into children
-            var ch = children(obj[key]);
-
-            if(p.cf.count == 0)
-                p.cf = frameStack.pop();
-
-            setTimeout(fn,delay);
+    function peek(stack){
+        var frame = stack[stack.length-1];
+        if(!frame) return {node:null, n:-1};
+        return {
+            node:frame.obj[frame.keys[frame.count-1]],
+            id:frame.id
         }
+    }
 
+    /**
+     * oncallback(currenNode, parentNode, currentNodeId, parentNodeId)
+     * 
+     */
+    function Iterator(obj, children, oncallback, pageSize, delay,oncomplete,onpage){
+        if(!delay || delay <= 0 ) delay  = 1;
+        if(!pageSize || pageSize <=0 ) pageSize = 10000;
+        
+        this.frameStack = [];
+
+        this.p = {f:{
+            obj:obj,
+            keys:Object.keys(obj),
+            count:0,
+            id:0
+        },n:0};
+
+        this._stop = false;
+
+        var fn = (function(){
+            var p = this.p;
+            var frameStack = this.frameStack;
+            do {
+                if(this._stop) return;
+                if(!p.f) { 
+                    //iteration is complete
+                    if(typeof oncomplete == 'function') oncomplete();
+                    return; 
+                }
+                
+                var key = p.f.keys[p.f.count];
+                var pk = peek(frameStack)
+                oncallback(p.f.obj[key],pk.node,p.n,pk.id);
+                p.f.id = p.n;
+                p.f.count++;
+                p.n++;
+                
+                //decend into children
+                var ch = children(p.f.obj[key]);
+                if(ch != null) {
+                    frameStack.push(p.f);
+                    p.f = {
+                        obj:ch,
+                        keys:Object.keys(ch),
+                        count:0,id:0
+                    };    
+                }
+
+                while(p.f && p.f.count >= p.f.keys.length){
+                    p.f = frameStack.pop();
+                }
+
+            } while (p.n % pageSize > 0 && p.f && p.f.count <= p.f.keys.length);
+            if(typeof onpage == 'function') onpage();
+            setTimeout(fn,delay);
+        }).bind(this); 
+
+        setTimeout(fn,1);
+        return this;    
+    }
+
+    Iterator.prototype.stop = function(){
+        this._stop = true;    
     }
 
     /** 
@@ -82,13 +127,15 @@ define(function(){
     function asyncIterator(obj){
         return {
             for:function(){},
-            recursive:function(children,oncallback){
-                
+            recursive:function(children,oncallback,oncomplete,onpage){
+              return new Iterator(obj,children,oncallback,50,1,oncomplete,onpage);  
             }
         }
     }
 
-
+    /**
+     * 
+     */
     function execute(fn,delay){
         if(delay == null || delay <= 0) delay = 1;
         setTimeout(fn,delay);
@@ -98,7 +145,7 @@ define(function(){
 return {
 	loop:asyncLoop,
     iterator:asyncIterator,
-    exec:execute
+    run:execute
 }
 
 

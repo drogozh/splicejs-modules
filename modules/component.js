@@ -170,6 +170,7 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
         //   check for any content overrides
         //   includes are special types of children and processed separately from any other content child
         //   this is because they are a part of template composition
+        //todo: rename includes to components
         this.includes = templateInstance.children;
         this.namedIncludes = {};
         var keys = Object.keys(this.includes);
