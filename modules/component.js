@@ -11,7 +11,7 @@ define([
 ],
 //todo: Component mode supports data-driven component selection
 //requires unicast event hander to return a value
-function(inheritance,events,doc,data,utils,effects,view,_binding){
+function(inheritance,events,doc,data,utils,effects,Element,_binding){
     "use strict";
 
     var tags = {
@@ -82,12 +82,13 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
             require('!'+[parts[1]],function(t){
                 listener.loaded(t,scope);
             });
-            return function Component(args,parent){
+            var componentConstructor = function Component(args,parent){
                 args = utils.blend(defaultArgs,args);
                 var comp = new controller(args,parent);
                     comp.parent = parent;
                     comp.__name__ = parts[0]; 
                     comp.init(args);
+                    comp.onResolve();
                     comp.resolve(args,parent);
                    
                 if(!listener.isLoaded){
@@ -100,6 +101,9 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
                 }
                 return comp;
             }
+            //this will allow extending components
+            componentConstructor.prototype = controller.prototype;
+            return componentConstructor;
         }
     }
     }
@@ -132,7 +136,8 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
     //interface callbacks, intended for override
     ComponentBase.prototype.onInit = 
     ComponentBase.prototype.onLoaded = 
-    ComponentBase.prototype.onDisplay = 
+    ComponentBase.prototype.onDisplay =
+    ComponentBase.prototype.onResolve =  
     ComponentBase.prototype.onChildChanged =
     ComponentBase.prototype.onChildDisplay =
     ComponentBase.prototype.onResize  = function(){};
@@ -152,6 +157,7 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
             getTemplateInstance.call(this,template);
         //root node of the component's DOM
         this.node = templateInstance.node;
+        this.node.__obj = this;
 
         //child collection
         //todo: this property should be turned into 'private' 
@@ -165,19 +171,19 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
         //1. content map
         buildContentMap.call(this);
 
-        //2. process includes and 
+        //2. process included components and 
         //   all includes must be derived from ComponentBase
         //   check for any content overrides
         //   includes are special types of children and processed separately from any other content child
         //   this is because they are a part of template composition
         //todo: rename includes to components
         this.includes = templateInstance.children;
-        this.namedIncludes = {};
+        this._components = {};
         var keys = Object.keys(this.includes);
         for(var key in keys){
             var c = this.includes[keys[key]].__parent_content__;
             if(this.includes[keys[key]].__include_name__){
-                this.namedIncludes[this.includes[keys[key]].__include_name__] = 
+                this._components[this.includes[keys[key]].__include_name__] = 
                     this.includes[keys[key]];
             }
             if(!c) continue;
@@ -265,9 +271,16 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
         }).bind(this));
     }
     
-    ComponentBase.prototype.getInclude = function(name){
-        if(!this.namedIncludes) return null;
-        return this.namedIncludes[name];
+    ComponentBase.prototype.getComponent = function(name){
+        if(!this._components) return null;
+        return this._components[name];
+    }
+
+    ComponentBase.prototype.getElement = function(name){
+        if(!(this.elements && this.elements[name])) return null;
+        if(this.elements[name] instanceof Element ) 
+            return this.elements[name];
+        return this.elements[name] = Element(this.elements[name]);
     }
 
     /**
@@ -337,6 +350,16 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
         // if(child instanceof ComponentBase)                
         //     child.onDisplay();
 
+    }
+
+    ComponentBase.prototype.detachChild = function(child){
+        child.node.parentNode.removeChild(child.node);
+    }
+
+
+    ComponentBase.prototype.detach = function(){
+        if(!this._parent) throw 'Unable to detach orphaned component';
+        this.parent.detachChild(this);
     }
 
     ComponentBase.prototype.display = function(parent){
@@ -467,7 +490,7 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
             child.display(this);
             this.onChildDisplay(child);
         }
-        return child;
+        return this;
     }
 
     ComponentBase.prototype.applyContent = function(content){
@@ -528,7 +551,7 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
             style.top = y + 'px';
         
 
-        var box = view.box(this.node).unit();
+        var box = Element.box(this.node).unit();
 
         if(w !=null ) {
             w = w - box.padding.left.value 
@@ -990,8 +1013,34 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
   		return s[0].toUpperCase() + s.substring(1);
   	}
     
+    /**
+     * 
+     */
+    function locateComponent(start,type){
+        //look in the component chain
+        if(start instanceof ComponentBase) {
+            var parent = start;
+            while(parent){
+                if(parent instanceof type) return parent;
+                parent = parent.parent;
+            }
+            return null;
+        }
 
+        //look in the dom tree
+        var parent = null;
+        if(start instanceof Element){
+            parent = start.__obj;  
+        }
+            parent = start;
+         
+        while(parent){
+            if(parent.__obj instanceof type) return parent.__obj;
+            parent = parent.parentNode;
+        }
+        return null;
 
+    }
 
 
     /**
@@ -1017,6 +1066,7 @@ function(inheritance,events,doc,data,utils,effects,view,_binding){
         DocumentApplication: DocumentApplication,
         proxy:proxy,
         toComponent:toComponent,
+        locate:locateComponent,
         logTo:function(lg){log = lg;}
     }
 

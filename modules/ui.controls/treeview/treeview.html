@@ -10,10 +10,13 @@
 
 <template sjs-name="TreeNode">
     <li><div class="-splicejs-tree-item">
-            <div class="-sc-tree-expandor -sc-tree-node-expanded"></div>
+            <div class="-sc-tree-expandor -sc-tree-node-expanded" 
+                 sjs-element="expandor"></div>
             <span sjs-content="default"></span>
         </div>
-        <ul class="-splicejs-tree-root" sjs-element="treeRoot" sjs-content="children"></ul></li>		
+        <ul class="-splicejs-tree-root" 
+            sjs-element="treeRoot" 
+            sjs-content="children"></ul></li>		
 </template>
 
 <template sjs-name="TreeLeaf">

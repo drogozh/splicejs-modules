@@ -180,12 +180,12 @@ define([
 		 * create new ones if not
 		 * */
 		if(!thumb.vertical) {
-			thumb.vertical = view.create('div').cl('-scroll-bar-thumb-vertical').add().htmlElement;
+			thumb.vertical = view.create('div').appendClass('-scroll-bar-thumb-vertical').node;
 			parent._scroll_bar_vertical = thumb.vertical;
 		}
 
 		if(!thumb.horizontal) {
-			thumb.horizontal = view.create('div').cl('-scroll-bar-thumb-horizontal').add().htmlElement;
+			thumb.horizontal = view.create('div').appendClass('-scroll-bar-thumb-horizontal').node;
 			parent._scroll_bar_horizontal = thumb.horizontal;
 		}
 

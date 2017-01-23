@@ -374,54 +374,86 @@ var DomMulticastStopEvent = Class(function DomMulticastStopEvent(){
 
 
 
-  /*
-      -----------------------------------------------------------------
-  */
-  /**
-  	Dom manipulation api
-  */
-  function View(dom, args){
-    if(!(this instanceof View)){
-      return new View(dom,args);
+/**
+ *   Dom manipulation api
+ */
+var Element;
+var View = Element = function Element(dom){
+if(!(this instanceof View)){
+    return new View(dom);
+}
+if(typeof dom === 'string'){
+    this.htmlElement = (function(d){
+        var e = document.createElement('span');
+        e.innerHTML = d;
+        return e.children[0];
+    })(dom);
+} else
+    this.htmlElement = dom;
+
+this.node = this.htmlElement;
+_buildClassMap.call(this);
+};
+
+
+
+Element.prototype.hide = function(){
+    this.node.style.display = 'none';
+};
+
+Element.prototype.show = function(type){
+    this.node.style.display = type || 'inline-block';
+};
+
+function _buildClassMap(){
+    this.classMap = {};
+    this.classStore = [];
+    var attr = this.node.getAttribute('class');
+    if(!attr) return;
+    var parts = attr.split(' ');
+    for(var i=0; i<parts.length; i++){
+        this.classMap[parts[i]] = i;
+        this.classStore[i] = parts[i];
     }
-  	if(typeof dom === 'string'){
-  		this.htmlElement = (function(d){
-  			var e = document.createElement('span');
-  			e.innerHTML = d;
-  			return e.children[0];
-  		})(dom);
-  	} else
-  		this.htmlElement = dom;
+}
 
-  	if(!args || !args.simple){
-  		this.contentMap = buildContentMap(this.htmlElement);
-  	}
-  	else {
-  		this.isSimple = true;
-  	}
-  	this.reflow = new ViewReflow(this);
-  };
+function _commitClassMap(){
+    var result = '', sep = '';
 
-  View.prototype.cl = function(className){
-  	var self = this;
-  	return {
-  		remove: function(){
-  			removeClass(self.htmlElement,className)
-  			return self;
-  		},
-  		add:function(){
-  			addClass(self.htmlElement,className);
-  			return self;
-  		}
-  	}
-  };
+    for(var i=0; i<this.classStore.length; i++){
+        result = result + sep +  this.classStore[i];
+        sep = ' '; 
+    }
+    this.node.className = result;
+    return result;
+}
 
-  View.prototype.attr = function(attr){
-  	for(var k in attr){
-  		this.htmlElement.setAttribute(k,attr[k]);
-  	}
-  	return this;
-  };
+Element.prototype.removeClass = function(className){
+    removeClass(this.node,className);
+    return this;
+} 
+
+Element.prototype.replaceClass = function(oldClass, newClass){
+    var idx =  this.classMap[oldClass]
+    this.classStore[idx] = newClass;
+    delete this.classMap.oldClass;
+    this.classMap[newClass] = idx;
+
+    _commitClassMap.call(this);
+    return this;
+};
+
+Element.prototype.appendClass = function(className){
+    addClass(this.node,className);
+    return this;
+}
+
+View.prototype.attr = function(attr){
+for(var k in attr){
+    this.htmlElement.setAttribute(k,attr[k]);
+}
+return this;
+};
 
   View.prototype.style = function(styleString){
   	//var rules = CssTokenizer(styleString);
@@ -455,99 +487,8 @@ var DomMulticastStopEvent = Class(function DomMulticastStopEvent(){
     return View.addContent.call(this,content,key);
   }
 
-  View.addContent = function addContent(content,key){
-  	if(!key) key = 'default';
-
-  	var target = this.contentMap[key];
-  	if(!target) return this;
-
-  	var node = this.contentMap[key].source;
-  	if(content instanceof View){
-  		node.appendChild( content.htmlElement );
-  	} else {
-  		node.appendChild( document.createTextNode(content.toString()) );
-  	}
-  	target.n++;
-    return this;
-  };
-
-  View.replaceContent = function replaceContent(content,key){
-  	if(content == null) return this;
-  	if(!key) key = 'default';
-  	//coercive comparision, checks null and undefined
-  	var target = this.contentMap[key];
-  	if( target == null ) return this;
-
-  	if(content instanceof View){
-  		//content is already set
-  		if(target.source.children[0] == content.htmlElement) return this;
-  		target.source.innerHTML = '';
-  		target.cache = null;
-  		target.source.appendChild(content.htmlElement);
-  		target.n = 1;
-  		return this;
-  	}
-  	else{
-  		var node = target.cache;
-  		if(!node) {
-  			node = document.createTextNode(content.toString());
-  			target.source.innerHTML = '';
-  			target.cache = node;
-  			target.source.appendChild(node);
-  			target.n = 1;
-  		}
-  		node.nodeValue = content.toString();
-  		return this;
-  	}
-  	
-  };
-
-  View.removeContent = function removeContent(content, key){
-  	if(!key) key = 'default';
-
-  	var target = this.contentMap[key];
-  	if( target == null || target.n == 0 ) return this;
-
-  	if(target.n == 1){
-  		target.source.innerHTML = '';
-  		target.cache = null;
-  		target.n = 0;
-  	} else {
-  		if(content instanceof View){
-  			//look for nodes to remove
-  			for(var i=0; i< target.source.childNodes.length; i++){
-  				var node = target.source.childNodes[i];
-  				if(node == content.htmlElement) {
-  					target.source.removeChild(node);
-  				}
-  			}
-  		} else {
-
-  		}
-  	}
-  	var node = target.cache;
-  };
-
-  View.display = display;
-	View.remove = remove;
-
-  View.prototype.add = View.addContent;
-  View.prototype.replace = View.replaceContent;
-
-
-  View.prototype.position = function(){
-  		var self = this;
-  		return {
-  			abs:function(){
-  				return self;
-  			}
-  		}
-  };
-
-  View.prototype.reflow = function(){
-
-  };
-
+  
+  
   function CssTokenizer(input){
   	var t = new Tokenizer(input);
   	var rules = []
@@ -639,24 +580,21 @@ var DomMulticastStopEvent = Class(function DomMulticastStopEvent(){
   	element.className = clean;
   };
 
-
-
 function create(name){
     return new View(document.createElement(name));
 }
 
-return {
-    View:View,
-    css:{
+Element.css = {
         addClass:   addClass,
         removeClass:removeClass
-    }, 
-    DomMulticastEvent:      new DomMulticastEvent(),
-    DomMulticastStopEvent:  new DomMulticastStopEvent(),
-	cancelEventBubble:      cancelBubble,
-    box:                    _box,
-    create:                 create
-}
+};
 
+Element.DomMulticastEvent = new DomMulticastEvent();
+Element.DomMulticastStopEvent =new DomMulticastStopEvent();
+Element.box = _box;
+Element.create = create;
+Element.View = Element;
+
+return Element;
 
 });

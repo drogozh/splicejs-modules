@@ -6,8 +6,10 @@ define([
         ScrollPanel:'{splice.controls}/scrollpanel'
     },
     '{splice.modules}/async',
+    '{splice.modules}/event',
+    '{splice.modules}/view',
     '!treeview.css',
-],function(require,inheritance,component,controls,_async){
+],function(require,inheritance,component,controls,_async,event,Element){
 	
 	var Class = inheritance.Class
     ,	factory = component.ComponentFactory(require,controls);
@@ -16,63 +18,136 @@ define([
     var Tree = factory.define('Tree:treeview.html',Class(function Tree(){
     }).extend(component.ComponentBase));
 
-    var Node = factory.define('TreeNode:treeview.html',Class(function TreeNode(){
-    }).extend(component.ComponentBase));
-
-
     var Leaf = factory.define('TreeLeaf:treeview.html',Class(function TreeLeaf(){
+        this.dataItem = null;    
     }).extend(component.ComponentBase));
 
+    Leaf.prototype.dataIn = function(data){
+        this.dataItem = data;
+    }
 
+    /**
+     * 
+     * 
+     */
+    var Node = factory.define('TreeNode:treeview.html',Class(function TreeNode(){
+        this.isExpanded = true;    
+    }).extend(Leaf));
+
+    Node.prototype.collapse = function(){
+        //style collapsed node
+        this.getElement('expandor')
+            .replaceClass('-sc-tree-node-expanded','-sc-tree-node-collapsed');
+        //hide child elements
+        this.getElement('treeRoot')
+            .hide();
+    }
+
+    Node.prototype.expand = function(){
+        //style collapsed node
+        this.getElement('expandor')
+            .replaceClass('-sc-tree-node-collapsed','-sc-tree-node-expanded');
+        //hide child elements
+        this.getElement('treeRoot')
+            .show();
+    }
+
+    Node.prototype.toggle = function(){
+        this.isExpanded = !this.isExpanded;
+        if(this.isExpanded == true) this.expand();
+        else this.collapse();
+    }
+
+
+    /** TreeView component view model */
+    /**
+     * 
+     */
 	var TreeView = Class(function TreeView(args){
-         collectTreeViewArgs.call(this,args);
-         this.tree = new Tree();
+        collectTreeViewArgs.call(this,args);
+        this.tree = new Tree();
+        this.nodes = [];
+        //        
+        event.attach(this,{
+            onItemSelected: event.MulticastEvent
+        })	
+    }).extend(component.ComponentBase);
 
-         this.nodes = [];
 
-	}).extend(component.ComponentBase);
+    TreeView.prototype.onLoaded = function(){
+        var root = this
+            .getComponent('scrollPanel')
+            .getElement('root');
+
+        event.attach(root, {
+            onmousedown:Element.DomMulticastStopEvent
+        }).onmousedown.subscribe(_treeViewItemClicked,this);
+    }
+
+
+    function _treeViewItemClicked(args){
+        //locate node view model
+        var node = component.locate(args.source,Leaf);
+        if(!node) return;
+
+        //we want to toggle node
+        var expandor = node.getElement('expandor');
+        if(node instanceof Node && 
+            expandor &&
+            args.source == expandor.node) {
+            node.toggle();
+            //update layout        
+            this.getComponent('scrollPanel').reflow();
+            return;
+        }
+
+        //we want to select node
+        //determine the selected item
+        this.onItemSelected(node.dataItem);
+
+    
+    }
 
 
     TreeView.prototype.dataIn = function(data){
+        if(this.dataIterator) this.dataIterator.stop();
+
+        this.dataIterator = 
+        _async.iterator(data).recursive(
+            // child selector
+            (function(d){
+                return d[this.childProp];
+            }).bind(this),
+
+            // onchild action
+            (function(node,parent,n,np){
+                
+            var parent = this.nodes[np];
+            var comp = node[this.childProp] ? new Node(): new Leaf();
+
+                if(this.itemTemplate){ 
+                    var c = new this.itemTemplate(this);
+                    c.applyContent(node);
+                    comp.set(c);
+                } else {
+                    comp.set(node);
+                }
+                comp.dataIn(node);
+                this.nodes[n] = comp;
+
+                if(!parent) this.tree.add(comp);
+                else parent.add(comp,'children');
+            }).bind(this),
         
+            //oncomplete action
+            function(){
+                console.log('complete');
+            },
 
-     this.dataIterator = 
-     _async.iterator(data).recursive(
-         // child selector
-        (function(d){
-            return d[this.childProp];
-        }).bind(this),
-
-        // onchild action
-        (function(node,parent,n,np){
-            
-           var parent = this.nodes[np];
-           var comp = node[this.childProp] ? new Node(): new Leaf();
-
-            if(this.itemTemplate){ 
-                var c = new this.itemTemplate(this);
-                c.applyContent(node);
-                comp.set(c);
-            } else {
-                comp.set(node);
-            }
-           
-            this.nodes[n] = comp;
-
-            if(!parent) this.tree.add(comp);
-            else parent.add(comp,'children');
-        }).bind(this),
-        
-        //oncomplete action
-        function(){
-            console.log('complete');
-        },
-
-        //on page action, good time reflow layout etc..
-        (function(){
-            this.getInclude('scrollPanel').reflow();
-        }).bind(this));
-
+            //on page action, good place to reflow layout
+            (function(){
+                this.getComponent('scrollPanel').reflow();
+            }).bind(this));
 
         this.set(this.tree);
     };

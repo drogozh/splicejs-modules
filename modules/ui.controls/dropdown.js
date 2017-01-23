@@ -11,6 +11,11 @@ define([
 function(require,inheritance,component,event,view,interaction){
 	"use strict";
 
+    //static map to keep track of all the DropDown components
+    //used to implement modal behavior
+    var dropDownMap = {}
+
+
 	/* dependency imports */
 	var	Positioning = interaction.Positioning
 	,	Class       = inheritance.Class
@@ -26,11 +31,6 @@ function(require,inheritance,component,event,view,interaction){
 	//static single instance
 	var dropDownContainer = null
 	,	selectorElement = null;
-
-
-	function _offFocusReaper(){
-		_hide();
-	};
 
 
     /**
@@ -183,12 +183,20 @@ function(require,inheritance,component,event,view,interaction){
 
 		event.attach(window, {
 		 	onmousedown	:	view.DomMulticastStopEvent
-		}).onmousedown.subscribe(_offFocusReaper,dropDownContainer);
+        }).onmousedown.subscribe(function(){
+            //close drop-down here
+            this.close();
+        },this);
 
 		this.onDropDown(this.data);
 
 	};
 
+
+    DropDown.prototype.close = function(){
+        if(!this.dropDownContainer) return;
+            this.dropDownContainer.detach();
+    }
 
     return {
         DropDown : factory.define('DropDownSelector:dropdown.html',DropDown)
