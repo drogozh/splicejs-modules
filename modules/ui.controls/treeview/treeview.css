@@ -5,7 +5,14 @@
 .-splicejs-treeview ul.-splicejs-tree-root {
 	margin:0px;
 	padding:0px;
+    display: block;
 }
+
+.-splicejs-treeview ul.-splicejs-tree-root.collapsed{
+	display:none;
+}
+
+
 .-splicejs-treeview ul.-splicejs-tree-root ul{
 	margin:0px;
 	padding:0px;
@@ -15,6 +22,7 @@
 .-splicejs-treeview ul.-splicejs-tree-root li{
 	list-style-type:none;
 }
+
 
 .-splicejs-treeview div.-splicejs-tree-item{
 	position:relative;

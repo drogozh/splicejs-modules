@@ -10,7 +10,7 @@
 .-splicejs-dropdown-selector .selector {
   position: relative;
   display: inline-block;
-  border: 1px solid #cecece;
+  border: 1px solid #424242;
   padding: 0.3em;
   padding-left: 0.4em;
 
@@ -18,11 +18,11 @@
   /* creates room for the drop-down arrow*/
   padding-right: 25px;
   cursor: pointer;
-  background: url('resources/splicejs.dropdown.selector/black/dropdownarrow.png') no-repeat right 0px center;
+  background: url('resources/splicejs.dropdown.selector/black/dropdownarrow.png') #767b86 no-repeat right 0px center;
 }
 
 .-splicejs-dropdown-selector .selector:hover {
-	background-color:#3F3F3F;
+	background-color:#8d94a2;
 }
 
 .-splicejs-dropdown-container {

@@ -233,52 +233,56 @@ CheckBox.prototype.check = function(){
 // };
 
 
-// var TextField = Class(function TextFieldController(args){
-// 	this.base(args);
-// 	this.trapMouseInput = args.trapMouseInput;
-// }).extend(UIControl);
+var TextField = Class(function TextFieldController(args){
+    event.attach(this,{
+        onDataOut:event.MulticastEvent
+    });
+}).extend(component.ComponentBase);
 
 
-// function _textFieldOnKey(args){
-// 	this.dataItem.setValue(args.source.value);
-// 	this.onDataOut(this.dataItem);
-// };
+function _textFieldOnKey(args){
+    this.onDataOut(this.getElement('root').node.value);
+};
 
-// TextField.prototype.initialize = function(){
+TextField.prototype.onInit = function(args){
+    this.trapMouseInput = args.captureMouse;
+    this.isRealtime  = args.realTime;
+}
 
-// 	Events.attach(this.views.root, {
-// 		onkeyup		: Views.DomMulticastStopEvent,
-// 		onchange 	: Views.DomMulticastStopEvent
-// 	});
+TextField.prototype.onLoaded = function(args){
 
-// 	if(this.trapMouseInput === true){
-// 		Events.attach(this.views.root, {
-// 			onmousedown : Views.DomMulticastStopEvent,
-// 			onclick:Views.DomMulticastStopEvent
-// 		});
-// 	}
+    var changeEvents = event.attach(this.getElement('root'), {
+		onkeyup		: view.DomMulticastStopEvent,
+		onchange 	: view.DomMulticastStopEvent
+	});
 
-// 	if(this.isRealtime){
-// 		this.views.root.onkeyup.subscribe(_textFieldOnKey, this);
-// 	}
-// 	else {
-// 		this.views.root.onchange.subscribe(_textFieldOnKey, this);
-// 	}
-// }
+	if(this.trapMouseInput === true){
+		event.attach(this.getElement('root'), {
+			onmousedown : view.DomMulticastStopEvent,
+			onclick : view.DomMulticastStopEvent
+		});
+	}
 
+	if(this.isRealtime){
+		changeEvents.onkeyup.subscribe(_textFieldOnKey, this);
+	}
+	else {
+		changeEvents.onchange.subscribe(_textFieldOnKey, this);
+	}
+}
 
-// TextField.prototype.onDataIn = function(item){
-// 	if(!item) return;
-// 	this.views.root.attr({value:item.getValue()});
-// };
+TextField.prototype.onDataIn = function(item){
+	if(!item) return;
+	this.views.root.attr({value:item.getValue()});
+};
 
-// TextField.prototype.clear = function(){
-// 	this.elements.root.value = '';
-// };
+TextField.prototype.clear = function(){
+    this.getElement('root').node.value = '';
+};
 
-// TextField.prototype.focus = function(){
-// 	this.elements.root.focus();
-// };
+TextField.prototype.focus = function(){
+	this.getElement('root').node.focus();
+};
 
 
 // /* module scope and exports */
@@ -297,7 +301,8 @@ CheckBox.prototype.check = function(){
 return {
     Button		: factory.define('Button:buttons.html',Button,{animated:true}),
     Label		: factory.define('Label:buttons.html',Label),
-    CheckBox	: factory.define('CheckBox:buttons.html',CheckBox)
+    CheckBox	: factory.define('CheckBox:buttons.html',CheckBox),
+    TextField   : factory.define('TextField:buttons.html',TextField)
 }
 
 //module end

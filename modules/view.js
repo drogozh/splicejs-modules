@@ -345,6 +345,9 @@ var DomMulticastStopEvent = Class(function DomMulticastStopEvent(){
       evt.subscribe = function(){
         fn.subscribe.apply(fn,arguments);
       };
+      evt.unsubscribe = function(){
+        fn.unsubscribe.apply(fn,arguments);
+      }
     }
 
 

@@ -38,9 +38,10 @@ define([
         //style collapsed node
         this.getElement('expandor')
             .replaceClass('-sc-tree-node-expanded','-sc-tree-node-collapsed');
+
         //hide child elements
         this.getElement('treeRoot')
-            .hide();
+            .appendClass('collapsed');
     }
 
     Node.prototype.expand = function(){
@@ -49,7 +50,7 @@ define([
             .replaceClass('-sc-tree-node-collapsed','-sc-tree-node-expanded');
         //hide child elements
         this.getElement('treeRoot')
-            .show();
+            .removeClass('collapsed');
     }
 
     Node.prototype.toggle = function(){
@@ -60,9 +61,6 @@ define([
 
 
     /** TreeView component view model */
-    /**
-     * 
-     */
 	var TreeView = Class(function TreeView(args){
         collectTreeViewArgs.call(this,args);
         this.tree = new Tree();
@@ -91,10 +89,8 @@ define([
         if(!node) return;
 
         //we want to toggle node
-        var expandor = node.getElement('expandor');
         if(node instanceof Node && 
-            expandor &&
-            args.source == expandor.node) {
+            args.source == node.getElement('expandor').node) {
             node.toggle();
             //update layout        
             this.getComponent('scrollPanel').reflow();
@@ -122,8 +118,15 @@ define([
             // onchild action
             (function(node,parent,n,np){
                 
-            var parent = this.nodes[np];
-            var comp = node[this.childProp] ? new Node(): new Leaf();
+                var parent = this.nodes[np];
+                var comp =   this.nodes[n];
+
+                if(!comp) {
+                    comp = node[this.childProp] ? new Node(): new Leaf();
+                
+                    if(!parent) this.tree.add(comp);
+                    else parent.add(comp,'children');
+                }
 
                 if(this.itemTemplate){ 
                     var c = new this.itemTemplate(this);
@@ -135,8 +138,7 @@ define([
                 comp.dataIn(node);
                 this.nodes[n] = comp;
 
-                if(!parent) this.tree.add(comp);
-                else parent.add(comp,'children');
+
             }).bind(this),
         
             //oncomplete action

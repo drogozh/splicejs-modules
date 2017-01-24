@@ -286,7 +286,8 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     }
 
     ComponentBase.prototype.getElement = function(name){
-        if(!(this.elements && this.elements[name])) return null;
+        if(!this.elements) throw 'Elements collection is empty';
+        if(!this.elements[name]) throw 'Element "' + name + '" is not found';
         if(this.elements[name] instanceof Element ) 
             return this.elements[name];
         return this.elements[name] = Element(this.elements[name]);

@@ -13,24 +13,21 @@ function(require,inheritance,component,event,view,interaction){
 
     //static map to keep track of all the DropDown components
     //used to implement modal behavior
-    var dropDownMap = {}
-
+    var dropDownMonitor = {
+		offFocusEvent : event.attach(window, {
+		 	onmousedown	:	view.DomMulticastStopEvent
+        }).onmousedown
+    };
 
 	/* dependency imports */
 	var	Positioning = interaction.Positioning
 	,	Class       = inheritance.Class
 	;
 
-	var scope = {
-
-    };
+	var scope = {};
 
     //get component factory
     var factory = component.ComponentFactory(require,scope);
-
-	//static single instance
-	var dropDownContainer = null
-	,	selectorElement = null;
 
 
     /**
@@ -71,7 +68,6 @@ function(require,inheritance,component,event,view,interaction){
 		if(!this.isIgnoreSelector)	this.isIgnoreSelector = false;
 
 		this.dropDownContainerSize = {left:0,top:0};
-		this.dataPath = '';
 
 	}).extend(component.ComponentBase);
 
@@ -92,20 +88,6 @@ function(require,inheritance,component,event,view,interaction){
         this.dropDownContainer = new scope.DropDownContainer({},this);
 	}
 
-	DropDown.prototype.setItemTemplate = function(tmpl){
-		this.itemTemplate = tmpl;
-		this.content(tmpl).replace();
-	}
-
-	DropDown.prototype.onDataIn = function(item){
-		if(!this.itemTemplate)
-			this.content(item.getValue()).replace();
-	};
-
-	DropDown.prototype.onDataItemChanged = function(item){
-		this.onDataIn(item);
-	};
-
 
 	DropDown.prototype.close = function () {
 	    _hide();
@@ -114,8 +96,7 @@ function(require,inheritance,component,event,view,interaction){
 
 	function _hide() {
 	    dropDownContainer.remove();
-		
-        selectorElement.cl('-sjs-dropdown-open').remove();
+        selectorElement.removeClass('-sjs-dropdown-open');
 	};
 
 
@@ -138,28 +119,26 @@ function(require,inheritance,component,event,view,interaction){
 	};
 
 	DropDown.prototype.dropDown = function(){
+        //close any active drop-downs
+        if(dropDownMonitor.current)
+             dropDownMonitor.current.close();
 
-		var left = this.elements.selector.offsetLeft
-		,	height = this.elements.selector.offsetHeight
+        var selector = this.getElement('selector');
+        var containerRoot = 
+            this.dropDownContainer
+                .getElement('root');
+
+		var left = selector.node.offsetLeft
+		,	height = selector.node.offsetHeight
 		,	top = height
-		,	s = this.dropDownContainer.elements.root.style
-		,	pos = Positioning.abs(this.elements.selector)
-		,	self = this
-		;
+		,	s = containerRoot.node.style
+		,	pos = Positioning.abs(selector.node);
 
-		//release previous selector if any
-		if(selectorElement){
-			view.css.removeClass(selectorElement,'-sjs-dropdown-open');
-		}
 
-		//create instance of the dropdown content item
-		// if(!this.dropDownItemInst && this.dropDownItem) {
-		// 	this.dropDownItemInst = new this.dropDownItem({parent:this});
-		// }
+		//decorate dropdown selector
+        this.getElement('selector')
+            .appendClass('-sjs-dropdown-open');
 
-		//keep track of the current drop down controller statically
-		view.css.addClass(this.elements.selector,'-sjs-dropdown-open');
-        selectorElement = this.elements.selector;
 
 		//append drop down to the document root
 		// add content to the content element
@@ -180,19 +159,23 @@ function(require,inheritance,component,event,view,interaction){
 		s.top =  top + 'px';
 		s.display='block';
 
-
-		var offFocusEvent = event.attach(window, {
-		 	onmousedown	:	view.DomMulticastStopEvent
-        }).onmousedown;
-		
-		var fn = (function(){
+        //handler that will close the dropdown when 
+        //mouse event on the windows is detected
+		this.offFocusHandler = (function(){
 			_closeDropDown.call(this);
-			offFocusEvent.unsubscribe(fn);
+			dropDownMonitor.offFocusEvent
+                           .unsubscribe(this.offFocusHandler);
 		}).bind(this);
 
-		offFocusEvent.subscribe(fn,this);
+		dropDownMonitor.offFocusEvent.subscribe(this.offFocusHandler,this);
 
-		this.onDropDown(this.data);
+        this.isOpen = true;
+
+        //set current drop down
+        dropDownMonitor.current = this;
+
+        //call event to notify listeners
+		this.onDropDown();
 
 	};
 
@@ -202,8 +185,19 @@ function(require,inheritance,component,event,view,interaction){
 	}
 
     DropDown.prototype.close = function(){
-        if(!this.dropDownContainer) return;
-            this.dropDownContainer.detach();
+        if(!this.isOpen) return;
+
+		//decorate dropdown selector
+        this.getElement('selector')
+            .removeClass('-sjs-dropdown-open');
+
+        //unsubscribe from the off-focus event
+        dropDownMonitor
+            .offFocusEvent
+            .unsubscribe(this.offFocusHandler);
+        
+        this.dropDownContainer.detach();
+        this.isOpen = false;
     }
 
     return {

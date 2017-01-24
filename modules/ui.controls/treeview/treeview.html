@@ -1,13 +1,16 @@
+<!-- TreeView template composed including ScrollPanel -->
 <template sjs-name="TreeView">
 	<div class="-splicejs-treeview" sjs-element="root">
 		<include sjs-type="ScrollPanel" sjs-override="default" sjs-name="scrollPanel"> </include>
 	</div>
 </template>
 
+<!-- template of the tree root -->
 <template sjs-name="Tree">
 	<ul class="-splicejs-tree-root" sjs-element="treeRoot" sjs-content="default"></ul>
 </template>
 
+<!-- container node template -->
 <template sjs-name="TreeNode">
     <li><div class="-splicejs-tree-item">
             <div class="-sc-tree-expandor -sc-tree-node-expanded" 
@@ -19,6 +22,7 @@
             sjs-content="children"></ul></li>		
 </template>
 
+<!-- leaf node -->
 <template sjs-name="TreeLeaf">
     <li>
         <div class="-splicejs-tree-item">
