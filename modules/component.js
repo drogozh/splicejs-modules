@@ -136,11 +136,45 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     //interface callbacks, intended for override
     ComponentBase.prototype.onInit = 
     ComponentBase.prototype.onLoaded = 
+    ComponentBase.prototype.onAttach = 
+    ComponentBase.prototype.onDetach =
     ComponentBase.prototype.onDisplay =
+    ComponentBase.prototype.onHide =
     ComponentBase.prototype.onResolve =  
     ComponentBase.prototype.onChildChanged =
     ComponentBase.prototype.onChildDisplay =
+    ComponentBase.prototype.onDispose =
+    
     ComponentBase.prototype.onResize  = function(){};
+
+
+    ComponentBase.prototype.init = function(args){
+        this.__init_args__ = args;        
+        //default layout mode
+        this.layout = 'css';
+        
+        //read out arguments
+        if(args){
+            this.animated =args.animated;
+            this.layout = args.layout || this.layout; 
+        }
+        this.onInit(args);
+    }
+
+
+    ComponentBase.prototype.resolve = function(args,parent){
+        if(!parent) return;
+        var scope = parent.scope;
+        if(!args) return;  
+        foreach(args,(function(value,prop){
+            if(value instanceof Binding){
+                Binding.resolveBinding(value,this,prop,scope);
+            }
+        }).bind(this));
+    }
+
+
+
 
     ComponentBase.prototype.loaded = function(template,scope){
         
@@ -245,31 +279,6 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         // }
     }
 
-    ComponentBase.prototype.init = function(args){
-        this.__init_args__ = args;
-        
-        //default layout mode
-        this.layout = 'css';
-        
-        //read out arguments
-        if(args){
-            this.animated =args.animated;
-            this.layout = args.layout || this.layout; 
-        }
-        this.onInit(args);
-    }
-
-
-    ComponentBase.prototype.resolve = function(args,parent){
-        if(!parent) return;
-        var scope = parent.scope;
-        if(!args) return;  
-        foreach(args,(function(value,prop){
-            if(value instanceof Binding){
-                Binding.resolveBinding(value,this,prop,scope);
-            }
-        }).bind(this));
-    }
     
     ComponentBase.prototype.getComponent = function(name){
         if(!this._components) return null;
@@ -347,13 +356,11 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
         if(animation != null) animation.animate();
 
-        // if(child instanceof ComponentBase)                
-        //     child.onDisplay();
-
     }
 
     ComponentBase.prototype.detachChild = function(child){
         child.node.parentNode.removeChild(child.node);
+        child.isDisplayed = false;
     }
 
 
@@ -397,6 +404,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
         this.isDelayedDisplay = false;
         this.isDisplayed = true;
+        
 
         var timeEnd = window.performance.now();
 

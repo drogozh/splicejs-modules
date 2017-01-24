@@ -181,17 +181,25 @@ function(require,inheritance,component,event,view,interaction){
 		s.display='block';
 
 
-		event.attach(window, {
+		var offFocusEvent = event.attach(window, {
 		 	onmousedown	:	view.DomMulticastStopEvent
-        }).onmousedown.subscribe(function(){
-            //close drop-down here
-            this.close();
-        },this);
+        }).onmousedown;
+		
+		var fn = (function(){
+			_closeDropDown.call(this);
+			offFocusEvent.unsubscribe(fn);
+		}).bind(this);
+
+		offFocusEvent.subscribe(fn,this);
 
 		this.onDropDown(this.data);
 
 	};
 
+	function _closeDropDown(a,b,c,d){
+		//close drop-down here
+        this.close();
+	}
 
     DropDown.prototype.close = function(){
         if(!this.dropDownContainer) return;
