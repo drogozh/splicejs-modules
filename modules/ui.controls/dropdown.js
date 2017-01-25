@@ -105,10 +105,9 @@ function(require,inheritance,component,event,view,interaction){
 		var s = this.dropDownContainer.elements.root.style;
 
 		var content = dom(client.concrete.dom);
-		/*
-			check is position adjustment is required to
-			remain in client view
-		*/
+		
+		//	check if position adjustment is required to
+		//	remain in client view
 		var boxWidth = content.box().unit().width;
 		var windowWidth = scope.Doc.window.width();
 
@@ -179,8 +178,7 @@ function(require,inheritance,component,event,view,interaction){
 
 	};
 
-	function _closeDropDown(a,b,c,d){
-		//close drop-down here
+	function _closeDropDown(){
         this.close();
 	}
 

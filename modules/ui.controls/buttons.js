@@ -6,10 +6,11 @@ define([
     '{splice.modules}/component',
     '{splice.modules}/event',
     '{splice.modules}/view',
+    '{splice.controls}/styleprovider',
     'preload|{splice.modules}/component.loader',
     '!buttons.css'
 
-],function(require,inheritance,component,event,view){
+],function(require,inheritance,component,event,view,styleProvider){
 
 
 var Class = inheritance.Class
@@ -54,6 +55,13 @@ Button.prototype.setCaption = function(caption){
     this.caption = caption
     this.set(caption); 
 }
+
+//load new style sheet for button
+styleProvider.onStyle.subscribe(function(name){
+    require(['!buttons/theme/'+name+'.css'],function(b){
+        styleProvider.applyStyle(b.fileName);
+    });
+});
 
 
 /**

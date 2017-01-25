@@ -8,6 +8,7 @@ define([
     '{splice.modules}/async',
     '{splice.modules}/event',
     '{splice.modules}/view',
+    '{splice.controls}/styleprovider',
     '!treeview.css',
 ],function(require,inheritance,component,controls,_async,event,Element){
 	

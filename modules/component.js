@@ -448,6 +448,10 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
     }
 
+    ComponentBase.prototype.swap = function(oldChild,newChild){
+
+    }
+
     
     /**
      * Replaces content at provided location
