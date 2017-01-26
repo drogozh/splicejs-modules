@@ -3,9 +3,11 @@ define([
     '{splice.modules}/inheritance',
     '{splice.modules}/component',
     '{splice.modules}/event',
+	'{splice.modules}/view',
     '!calendar.css',
+	'!theme/default/theme.css',
     'preload|{splice.modules}/component.loader'
-],function(require,context,loader,inheritance,component,event){
+],function(require,context,loader,inheritance,component,event,element){
 	"use strict"
 
 
@@ -134,7 +136,7 @@ define([
 
 	function getCell(row, col) {
 		try {
-		var t = this.elements.grid;
+		var t = this.getElement('grid').node;
 		var r = t.rows[row];
 		return r.cells[col]; } catch(e) {return null;}
 	};
@@ -208,32 +210,33 @@ define([
 		var dt = new Date();
 
 		this.year 	= dt.getFullYear();
-		this.month 	= dt.getMonth()-1
-		this.day 	= dt.getDate()
+		this.month 	= dt.getMonth();
+		this.day 	= dt.getDate();
 
 		this.selectedDate = new Date();
 
 	}).extend(component.ComponentBase);
 
 	Calendar.prototype.onLoaded = function(){
-		// event(this.elements.grid).attach({
-		// 	onmousedown : event.multicast.stop
-		// }).onmousedown.subscribe(function(e){
-		// 		this.selectedDate = e.source.__sjs__date
-		// 		this.onDateSelected(this.selectedDate);
-		// },this);
+		
+		event.attach(this.getElement('grid'),{
+			onmousedown : element.DomMulticastStopEvent
+		}).onmousedown.subscribe(function(e){
+			this.selectedDate = e.source.__sjs__date
+			this.onDateSelected(this.selectedDate);
+		},this);
 
-		// event(this.views.previous).attach({
-		// 	onmousedown : event.multicast.stop
-		// }).onmousedown.subscribe(function(e){
-		// 	this.previousMonth();
-		// },this);
+		event.attach(this.getElement('previous'),{
+			onmousedown : element.DomMulticastStopEvent
+		}).onmousedown.subscribe(function(e){
+			this.previousMonth();
+		},this);
 
-		// event(this.views.next).attach({
-		// 	onmousedown : event.multicast.stop
-		// }).onmousedown.subscribe(function(e){
-		// 	this.nextMonth();
-		// },this);
+		event.attach(this.getElement('next'),{
+			onmousedown : element.DomMulticastStopEvent
+		}).onmousedown.subscribe(function(e){
+			this.nextMonth();
+		},this);
 
 		this.update();
 	};

@@ -6,7 +6,7 @@ define([
     '{splice.modules}/component',
     '{splice.modules}/event',
     '{splice.modules}/view',
-    '{splice.controls}/styleprovider',
+    '{splice.controls}/themeprovider',
     'preload|{splice.modules}/component.loader',
     '!buttons.css'
 
@@ -90,22 +90,31 @@ CheckBox.prototype.onInit = function(args){
 CheckBox.prototype.onLoaded = function(){
 
     this.check();
-
-    this.content.default.onclick = (function(e){
-        if(!e) e = window.event;
-        view.cancelEventBubble(e);
+    event.attach(this.getElement('root'),{
+        onmousedown:view.DomMulticastStopEvent
+    }).onmousedown.subscribe((function(){
         this.isChecked = !this.isChecked;
         this.check();
-        this.onChanged(this.isChecked);
-    }).bind(this);
+        this.onChanged(this.isChecked);        
+    }).bind(this));
+
+    // this.content.default.onclick = (function(e){
+    //     if(!e) e = window.event;
+    //     view.cancelEventBubble(e);
+    //     this.isChecked = !this.isChecked;
+    //     this.check();
+    //     this.onChanged(this.isChecked);
+    // }).bind(this);
 };
 
 CheckBox.prototype.check = function(){
     //set class to reflect the state
     if(this.isChecked == true){
-        view.css.addClass(this.elements.root,'checked');
+        this.getElement('root')
+            .appendClass('checked');
     } else {
-        view.css.removeClass(this.elements.root,'checked');
+        this.getElement('root')
+            .removeClass('checked');
     }
     this.onChanged(this);
 }

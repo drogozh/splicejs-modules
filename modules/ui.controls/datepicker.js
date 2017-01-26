@@ -7,7 +7,7 @@ define([
     '{splice.modules}/view',
 	'{splice.modules}/text',
 	{
-		Calendar:'calendar',
+		Calendar:'{splice.controls}/calendar/calendar',
 		Selectors:'dropdown'
 	},
     'preload|{splice.modules}/component.loader'
@@ -37,7 +37,7 @@ define([
 
 	}).extend(component.ComponentBase);
 
-	DatePicker.prototype.initialize = function(){
+	DatePicker.prototype.onInit = function(){
 
 	};
 
@@ -47,8 +47,8 @@ define([
 
 	DatePicker.prototype.receiveFromCalendar = function (date) {
 	    this.setDate(date);
-	    this.onData(date);
-	    this.children.selector.close();
+		this.getComponent('selector').close();
+		this.onDateSelected(date);
 	};
 
     DatePicker.prototype.onLoaded = function(){
@@ -56,7 +56,6 @@ define([
         var d = this.currentDate; 
         if(this.format)
             d = format('{0:'+this.format+'}',this.currentDate);
-
         selector.set(d);
     };
 
@@ -64,13 +63,13 @@ define([
 	DatePicker.prototype.setDate = function (date) {
 	    if (!date) return;
 
-	    if (this.format) {
-	      date = format('{0:' + this.format + '}', date);
+		if (this.format) {
+	    	date = format('{0:' + this.format + '}', date);
 	    } else {
-				date = date.toString();
-			}
-
-	    this.children.selector.dataIn(date);
+			date = date.toString();
+		}
+		this.date = date;
+		this.getComponent('selector').set(date);
 	};
 
 

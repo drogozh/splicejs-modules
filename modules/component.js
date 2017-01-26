@@ -266,17 +266,6 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         }
         this.set(content);
 
-        // if(content instanceof ComponentBase){
-        //     var cnt = content.__parent_content__;
-        //     content._parent = this; //visual parent    
-        //     if(!cnt) return;
-            
-        //     this.override[cnt] = this.content[cnt];
-        //     this.content[cnt] = content;
-        //     content.__sjs_useoverride__ = true;
-        //     this.set(content,cnt);    
-        //     console.log('user content');    
-        // }
     }
 
     
@@ -818,6 +807,8 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             instance.__parent_content__ = pArgs.parentContent;
             if(pArgs.__sjs_name__)
                 instance.__include_name__ = pArgs.__sjs_name__;     
+            //type used in the include tag
+            instance.__include_type__ = pArgs.type;
             return instance;
         }
 
