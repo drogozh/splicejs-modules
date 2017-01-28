@@ -801,7 +801,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
                 instance = new _type(pArgs.args,parent);
             }
             if(instance == null) {
-                throw 'type not found [' + pArgs.type +']';
+                throw 'component type not found [' + pArgs.type +']';
             }
 
             instance.__parent_content__ = pArgs.parentContent;

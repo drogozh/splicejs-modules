@@ -10,13 +10,14 @@ define([
 	'preload|{splice.modules}/component.loader',
     '!gridlayout.css'
 
-],function(require,inheritance,component,event,view,interaction,utils,async){
+],function(require,inheritance,component,event,view,interaction,utils,_async){
  
     var	Class 		= inheritance.Class
 	,	DragAndDrop = interaction.DragAndDrop
 	,   proxy 		= component.proxy
     ,   foreach     = utils.foreach
-    ,   mixin       = utils.mixin;
+    ,   mixin       = utils.mixin
+	,	log			= console;
 
 	/**
 	 * 
@@ -142,7 +143,7 @@ define([
 
 		var self = this;
 		DragAndDrop.ondrag =  function(p,offset){
-			self.resize({mouse:p,direction:direction, src:self});
+			self.reflow({mouse:p,direction:direction, src:self});
 			self.onCellSize(self);
 		}
 	};
@@ -364,7 +365,7 @@ define([
      * 
      */
     GridLayout.prototype.onDisplay = function(){
-       async.exec(
+       _async.run(
            (function(){this.reflow();}).bind(this)
            );
         
