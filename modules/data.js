@@ -1,21 +1,14 @@
 /* global sjs */
-$js.module({
-imports:[
-	{Inheritance : '/{splice.modules}/inheritance.js'}
+define([
+    '{splice.modules}/util',
+	'{splice.modules}/inheritance',
+    '{splice.modules}/async'
 ],
-definition:function(){
+function(util,inheritance){
     "use strict";
 
-	var scope = this;
-
-	var 
-		sjs = scope.imports.$js
-    ,   imports = scope.imports
-    ;
-
-	var	
-        mixin = sjs.mixin    
-    ,   Class = imports.Inheritance.Class;
+	var	mixin = util.mixin    
+    ,   Class = inheritance.Class;
 
 
 	var DataStep = function DataStep(dowork, issource){
@@ -884,10 +877,58 @@ function _objectToMap(onitem){
 
 	};
 
+    /**
+     * data is a collection of nodes
+     */
+    var FilterableHierarchy = function(data,fnChildSelector){
+        this.filterId = 1;
+        this.nodes = _buildHierarchy(data,fnChildSelector);
+    };
 
-	scope.exports(
-		data,	DataStep,
-		{compare: {'default':defaultComparator} }
-	);
+
+    FilterableHierarchy.prototype.filter = function(fnFilter){
+        var filtrate = [];
+        for(var i=0; i<this.nodes.length; i++){
+            var result = _applyFilter(this.nodes[i],fnFilter);
+            if(!result) continue;
+            filtrate.push(result);
+        }
+        return filtrate;
+    };
+
+    function _applyFilter(root,fnFilter){
+        if(!root) return null;
+        var node = { node:root.node, children:[] };
+        for(var i=0; i<root.children.length; i++){
+            var child = _applyFilter(root.children[i],fnFilter);
+            if(child!=null) {
+                node.children.push(child);
+            }
+        }
+     
+        if(fnFilter(node.node)) return node;
+        if(node.children.length > 0) return node;
+    }
+
+    function _buildHierarchy(roots,getChildren){
+        var _roots = [];
+        if(!roots) return _roots;
+        for(var i=0; i<roots.length; i++){
+            _roots.push({
+                node:roots[i],
+                children:_buildHierarchy(getChildren(roots[i]),getChildren)
+            });
+        }
+        return _roots;
+    }
+
+
+    return {
+        data:data,
+        DataStep:DataStep,
+        FilterableHierarchy:FilterableHierarchy,
+        compare: {'default':defaultComparator}
+    }
+
 }
-});
+);

@@ -281,99 +281,90 @@ ViewReflow.prototype.size = function(left, top, width, height){
 
 
 /**
- *		DomEvent
+ *    DomEvent
  */
-var DomEvent = Class(function DomEvent(){
-
+var DomEvent = Class(function DomMulticastEvent(){
 }).extend(Events.BaseEvent);
+
 
 
 DomEvent.prototype.attach = function(instance, property){
-
-}
-
-
-/**
- *		DomStopEvent
- */
-var DomStopEvent = Class(function DomStopEvent(){
-
-}).extend(Event);
-
-DomStopEvent.prototype.attach = function(instance,property){
-	var runner = Events.createUnitcastRunner();
-
-	instance[property] = function(e){
-		if(!e) e = window.event; cancelBubble(e);
-	};
-
-	instance[property].subscribe = function(){
-		runner.subscribe
-	};
-}
+    if(!Document.isHTMLElement(instance) && !(instance instanceof Element) && !(instance == window))
+        throw "Cannot attach DomMulticastEvent target instance if not HTMLElement or not an instance of View ";
+    
+    var evt = null;
+    
+    if(this.isMulticast)
+        evt = Events.createMulticastRunner();
+    else 
+        evt = Events.createUnicastRunner();
 
 
-/**
- *    Dom Event MulticastEvent
- */
+    var fn = evt;
+    evt = function(e){
+        if(!e) e = window.event;
+        cancelBubble(e);
+        setTimeout(function(){
+            fn(this.args);
+        }.bind({args:_domEventArgs(e)}),1);
+    };
+
+    evt.subscribe = function(){
+        fn.subscribe.apply(fn,arguments);
+    };
+    
+    evt.unsubscribe = function(){
+        fn.unsubscribe.apply(fn,arguments);
+    }
+
+    instance[property] = evt;
+    if(instance instanceof Element) {
+        instance.htmlElement[property] = evt;
+    }
+    return evt;
+};
+
 var DomMulticastEvent = Class(function DomMulticastEvent(){
-}).extend(Events.BaseEvent);
+	this.base();
+    this.isMulticast = true;
+}).extend(DomEvent);
 
 
+var DomUnicastEvent = Class(function UnicastEvent(){
+    this.base();
+}).extend(DomEvent);
 
 
 var DomMulticastStopEvent = Class(function DomMulticastStopEvent(){
 	this.base();
 	this.stopPropagation = true;
-}).extend(DomMulticastEvent);
-
-  DomMulticastEvent.prototype.attach = function(instance, property){
-    if(!Document.isHTMLElement(instance) && !(instance instanceof View) && !(instance == window))
-      throw "Cannot attach DomMulticastEvent target instance if not HTMLElement or not an instance of View ";
-    var evt = Events.createMulticastRunner();
+    this.isMulticast = true;
+}).extend(DomEvent);
 
 
-    if(this.stopPropagation === true) {
-      var fn = evt;
-      evt = function(e){
-        if(!e) e = window.event;
-        cancelBubble(e);
-        setTimeout(function(){
-          fn(this.args);
-        }.bind({args:_domEventArgs(e)}),1);
-      };
-      evt.subscribe = function(){
-        fn.subscribe.apply(fn,arguments);
-      };
-      evt.unsubscribe = function(){
-        fn.unsubscribe.apply(fn,arguments);
-      }
-    }
+var DomUnicastStopEvent = Class(function UnicastStopEvent(){
+    this.base();
+    this.stopPropagation = true;
+}).extend(DomEvent);
 
 
-    instance[property] = evt;
-    if(instance instanceof View) {
-      instance.htmlElement[property] = evt;
-    }
-    return evt;
-  }
-
-  function cancelBubble(e){
+function cancelBubble(e){
     e.cancelBubble = true;
     if (e.stopPropagation) e.stopPropagation();
-  }
+}
 
-  function _domEventArgs(e){
+
+function _domEventArgs(e){
     return {
-      mouse: mousePosition(e),
-      source: e.srcElement,
-      domEvent:e,     // source event
-      cancel: function(){
-              this.cancelled = true;
-              e.__jsj_cancelled = true;
+        mouse: mousePosition(e),
+        source: e.srcElement,
+        domEvent:e,     // source event
+        cancel: function(){
+                this.cancelled = true;
+                e.__jsj_cancelled = true;
             }
     }
-  };
+}
 
 
 
@@ -559,41 +550,44 @@ return this;
   };
 
 
-  function addClass(element, className){
-  	var current = ClassTokenizer(element.className)
-  	,	toAdd = ClassTokenizer(className)
-  	,	clean = element.className;
+function addClass(element, className){
+    var current = ClassTokenizer(element.className)
+    ,	toAdd = ClassTokenizer(className)
+    ,	clean = element.className;
 
-  	for(var key in toAdd ){
-  		if(key in current) continue;
-  		clean += ' ' + key;
-  	}
+    for(var key in toAdd ){
+        if(key in current) continue;
+        clean += ' ' + key;
+    }
 
-  	element.className = clean;
-  };
+    element.className = clean;
+};
 
-  function removeClass(element, className){
-  	var current = ClassTokenizer(element.className)
-  	,	toRemove = ClassTokenizer(className)
-  	,	clean = '';
-  	for(var key in current){
-  		if(key in toRemove) continue;
-  		clean += ' ' + key;
-  	}
-  	element.className = clean;
-  };
+function removeClass(element, className){
+    var current = ClassTokenizer(element.className)
+    ,	toRemove = ClassTokenizer(className)
+    ,	clean = '';
+    for(var key in current){
+        if(key in toRemove) continue;
+        clean += ' ' + key;
+    }
+    element.className = clean;
+};
 
 function create(name){
     return new View(document.createElement(name));
 }
 
 Element.css = {
-        addClass:   addClass,
-        removeClass:removeClass
+    addClass:   addClass,
+    removeClass:removeClass
 };
 
-Element.DomMulticastEvent = new DomMulticastEvent();
-Element.DomMulticastStopEvent =new DomMulticastStopEvent();
+Element.DomMulticastEvent       = new DomMulticastEvent();
+Element.DomMulticastStopEvent   = new DomMulticastStopEvent();
+Element.DomUnicastEvent         = new DomUnicastEvent();
+Element.DomUnicastStopEvent     = new DomUnicastStopEvent();
+
 Element.box = _box;
 Element.create = create;
 Element.View = Element;

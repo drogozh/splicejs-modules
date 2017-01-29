@@ -10,7 +10,7 @@ define([
 	'preload|{splice.modules}/component.loader',
     '!gridlayout.css'
 
-],function(require,inheritance,component,event,view,interaction,utils,_async){
+],function(require,inheritance,component,event,dom,interaction,utils,_async){
  
     var	Class 		= inheritance.Class
 	,	DragAndDrop = interaction.DragAndDrop
@@ -112,26 +112,28 @@ define([
 
 
 		//initialize user interraction events
-		event.attach(this.content.leftEdge,{
-			onmousedown : event.UnicastEvent
+		event.attach(this.elements.leftEdge,{
+			onmousedown : dom.DomUnicastEvent
 		}).onmousedown.subscribe(
-			function(e){this.onStartResize(e,left);}, this
+			function(e){
+                this.onStartResize(e,left);
+            }, this
 		);
 
-		event.attach(this.content.topEdge,{
-			onmousedown : event.UnicastEvent
+		event.attach(this.elements.topEdge,{
+			onmousedown : dom.DomUnicastEvent
 		}).onmousedown.subscribe(
 			function(e){this.onStartResize(e,top);}, this
 		);
 
-		event.attach(this.content.rightEdge,{
-			onmousedown : event.UnicastEvent
+		event.attach(this.elements.rightEdge,{
+			onmousedown : dom.DomUnicastEvent
 		}).onmousedown.subscribe(
 			function(e){this.onStartResize(e,right);}, this
 		);
 
-		event.attach(this.content.bottomEdge,{
-			onmousedown	:	event.UnicastEvent
+		event.attach(this.elements.bottomEdge,{
+			onmousedown	: dom.DomUnicastEvent
 		}).onmousedown.subscribe(
 			function(e){this.onStartResize(e,bottom);}, this
 		);
@@ -143,7 +145,7 @@ define([
 
 		var self = this;
 		DragAndDrop.ondrag =  function(p,offset){
-			self.reflow({mouse:p,direction:direction, src:self});
+			self.onResize({mouse:p,direction:direction, src:self});
 			self.onCellSize(self);
 		}
 	};
@@ -215,7 +217,7 @@ define([
 
         //add cells
         foreach(args.cells,(function(cell){
-            this.addCell(cell.body,[cell.row,cell.col,1,1]);    
+            this.addCell(cell.body,[cell.row,cell.col,cell.rowspan,cell.colspan]);    
         }).bind(this));
 
 	};
@@ -273,8 +275,8 @@ define([
 
 		var row = position[0]
 		,	col = position[1]
-		,	rowSpan = position[2]
-		,	colSpan = position[3];
+        ,	rowSpan = (position[2] ? position[2] : 1)
+        ,	colSpan = (position[3] ? position[3] : 1);
 
 		
         
@@ -399,7 +401,7 @@ define([
 					var cell = this.layoutCells[keys[key]];
 					cell.isAttached = false;
 					cell.isShown = false;
-					this.views.root.removeChild(cell.concrete.dom);
+                    this.getElement('root').node.removeChild(cell.concrete.dom);
 			}
 			this.layoutCells = Object.create(null);
 	};
@@ -597,9 +599,9 @@ define([
 		var margin 		 = this.margin;
 		var outer_margin = this.outerMargin;
 
-		var DOM = this.views.root.htmlElement;
+		var DOM = this.elements.root.node;
 
-		var offset = scope.SpliceJS.UI.Positioning.abs(DOM);
+		var offset = interaction.Positioning.abs(DOM);
 
 		var grid = this.grid;
 

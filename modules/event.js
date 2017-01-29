@@ -143,7 +143,7 @@ function(inheritance,sync,util){
       Unicast event
     */
     function _createUnicastEvent(){
-      var _closure = {subs:[]};
+      var _closure = {sub:null};
       var f = function UnicastEvent(){
         _unicastRun.apply(_closure,arguments);
       };
@@ -151,29 +151,29 @@ function(inheritance,sync,util){
         return _unicastSubscribe.call(f,_closure,callback,instance);
       };
       f.dispose = function(){
-        _closure.subs = [];
+        _closure.sub = null;
       };
       f.unsubscribe = function(callback){
-        if(_closure.subs[0] === callback || _closure.subs[0].callback === callback)
-          _closure.subs = [];
+        if(_closure.sub === callback || _closure.sub.callback === callback)
+          _closure.sub = null;
       };
       f.subscribers = function(){
-        return _closure.subs.length;  
+        return _closure.sub != null ? 1 : 0;  
       };
       return f;
     }
 
     function _unicastSubscribe(_closure,callback,instance){
       if(!instance) instance = this.__sjs_owner__;
-      _closure.subs[0] = new Subscription(instance,callback);
-      return _closure.subs[0];
+      _closure.sub = new Subscription(instance,callback);
+      return _closure.sub;
     }
 
     function _unicastRun(){
-      if(!this.subs[0]) return;
+      if(!this.sub) return;
       //do not run disabled subscriptions
-      if(this.subs[0].isDisabled === true) return;
-      this.subs[0].callback.apply(this.subs[0].instance,arguments);
+      if(this.sub.isDisabled === true) return;
+      this.sub.callback.apply(this.sub.instance,arguments);
     }
 
 

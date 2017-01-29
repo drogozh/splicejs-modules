@@ -9,7 +9,10 @@ define([
 	'{splice.modules}/component.interaction',
 	'preload|{splice.modules}/component.loader',
 	'!scrollpanel.css'
-
+//todo:
+/*
+    Implement scrollTo call to bring scrolled items into view
+*/
 ],function(require,inheritance,component,event,view,async,interaction){
 	var scope = {}
 
@@ -160,12 +163,14 @@ define([
 
 		if(!parent) return;
 
+        var parent = parent.node;
+
 		parent.style.overflow = 'hidden';
 		var self = this;
-		var client = this.elements.scrollClient;
-		var staticContainer = this.elements.staticContainer;
+		var client = this.elements.scrollClient.node;
+		var staticContainer = this.elements.staticContainer.node;
 
-		var content = this.elements.scroll;
+		var content = this.elements.scroll.node;
 
 		var size  = {	width:client.clientWidth, height:client.clientHeight};
 		var cSize = {	width:	Math.max(content.clientWidth,content.scrollWidth, content.offsetWidth),

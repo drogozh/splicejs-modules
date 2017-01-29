@@ -8,7 +8,7 @@ define([
     '{splice.modules}/async',
     '{splice.modules}/event',
     '{splice.modules}/view',
-    '{splice.controls}/styleprovider',
+    '{splice.controls}/themeprovider',
     '!treeview.css',
 ],function(require,inheritance,component,controls,_async,event,Element){
 	
@@ -63,7 +63,7 @@ define([
 
     /** TreeView component view model */
 	var TreeView = Class(function TreeView(args){
-        collectTreeViewArgs.call(this,args);
+        _collectTreeViewArgs.call(this,args);
         this.tree = new Tree();
         this.nodes = [];
         //        
@@ -123,22 +123,23 @@ define([
                 var comp =   this.nodes[n];
 
                 if(!comp) {
-                    comp = node[this.childProp] ? new Node(): new Leaf();
-                
+                    comp = (node[this.childProp] && node[this.childProp].length > 0 )? new Node(): new Leaf();
                     if(!parent) this.tree.add(comp);
                     else parent.add(comp,'children');
                 }
 
+                var nodeValue = _getNodeValue.call(this,node);
+
                 if(this.itemTemplate){ 
                     var c = new this.itemTemplate(this);
-                    c.applyContent(node);
+                    c.applyContent(nodeValue);
                     comp.set(c);
                 } else {
-                    comp.set(node);
+                    comp.set(nodeValue);
                 }
-                comp.dataIn(node);
-                this.nodes[n] = comp;
+                comp.dataIn(nodeValue);
 
+                this.nodes[n] = comp;
 
             }).bind(this),
         
@@ -156,11 +157,15 @@ define([
     };
 
 
+    function _getNodeValue(node){
+        if(this.valueProp) return node[this.valueProp];
+        return node;
+    }
 
-
-    function collectTreeViewArgs(args){
+    function _collectTreeViewArgs(args){
         if(!args) return;
-        this.childProp = args.childCollection
+        this.childProp = args.childProperty;
+        this.valueProp = args.valueProperty;
         this.itemTemplate = args.itemTemplate;
     }
 

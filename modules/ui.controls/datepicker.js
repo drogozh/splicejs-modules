@@ -52,7 +52,7 @@ define([
 	};
 
     DatePicker.prototype.onLoaded = function(){
-        var selector = this.getComponent('selector');
+        var selector = this.components.selector;
         var d = this.currentDate; 
         if(this.format)
             d = format('{0:'+this.format+'}',this.currentDate);
@@ -69,7 +69,7 @@ define([
 			date = date.toString();
 		}
 		this.date = date;
-		this.getComponent('selector').set(date);
+		this.components.selector.set(date);
 	};
 
 

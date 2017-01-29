@@ -10,7 +10,7 @@ define([
     'preload|{splice.modules}/component.loader',
     '!buttons.css'
 
-],function(require,inheritance,component,event,view,styleProvider){
+],function(require,inheritance,component,event,dom,styleProvider){
 
 
 var Class = inheritance.Class
@@ -46,9 +46,11 @@ Button.prototype.onLoaded = function(){
         this.setCaption(this.caption);    
     }
 
-    this.content.default.onclick = (function(){
+    event.attach(this.elements.root,{
+        onmousedown: dom.DomMulticastStopEvent
+    }).onmousedown.subscribe(function(){
         this.onClick(this);
-    }).bind(this);
+    },this);
 }
 
 Button.prototype.setCaption = function(caption){
@@ -90,8 +92,8 @@ CheckBox.prototype.onInit = function(args){
 CheckBox.prototype.onLoaded = function(){
 
     this.check();
-    event.attach(this.getElement('root'),{
-        onmousedown:view.DomMulticastStopEvent
+    event.attach(this.elements.root,{
+        onmousedown:dom.DomMulticastStopEvent
     }).onmousedown.subscribe((function(){
         this.isChecked = !this.isChecked;
         this.check();
@@ -110,11 +112,9 @@ CheckBox.prototype.onLoaded = function(){
 CheckBox.prototype.check = function(){
     //set class to reflect the state
     if(this.isChecked == true){
-        this.getElement('root')
-            .appendClass('checked');
+        this.elements.root.appendClass('checked');
     } else {
-        this.getElement('root')
-            .removeClass('checked');
+        this.elements.root.removeClass('checked');
     }
     this.onChanged(this);
 }
@@ -269,14 +269,14 @@ TextField.prototype.onInit = function(args){
 TextField.prototype.onLoaded = function(args){
 
     var changeEvents = event.attach(this.getElement('root'), {
-		onkeyup		: view.DomMulticastStopEvent,
-		onchange 	: view.DomMulticastStopEvent
+		onkeyup		: dom.DomMulticastStopEvent,
+		onchange 	: dom.DomMulticastStopEvent
 	});
 
 	if(this.trapMouseInput === true){
 		event.attach(this.getElement('root'), {
-			onmousedown : view.DomMulticastStopEvent,
-			onclick : view.DomMulticastStopEvent
+			onmousedown : dom.DomMulticastStopEvent,
+			onclick : dom.DomMulticastStopEvent
 		});
 	}
 

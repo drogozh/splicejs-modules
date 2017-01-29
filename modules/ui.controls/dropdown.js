@@ -122,10 +122,10 @@ function(require,inheritance,component,event,view,interaction){
         if(dropDownMonitor.current)
              dropDownMonitor.current.close();
 
-        var selector = this.getElement('selector');
+        var selector = this.elements.selector;
         var containerRoot = 
             this.dropDownContainer
-                .getElement('root');
+                .elements.root;
 
 		var left = selector.node.offsetLeft
 		,	height = selector.node.offsetHeight
@@ -135,7 +135,8 @@ function(require,inheritance,component,event,view,interaction){
 
 
 		//decorate dropdown selector
-        this.getElement('selector')
+        this.elements
+            .selector
             .appendClass('-sjs-dropdown-open');
 
 
@@ -186,7 +187,8 @@ function(require,inheritance,component,event,view,interaction){
         if(!this.isOpen) return;
 
 		//decorate dropdown selector
-        this.getElement('selector')
+        this.elements
+            .selector
             .removeClass('-sjs-dropdown-open');
 
         //unsubscribe from the off-focus event

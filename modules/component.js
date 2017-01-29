@@ -11,6 +11,13 @@ define([
 ],
 //todo: Component mode supports data-driven component selection
 //requires unicast event hander to return a value
+
+//todo: add new attribute to the <include> tag
+//sjs-vm and sjs-template to allow including adhoc components
+//based on:
+// new template         new vm
+// existing template    new vm
+// new template         existing vm 
 function(inheritance,events,doc,data,utils,effects,Element,_binding){
     "use strict";
 
@@ -177,10 +184,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
 
     ComponentBase.prototype.loaded = function(template,scope){
-        
-        if(this.__init_args__ && this.__init_args__.fuckbox){
-            console.log(this.includeId);
-        }
+
         this.isLoaded = true;
         this.scope = scope;
         this.content = {};
@@ -192,6 +196,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         //root node of the component's DOM
         this.node = templateInstance.node;
         this.node.__obj = this;
+        console.log(this.node.outerHTML);
 
         //child collection
         //todo: this property should be turned into 'private' 
@@ -212,12 +217,12 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         //   this is because they are a part of template composition
         //todo: rename includes to components
         this.includes = templateInstance.children;
-        this._components = {};
+        this.components = {};
         var keys = Object.keys(this.includes);
         for(var key in keys){
             var c = this.includes[keys[key]].__parent_content__;
             if(this.includes[keys[key]].__include_name__){
-                this._components[this.includes[keys[key]].__include_name__] = 
+                this.components[this.includes[keys[key]].__include_name__] = 
                     this.includes[keys[key]];
             }
             if(!c) continue;
@@ -247,7 +252,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     // 3. component instance
     // 4. content key value object
     function processCompositionContent(content){
-        content = toComponent(content);
+        content = toComponent(content,this);
         content._parent = this;  //visual parent  
 
         //content is proxy
@@ -270,13 +275,14 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
     
     ComponentBase.prototype.getComponent = function(name){
-        if(!this._components) return null;
-        return this._components[name];
+        if(!this.components) throw 'Components collection is empty';
+        if(!this.components[name]) throw 'Component ['+name+'] is not found';
+        return this.components[name];
     }
 
     ComponentBase.prototype.getElement = function(name){
         if(!this.elements) throw 'Elements collection is empty';
-        if(!this.elements[name]) throw 'Element "' + name + '" is not found';
+        if(!this.elements[name]) throw 'Element [' + name + '] is not found';
         if(this.elements[name] instanceof Element ) 
             return this.elements[name];
         return this.elements[name] = Element(this.elements[name]);
@@ -432,8 +438,9 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
      * Remove content child at location
      * if content location contains only a single child then
      * child parameter could be blank
+     * Child knows its location
      */
-    ComponentBase.prototype.remove = function(child,location){
+    ComponentBase.prototype.remove = function(child){
 
     }
 
@@ -543,7 +550,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         return new ValueComponent(s.toString());
     }
 
-    ComponentBase.prototype.reflow = function(x,y,w,h,d){
+    ComponentBase.prototype.reflow = function(x,y,w,h,b){
         if(!this.node) return;
 
         var style = this.node.style;
@@ -739,7 +746,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
                 var key = keys[k];
                 if(elementMap[key]) throw 'Duplicate name map key ' + key;
                 
-                elementMap[key] = node;
+                elementMap[key] = Element(node);
             }
             
         }
