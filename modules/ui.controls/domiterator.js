@@ -13,15 +13,16 @@ define([
 
 	var Class = inheritance.Class
     ,   ComponentBase = component.ComponentBase
-    ,   Template  = component.Template;
+    ,   Template  = component.Template
+    ,   scope = {};
 
 
-    var DomIterator = Class(function DomIterator(args,parent){
+    var DomIterator = Class(function DomIterator(parent,args){
         this.parent = parent;
-        this.resolve(args,parent);
-        this.loaded(new Template(document.createElement('span')));
+        this.resolve(parent,args);
+        this.loaded(new Template(document.createElement('span')),scope,args);
 
-        this.domContent = args.content;
+        this.domContent = args.template;
 
         if(!args.range) return;
 

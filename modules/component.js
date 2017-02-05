@@ -89,22 +89,23 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             require('!'+[parts[1]],function(t){
                 listener.loaded(t,scope);
             });
-            var componentConstructor = function Component(args,parent){
+            //every component must have a parent
+            var componentConstructor = function Component(parent,args){
                 args = utils.blend(defaultArgs,args);
-                var comp = new controller(args,parent);
+                var comp = new controller(parent,args);
                     comp.parent = parent;
                     comp.__name__ = parts[0]; 
                     comp.init(args);
                     comp.onResolve();
-                    comp.resolve(args,parent);
+                    comp.resolve(parent,args);
                    
                 if(!listener.isLoaded){
                    listener.subscribe((function(t){
-                        this.loaded(t[parts[0]],scope)
+                        this.loaded(t[parts[0]],scope,args)
                     }).bind(comp));
                 } else {
                     // component is created
-                    comp.loaded(listener.t[parts[0]],scope);
+                    comp.loaded(listener.t[parts[0]],scope,args);
                 }
                 return comp;
             }
@@ -183,7 +184,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
 
 
-    ComponentBase.prototype.loaded = function(template,scope){
+    ComponentBase.prototype.loaded = function(template,scope,args){
 
         this.isLoaded = true;
         this.scope = scope;
@@ -191,51 +192,34 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         this.override = {};
 
         //template instance is created here
-        var templateInstance = 
-            getTemplateInstance.call(this,template);
+        var templateInstance = template.getInstance(this);
+            
         //root node of the component's DOM
         this.node = templateInstance.node;
         this.node.__obj = this;
-        console.log(this.node.outerHTML);
-
+       
         //child collection
         //todo: this property should be turned into 'private' 
         //otherwise it could unintentionally overwritten
         //causing strange and hard to debug behaviour
         this.children = this.children || [];
 
-        //construc element map
-        buildElementMap.call(this);
+        //1. construct element map
+        _buildElementMap.call(this);
 
-        //1. content map
-        buildContentMap.call(this);
+        //2. content map
+        _buildContentMap.call(this);
 
-        //2. process included components and 
-        //   all includes must be derived from ComponentBase
-        //   check for any content overrides
-        //   includes are special types of children and processed separately from any other content child
-        //   this is because they are a part of template composition
-        //todo: rename includes to components
-        this.includes = templateInstance.children;
-        this.components = {};
-        var keys = Object.keys(this.includes);
-        for(var key in keys){
-            var c = this.includes[keys[key]].__parent_content__;
-            if(this.includes[keys[key]].__include_name__){
-                this.components[this.includes[keys[key]].__include_name__] = 
-                    this.includes[keys[key]];
-            }
-            if(!c) continue;
-            this.content[c] = this.includes[keys[key]];             
-        }
+        //3. process included components
+        _integrateIncludes.call(this,templateInstance.children);
 
-        //3. process 'content' argument 
-        if(this.__init_args__ && this.__init_args__.content){
-            processCompositionContent.call(this,this.__init_args__.content);
+        //4. process 'content' argument 
+        if(args && args.content){
+            processCompositionContent.call(this,args.content);
         }
        
 
-        //notify controller
+        //notify view model
         this.onLoaded();
 
         //process replacement queue
@@ -246,6 +230,44 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         }
         if(this.isDelayedDisplay) this.display(); 
     }
+
+
+
+    //   all includes must be derived from ComponentBase
+    //   check for any content overrides
+    //   includes are special types of children and processed separately from any other content child
+    //   this is because they are a part of template composition
+    function _integrateIncludes(includes){
+        var _includes = {};
+        var _includeMap = {};
+
+        this.components = {};
+        var keys = Object.keys(includes);
+        for(var key in keys){
+            var inc = includes[keys[key]];
+             //set visual parent
+            _includes[keys[key]] = inc.component;
+            _includeMap[keys[key]] = inc.anchor;
+                        
+            var args = inc.includeArgs;
+            
+            if(!args) continue;
+            
+            if(args.name){
+                this.components[args.name] = inc.component;
+            }
+
+            if(!args.content) continue;
+            this.content[args.content] = inc.component;
+        }
+
+        this.includes = _includes;
+        this.includeMap = _includeMap;
+    }
+
+
+
+
     // typeof the content
     // 1. proxy
     // 2. value type
@@ -256,7 +278,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         content._parent = this;  //visual parent  
 
         //content is proxy
-        // if(content.__sjs_isproxy__){
+        // if(content.isProxy){
         //     content = content(this);
         //     content._parent = this;  //visual parent  
         // }
@@ -288,41 +310,10 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         return this.elements[name] = Element(this.elements[name]);
     }
 
-    /**
-     * 
-     */
-    function isAnimation(){
-        var animation = null;
-        if(this.animated && this instanceof ComponentBase){
-            var style = this.node.style;
-            style.opacity = 0;
-            animation = new effects.StoryBoard([new Animation(0,100,300,Animation.cubicEaseIn,
-            function(value){
-                style.opacity = value * 0.1 / 10;
-            })]);  
+    ComponentBase.prototype.displayChild = function(child,key,mode){
 
-        }
-        return animation;
-    }
-
-  
-
-    ComponentBase.prototype.displayChild = function(child){
-        //content id = cid
-        //content mode  = cmode
-        var id = child.contentId || 'default';
-        var target = this.content[id];
-        if(child.__sjs_useoverride__)
-            target = this.override[id];
-
-        var mode = child.contentMode;
-
-        var animation = isAnimation.call(child);
-        
-        //contentid is not relevant on includes
-        //includeId is relevant
         if(mode == 'include'){
-            target = this.content[child.includeId];
+            target = this.includeMap[key];
             // this here means that include child is no londer required
             if(!target.parentNode){
                 //delete all the references of the include is
@@ -331,6 +322,17 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             }
             target.parentNode.replaceChild(child.node,target);            
         }
+
+
+
+        //content id = cid
+        //content mode  = cmode
+        var id = child.contentId || 'default';
+        var target = this.content[id];
+
+
+        var animation = isAnimation.call(child);
+        
 
         if(!target) {
             console.warn('Content target for ' + id + ' is not found, content is not rendered');
@@ -365,7 +367,12 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         this.parent.detachChild(this);
     }
 
-    ComponentBase.prototype.display = function(parent){
+    /**
+     * what
+     * where 
+     * how
+     */
+    ComponentBase.prototype.display = function(parent,key,mode){
         //start display
         var timeStart= window.performance.now();
 
@@ -375,19 +382,24 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         //component's templpate is yet to load
         if(!this.isLoaded){
             this.isDelayedDisplay = true;
+            //switcheroo
+            var fn = this.display;
+            this.display = function(){
+                fn.call(this,parent,key,mode);
+                this.display = fn;
+            };
             return this;
         }
 
-        if(!this._parent) this._parent = DocumentBody;
-        this.contentId = this.contentId || 'default';
-        this.contentMode = this.contentMode || 'add';
-
-        this._parent.displayChild(this);
+        parent = parent || DocumentBody;
+        key = key || 'default';
+        mode = mode || 'add';
         
+        parent.displayChild(this,key,mode);
         
         var keys = Object.keys(this.includes);
         for(var key in keys){
-            this.includes[keys[key]].display()._parent = this;
+            this.includes[keys[key]].display(this,keys[key],'include');
         }
 
         
@@ -475,7 +487,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         
 
         //child is a proxy object
-        if(child.__sjs_isproxy__ === true){
+        if(child.isProxy === true){
             child = child(this);
         }
 
@@ -518,6 +530,23 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         return this;
     }
 
+    /**
+     * 
+     */
+    function isAnimation(){
+        var animation = null;
+        if(this.animated && this instanceof ComponentBase){
+            var style = this.node.style;
+            style.opacity = 0;
+            animation = new effects.StoryBoard([new Animation(0,100,300,Animation.cubicEaseIn,
+            function(value){
+                style.opacity = value * 0.1 / 10;
+            })]);  
+
+        }
+        return animation;
+    }
+
 
     /**
      * Converts anything to a component
@@ -532,7 +561,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     function toComponent(s, parent){
         //check for proxy
         //todo: see if we care what the resulting proxy instance is
-        if(typeof s === 'function' && s.__sjs_isproxy__ === true ){
+        if(typeof s === 'function' && s.isProxy === true ){
             return s(parent);
         }
 
@@ -620,21 +649,28 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
      */
     function Template(node,name){
         this.node = node;
+        //when top-level template child element is include
+        //wrap it into span
         if(node.tagName == tags.include) {
             this.node = document.createElement('span');
             this.node.appendChild(node);    
         }
 
         this.name = name;
-        this.children = [];
+        this.children = {};
+        this.childCount = 0;
     }
-    //todo: figure out how to deal with top level <include> tags in the template
-    Template.prototype.addChild = function(child){
-  	    this.children.push(child);
-  		var childId =  this.children.length-1;
-  		var a = document.createElement('a');
+   
+    Template.prototype.addChild = function(json){
+    	var childId =  this.childCount++;
+
+        this.children['child'+childId] = {
+            json:json
+        };
+        
+        var a = document.createElement('a');
   		a.setAttribute('sjs-child-id',	childId);
-        a.setAttribute('sjs-content','child'+childId);
+        
   		return a;
     }
 
@@ -665,15 +701,16 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         var inclusions = [];
 
         //selects only direct child nodes
-        var nodes = doc.select.nodes({childNodes:template.node.childNodes},
-                function(node){
-                    if(node.tagName == tags.include || node.tagName == tags.element) return node;
-                },
-                function(node){
-                    if(node.tagName == tags.include || node.tagName == tags.element) return [];
-                    return node.childNodes;
-                }
-            );
+        var nodes = doc.select.nodes(
+            {childNodes:template.node.childNodes},
+            function(node){
+                if(node.tagName == tags.include || node.tagName == tags.element) return node;
+            },
+            function(node){
+                if(node.tagName == tags.include || node.tagName == tags.element) return [];
+                return node.childNodes;
+            }
+        );
 
         if(!nodes || nodes.length < 1) return template;
 
@@ -681,7 +718,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             var node = nodes[i]
             ,	parent = node.parentNode;
             
-            var	json = convertToProxyJson.call(scope, node, node.tagName,false,this);
+            var	json = _convertToProxyJson.call(scope, node, node.tagName,false,this);
             
             //create placeholder anchor           
             var a = template.addChild(json);
@@ -694,43 +731,39 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         return template;    
     }
 
+    /**
+     * Clones template's DOM and returns it
+     */
+    Template.prototype.getInstance = function(component){
+        var clone = this.clone()
+        ,   _anchors = clone.querySelectorAll('[sjs-child-id]');
 
+        var aMap = {};
+        utils.foreach(_anchors,function(a){
+            aMap['child'+a.getAttribute('sjs-child-id')] = a;
+        });
 
-
-    /** 
-     * 
-    */
-    function getTemplateInstance(template){
-        var clone = template.clone()
-        ,   _anchors = clone.querySelectorAll('[sjs-child-id]')
-        ,   anchors = [];
-
-        for(var i=0; i<_anchors.length; i++){
-            var a = _anchors[i];
-            var id = a.getAttribute('sjs-child-id');
-            anchors[id] = a;
-        }
-
-        var children = {};
-        for(var i=0; i < template.children.length; i++){
-            var json = template.children[i];
-            var key = anchors[i].getAttribute('sjs-content');
-             
-            var child = runProxy(this,json)(this);
-            child.contentMode = 'include';
-            child.includeId = key;
-            child._parent = this; //visual parent
-            children[key]= child;
+        var includes = {};
+        var keys = Object.keys(this.children);
+        for(var i=0; i < keys.length; i++){
+            var r = _runProxy(component,this.children[keys[i]].json);
+            includes[keys[i]] = {
+                component:r.result,
+                includeArgs:r.proxyArgs,
+                anchor:aMap[keys[i]]    
+            }            
         }
 
         return {
             node:clone,
-            anchors:anchors,
-            children:children
-        };
+            children:includes
+        }
     }
 
-    function buildElementMap(){
+
+
+
+    function _buildElementMap(){
         var element = this.node;
         var elementNodes = element.querySelectorAll('[sjs-element]');
         
@@ -757,7 +790,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     /**
      * 
      */
-    function buildContentMap(){
+    function _buildContentMap(){
 
         var element = this.node;
 
@@ -800,48 +833,41 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
      *  @param type - type to instantiate, is a fully qualified name within provided scope
      *  @param args - constructor arguments
     */
-    function proxy(component,pArgs){
-        var prx =  function proxy(parent){
-            var _type = new DataItem(component.scope).path(pArgs.type).getValue();
-            var instance = null;
-            if(_type != null) {
-                instance = new _type(pArgs.args,parent);
-            }
-            if(instance == null) {
-                throw 'component type not found [' + pArgs.type +']';
-            }
-
-            instance.__parent_content__ = pArgs.parentContent;
-            if(pArgs.__sjs_name__)
-                instance.__include_name__ = pArgs.__sjs_name__;     
-            //type used in the include tag
-            instance.__include_type__ = pArgs.type;
-            return instance;
+    function proxy(scope,pArgs){
+        var prx =  function proxy(){
+            var _type = new DataItem(scope).path(pArgs.type).getValue();
+            if(_type == null) throw 'type not found [' + pArgs.type +']';
+            var instance = Object.create(_type.prototype);
+            return _type.apply(instance,arguments) || instance;
         }
 
-        prx.__sjs_isproxy__ = true;
+        prx.isProxy = true;
+        prx.proxyArgs = pArgs;
         return prx;
     }
 
 
     /**
-     * 
-     * 
+     * Constructs dynamic function and exectures proxy json in its context
      */
-    function runProxy(component,json){
+    function _runProxy(parent,json){
         var	fn = new Function(
             "var proxy = arguments[0][0]; "      +
             "var scope = this;"+
             "var binding = arguments[0][1];" +
-            "var window = null; var document = null; return " + json);
-        return fn.call(component,[proxy,binding]);
+            "var window = null; var document = null; return " + json)
+            .call(parent.scope,[proxy,binding]);
+        
+        return {
+            proxyArgs:fn.proxyArgs,
+            result:fn(parent,fn.proxyArgs.args)
+        }
     }
 
 
     /** 
      *  Creates binding
      *  markup function 
-     * 
      */
     function binding(property){
         return new Binding(property);      
@@ -853,12 +879,12 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     /**
      * 
      */
-  	function convertToProxyJson(dom, parent, replace,template){
+  	function _convertToProxyJson(dom, parent, replace,template){
 
   		var scope = this;
         //any tag other than <include> or <element> is processed as html tag 
   		if(	dom.tagName != tags.include &&	dom.tagName != tags.element)
-  			return handle_INLINE_HTML.call(scope, dom, parent, true,template);
+  			return _handle_INLINE_HTML.call(scope, dom, parent, true,template);
 
   		var	elements = 	doc.select.nodes({childNodes:dom.childNodes},
   				function(node){
@@ -874,20 +900,20 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
   		if(elements && elements.length > 0){
   			for(var i=0; i< elements.length; i++){
   				var node = elements[i];
-  				convertToProxyJson.call(scope,node, dom, true,template);
+  				_convertToProxyJson.call(scope,node, dom, true,template);
   			}
   		}
 
   		//proces current element
-  		if(dom.tagName === tags.include) return handle_INCLUDE.call(scope,dom, parent, replace,template);
+  		if(dom.tagName === tags.include) return _handle_INCLUDE.call(scope,dom, parent, replace,template);
   	}
 
     /**
      * 
      */
-  	function handle_INCLUDE(node, parent, replace,template){
+  	function _handle_INCLUDE(node, parent, replace,template){
 
-  		var attributes = collectAttributes(node).json
+  		var attributes = _collectAttributes(node).json
   		,	json = '';
 
   		//empty configuration of the include tag
@@ -914,9 +940,9 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     /**
      * 
      */
-    function handle_INLINE_HTML(node, parent, replace,template){
+    function _handle_INLINE_HTML(node, parent, replace,template){
   		var scope = this
-  		,	attributes = collectAttributes(node);
+  		,	attributes = _collectAttributes(node);
 
   		var _type = '__adhoc_component__'+(scope.__sjs_adhoc__++)
   		,	json = ''
@@ -948,7 +974,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             comp.parent = parent;
             comp.init(args);
             comp.resolve(parent != null ? parent.scope : null);
-            comp.loaded(template,scope);
+            comp.loaded(template,scope,args);
             return comp;
         };  
 
@@ -959,10 +985,10 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     //todo: add 'style' attribute that will be get to the root of the
     //      component's node to allow inline styling  
 
-    //todo: add sjs-name attribute for named includes
-    var reservedAttr = ['sjs-type', 'sjs-content','sjs-override','sjs-vm','sjs-name'];
-    var reservedAttrPropNames = ['type','content','parentContent','vm','name'];
-  	function collectAttributes(node, filter){
+    //todo: rename sjs prefix to s
+    var reservedAttr = ['sjs-type', 'sjs-content','sjs-vm','sjs-name'];
+    var reservedAttrPropNames = ['type','content','vm','name'];
+  	function _collectAttributes(node, filter){
         if(!node) return {};
 
   		var attributes = node.attributes;
@@ -980,9 +1006,6 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
             var name = reservedAttrPropNames[idx];
 
-  			if(name == 'name') {
-  				name = '__sjs_name__';
-  			}
   			if(startsWith(attr.value,'binding(')){
   				result = result + separator + name + ':' + attr.value;
   				separator = ', ';
@@ -1027,7 +1050,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     /**
      * 
      */
-    function locateComponent(start,type){
+    function locate(start,type){
         //look in the component chain
         if(start instanceof ComponentBase) {
             var parent = start;
@@ -1077,7 +1100,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         DocumentApplication: DocumentApplication,
         proxy:proxy,
         toComponent:toComponent,
-        locate:locateComponent,
+        locate:locate,
         logTo:function(lg){log = lg;}
     }
 
