@@ -202,7 +202,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         //todo: this property should be turned into 'private' 
         //otherwise it could unintentionally overwritten
         //causing strange and hard to debug behaviour
-        this.children = this.children || [];
+        this.children = {};
 
         //1. construct element map
         _buildElementMap.call(this);
@@ -425,21 +425,25 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     /**
      * Append content child and a content location
      */
-    ComponentBase.prototype.add = function(child,location){
-        location = location || 'default';
+    ComponentBase.prototype.add = function(child,key){
+        key = key || 'default';
 
         child = toComponent(child,this);
 
-        this.children = this.children || [];    
-        this.children.push(child);
-        child.contentId = location; 
-        child.contentMode = 'add';
+        var content = this.content[key];
+        
+        if(!content) return; //no target found
+
+        var target = this.children[key];
+        if(!target) {
+            this.children[key] = target = [];
+        }
+
         child.parent = this;
-        child._parent = this;
+        target.push([child,'add']);    
 
         if(this.isDisplayed) {
-            child.display(this);
-            this.onChildDisplay(child);
+            child.display(this,key,'add');
         }
        
         return child;
@@ -464,54 +468,46 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     /**
      * Replaces content at provided location
      */
-    ComponentBase.prototype.set = function(child, location){
+    ComponentBase.prototype.set = function(child, key){
         //queue replacement if component is not loaded yet
         if(!this.isLoaded ) {
             this.toReplace = this.toReplace || [];
-            this.toReplace.push({child:child, location:location});
+            this.toReplace.push({child:child, location:key});
             return child;
         }
         //nothing to do here, if placement is not set
-        location = location || 'default';
+        key = key || 'default';
         
         //we could be dealing with an object that is yet to be loaded
-        var target = this.content != null ? this.content[location] : null;
-        if(child.__sjs_useoverride__)
-            target = this.override[location];
-
-
-        if(target instanceof ComponentBase){
-            target.set(child);
-            return null;
-        }
+        var content = this.content != null ? this.content[key] : null;
         
-
-        //child is a proxy object
-        if(child.isProxy === true){
-            child = child(this);
+        //push forward
+        if(content instanceof ComponentBase){
+            return content.set(child);
         }
 
-        if(target instanceof ValueComponent) {
-             target.setValue(child.toString());
-            return null;
-        } //else
+        //convert child
+        child = toComponent(child,this);
 
-        if(!(child instanceof ComponentBase) && 
-            !(child instanceof ValueComponent))
-            child = new ValueComponent(child.toString());
+        var target = this.children[key];
+       
+
+        if( target && target[0] && 
+            target[0][0] instanceof ValueComponent) {
+            target[0][0].setValue(child.toString());
+            return child;
+        } 
         
-        this.children = this.children || [];  
-        this.children.push(child);                
-        child.contentMode = 'replace';
-        child.contentId = location;
+        
+        this.children[key]= [[child,'set']];
         child.parent = this;
-        child._parent = this;
+
 
         if(this.isDisplayed) { 
-            child.display(this);
+            child.display(this,key,'set');
             this.onChildDisplay(child);
         }
-        return this;
+        return child;
     }
 
     ComponentBase.prototype.applyContent = function(content){
@@ -801,7 +797,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         ,	cMap = this.content;
 
         if(!contentNodes || contentNodes.length < 1) {
-            return cMap['default'] = element;
+            return cMap['default'] = Element(element);
         }
         var node = element;
         for(var i=0; i<=contentNodes.length; i++){
@@ -819,7 +815,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
                 var key = keys[k];
                 if(cMap[key]) throw 'Duplicate content map key ' + key;
                 node.__sjscache__ = {n:0};
-                cMap[key] = node;
+                cMap[key] = Element(node);
             }
             node = contentNodes[i];
         }
@@ -969,7 +965,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             vm = new DataItem(scope).path(attributes.values.vm).getValue();
         }
 
-        scope[_type] = function Component(args,parent){
+        scope[_type] = function Component(parent,args){
             var comp = new vm(args);
             comp.parent = parent;
             comp.init(args);
