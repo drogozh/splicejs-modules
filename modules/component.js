@@ -340,15 +340,15 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         }
 
         if(mode == 'add'){
-            target.appendChild(child.node);
+            target.node.appendChild(child.node);
         }
 
-        if(mode == 'replace'){
-            target.innerHTML = '';
-            target.appendChild(child.node);
+        if(mode == 'set'){
+            target.node.innerHTML = '';
+            target.node.appendChild(child.node);
         }
 
-        if(mode == 'remove'){
+        if(mode == 'rem'){
             //decode the type of child
         }
 
@@ -403,10 +403,13 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         }
 
         
-        foreach(this.children,(function(child){
-            child._parent = this;
-            child.display(this);
-            this.onChildDisplay(child);     
+        foreach(this.children,(function(list,key){
+            for(var i=0; i < list.length; i++){
+                var child = list[i];
+                child[0]._parent = this;
+                child[0].display(this,key,child[1]);
+                this.onChildDisplay(child[0]);
+            }                 
         }).bind(this));
 
 
@@ -494,7 +497,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
         if( target && target[0] && 
             target[0][0] instanceof ValueComponent) {
-            target[0][0].setValue(child.toString());
+            target[0][0].set(child.toString());
             return child;
         } 
         
@@ -623,18 +626,19 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     }
 
     //do nothing on display
-    ValueComponent.prototype.display = function(){
-        if(!this.parent) return;
-        this.parent.displayChild(this);
+    //parent is a display parent
+    ValueComponent.prototype.display = function(parent,key,mode){
+        parent.displayChild(this,key,mode);
     }; 
 
 
     ValueComponent.prototype.set = function(value){
-        this.node.value = value.toString();
+        this.node.nodeValue = value.toString();
     };
     //override toString
     ValueComponent.prototype.toString = function(){
-        return this.node.value.toString();
+        if(this.node.nodeValue == null) return '';
+        return this.node.nodeValue.toString();
     }
 
     //todo: how about tryng string-based template components

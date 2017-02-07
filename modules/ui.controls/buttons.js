@@ -28,7 +28,7 @@ var factory = component.ComponentFactory(require,{
 /** 
  * 	Button Component
  */
-var Button = Class(function Button(args){
+var Button = Class(function Button(parent,args){
     if(args)
         this.caption = args.content != null ? args.content  : 'button';
 }).extend(component.ComponentBase);
