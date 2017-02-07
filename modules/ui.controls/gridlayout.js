@@ -77,7 +77,7 @@ define([
 	 * 
 	 * 
 	 */
-	var CellContainer = Class(function CellContainerController(args){
+	var CellContainer = Class(function CellContainer(parent,args){
         mixin(this,args);
 
 	}).extend(component.ComponentBase);
@@ -179,7 +179,7 @@ define([
 	*	Grid Layout implementation
 	* @constructor
 	*/
-	var GridLayout = Class(function GridLayoutController(args){
+	var GridLayout = Class(function GridLayoutController(parent,args){
 		mixin(this,args);
 
 		event.attach(this,{
@@ -412,7 +412,7 @@ define([
 
 	/**
 		Removes single cell
-		@param {CellContainerController} cell - cell to be deleted
+		@param {CellContainer} cell - cell to be deleted
 	*/
 	GridLayout.prototype.removeCell = function(cell,isSoft){
 

@@ -32,12 +32,15 @@ define([
         }
         console.log('processing dom iterator');
         if(this.domContent){
-            // for(var i=this.from; i<this.to; i++){
-            // }
-            async.loop(this.from,this.to,1,10).for((function(i){
+            for(var i=this.from; i<=this.to; i++){
+                  var c = this.add(this.domContent).set(i);
+            }
+            /*
+            async.loop(this.from,this.to,1,1).for((function(i){
                 var c = this.add(this.domContent).set(i);
                 return true;
             }).bind(this))
+            */
         }
 
     }).extend(ComponentBase);

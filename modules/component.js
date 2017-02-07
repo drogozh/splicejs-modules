@@ -128,9 +128,14 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             var animation = isAnimation.call(child);
             document.body.appendChild(child.node);
             
+            child.displayStatus = {vParent:this};
+
             if(animation) animation.animate();
 
             child.onDisplay();
+        }, 
+        detachChild:function(child){
+            document.body.removeChild(child.node);
         }
     };
 
@@ -223,11 +228,19 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         this.onLoaded();
 
         //process replacement queue
+        //or toadd queue but not both
         //todo: review off-screen state tracking
         var _x = null;
-        while(this.toReplace && (_x = this.toReplace.shift()) ) {
-            this.set(_x.child,_x.location);
+        if(this.toReplace) {
+            while(this.toReplace && (_x = this.toReplace.shift()) ) {
+                this.set(_x.child,_x.location);
+            }
+        } else if(this.toAdd){
+            while(this.toAdd && (_x = this.toAdd.shift()) ){
+                this.add(_x.child,_x.location);
+            }
         }
+
         if(this.isDelayedDisplay) this.display(); 
     }
 
@@ -321,6 +334,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
                 return;
             }
             target.parentNode.replaceChild(child.node,target);            
+            child.displayStatus = {vParent:this,key:key, mode:mode};
         }
 
 
@@ -330,6 +344,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         var id = child.contentId || 'default';
         var target = this.content[id];
 
+        child.displayStatus = {vParent:this,key:key, mode:mode};
 
         var animation = isAnimation.call(child);
         
@@ -363,8 +378,8 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
 
     ComponentBase.prototype.detach = function(){
-        if(!this._parent) throw 'Unable to detach orphaned component';
-        this.parent.detachChild(this);
+        if(!this.displayStatus.vParent) throw 'Unable to detach orphaned component';
+        this.displayStatus.vParent.detachChild(this);
     }
 
     /**
@@ -395,11 +410,11 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         key = key || 'default';
         mode = mode || 'add';
         
-        parent.displayChild(this,key,mode);
+      
         
         var keys = Object.keys(this.includes);
-        for(var key in keys){
-            this.includes[keys[key]].display(this,keys[key],'include');
+        for(var i in keys){
+            this.includes[keys[i]].display(this,keys[i],'include');
         }
 
         
@@ -412,6 +427,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             }                 
         }).bind(this));
 
+        parent.displayChild(this,key,mode);  
 
         this.isDelayedDisplay = false;
         this.isDisplayed = true;
@@ -429,6 +445,13 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
      * Append content child and a content location
      */
     ComponentBase.prototype.add = function(child,key){
+         //queue replacement if component is not loaded yet
+        if(!this.isLoaded ) {
+            this.toAdd = this.toAdd || [];
+            this.toAdd.push({child:child, location:key});
+            return child;
+        }
+        
         key = key || 'default';
 
         child = toComponent(child,this);
@@ -496,7 +519,8 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
        
 
         if( target && target[0] && 
-            target[0][0] instanceof ValueComponent) {
+            target[0][0] instanceof ValueComponent && 
+            child instanceof ValueComponent) {
             target[0][0].set(child.toString());
             return child;
         } 
@@ -561,7 +585,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         //check for proxy
         //todo: see if we care what the resulting proxy instance is
         if(typeof s === 'function' && s.isProxy === true ){
-            return s(parent);
+            return s(parent,s.proxyArgs.args);
         }
 
         //on ComponentBase instances, just return
@@ -838,6 +862,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             var _type = new DataItem(scope).path(pArgs.type).getValue();
             if(_type == null) throw 'type not found [' + pArgs.type +']';
             var instance = Object.create(_type.prototype);
+           
             return _type.apply(instance,arguments) || instance;
         }
 

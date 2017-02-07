@@ -58,7 +58,7 @@ function(require,inheritance,component,event,view,interaction){
      *      DropDown view model
      * 
      */
-	var DropDown = Class(function DropDown(args){
+	var DropDown = Class(function DropDown(parent,args){
 
 		event.attach(this,{
 			onDropDown : event.MulticastEvent
