@@ -21,11 +21,15 @@ define([
 function(inheritance,events,doc,data,utils,effects,Element,_binding){
     "use strict";
 
-    var tags = {
-        include:'INCLUDE',
-        template:'TEMPLATE',
-        element:'ELEMENT'
-    }
+
+    var TAG_INCLUDE = 'INCLUDE'
+    ,   TAG_TEMPLATE = 'TEMPLATE'
+    ,   TAG_ELEMENT = 'ELEMENT';
+
+    var DISPLAY_DELAYED = -1
+    ,   DISPLAY_FALSE = 0
+    ,   DISPLAY_TRUE = 1;
+
 
     var log = {
         debug:function(){}
@@ -38,8 +42,6 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     ,   mixin = utils.mixin
     ,   Animation = effects.Animation
     ,   Binding = _binding;
-
-
 
 
     /**
@@ -127,7 +129,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             var animation = isAnimation.call(child);
             document.body.appendChild(child.node);
             
-            child.displayStatus = {vParent:this};
+            child._state_ = {parent:this};
 
             if(animation) animation.animate();
 
@@ -161,6 +163,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
 
     ComponentBase.prototype.init = function(args){
+        this._state_ = {};
         this._bindings_ = [];
         utils.mixin(this,args,(function(t,s){
             if(s.inst[s.prop] instanceof Binding){
@@ -239,7 +242,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             }
         }
 
-        if(this.isDelayedDisplay) this.display(); 
+        if(this._state_.display == DISPLAY_DELAYED) this.display(); 
     }
 
 
@@ -300,6 +303,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     }
 
     ComponentBase.prototype.displayChild = function(child,key,mode){
+        var _state_ = child._state_;
 
         if(mode == 'include'){
             target = this._includes[key].anchor;
@@ -310,21 +314,22 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
                 return;
             }
             target.parentNode.replaceChild(child.node,target);            
-            child.displayStatus = {vParent:this,key:key, mode:mode};
+            
+            _state_.parent = this;
+            _state_.key = key; 
+            _state_.mode = mode;
+            
             return;
         }
 
-
-
-        //content id = cid
-        //content mode  = cmode
         key = key || 'default';
         var target = this.content[key];
 
-        child.displayStatus = {vParent:this,key:key, mode:mode};
+        _state_.parent = this;
+        _state_.key = key; 
+        _state_.mode = mode;
 
         var animation = isAnimation.call(child);
-        
 
         if(!target) {
             console.warn('Content target for ' + key + ' is not found, content is not rendered');
@@ -350,13 +355,15 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
     ComponentBase.prototype.detachChild = function(child){
         child.node.parentNode.removeChild(child.node);
-        child.isDisplayed = false;
     }
 
-
     ComponentBase.prototype.detach = function(){
-        if(!this.displayStatus.vParent) throw 'Unable to detach orphaned component';
-        this.displayStatus.vParent.detachChild(this);
+        if(!this._state_.parent) throw 'Unable to detach orphaned component';
+        this._state_.parent.detachChild(this);
+        
+        //set state
+        this._state_.display = DISPLAY_FALSE;
+        this._state_.parent = null;
     }
 
     /**
@@ -369,11 +376,13 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         var timeStart= window.performance.now();
 
         //component is displayed already
-        if(this.isDisplayed == true) return this;
+        if(this._state_.display == DISPLAY_TRUE) { 
+            return this; 
+        }
 
         //component's templpate is yet to load
         if(!this.isLoaded){
-            this.isDelayedDisplay = true;
+            this._state_.display = DISPLAY_DELAYED;
             //switcheroo
             var fn = this.display;
             this.display = function(){
@@ -398,7 +407,6 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         foreach(this.children,(function(list,key){
             for(var i=0; i < list.length; i++){
                 var child = list[i];
-                child[0]._parent = this;
                 child[0].display(this,key,child[1]);
                 this.onChildDisplay(child[0]);
             }                 
@@ -406,8 +414,8 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
         parent.displayChild(this,key,mode);  
 
-        this.isDelayedDisplay = false;
-        this.isDisplayed = true;
+        
+        this._state_.display = DISPLAY_TRUE;
         
 
         var timeEnd = window.performance.now();
@@ -445,7 +453,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         child.parent = this;
         target.push([child,'add']);    
 
-        if(this.isDisplayed) {
+        if(this._state_.display) {
             child.display(this,key,'add');
         }
        
@@ -507,7 +515,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         child.parent = this;
 
 
-        if(this.isDisplayed) { 
+        if(this._state_.display) { 
             child.display(this,key,'set');
             this.onChildDisplay(child);
         }
@@ -624,6 +632,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
      */
     function ValueComponent(value){
         this.node = document.createTextNode(value);
+        this._state_ = {};
     }
 
     //do nothing on display
@@ -652,7 +661,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         this.node = node;
         //when top-level template child element is include
         //wrap it into span
-        if(node.tagName == tags.include) {
+        if(node.tagName == TAG_INCLUDE) {
             this.node = document.createElement('span');
             this.node.appendChild(node);    
         }
@@ -705,10 +714,10 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         var nodes = doc.select.nodes(
             {childNodes:template.node.childNodes},
             function(node){
-                if(node.tagName == tags.include || node.tagName == tags.element) return node;
+                if(node.tagName == TAG_INCLUDE || node.tagName == TAG_ELEMENT) return node;
             },
             function(node){
-                if(node.tagName == tags.include || node.tagName == tags.element) return [];
+                if(node.tagName == TAG_INCLUDE || node.tagName == TAG_ELEMENT) return [];
                 return node.childNodes;
             }
         );
@@ -891,7 +900,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
   		var scope = this;
         //any tag other than <include> is processed as html tag 
-  		if(	dom.tagName != tags.include &&	dom.tagName != tags.element)
+  		if(	dom.tagName != TAG_INCLUDE &&	dom.tagName != TAG_ELEMENT)
   			return _handle_INLINE_HTML.call(scope, dom, parent, true,template);
 
   		var	elements = 	doc.select.nodes({childNodes:dom.childNodes},
@@ -913,7 +922,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
   		}
 
   		//proces current element
-  		if(dom.tagName === tags.include) return _handle_INCLUDE.call(scope,dom, parent, replace,template);
+  		if(dom.tagName === TAG_INCLUDE) return _handle_INCLUDE.call(scope,dom, parent, replace,template);
   	}
 
     /**
@@ -1094,6 +1103,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     }).extend(ComponentBase);
 
     DocumentApplication.prototype.start =  function(scope){
+        this.init();
         var template = new Template(document.body).compile(scope);
         template.clone = function(){return this.node;}
         this.loaded(template,scope);

@@ -85,7 +85,7 @@ function(require,inheritance,component,event,view,interaction){
 		},this);
 
 		//create instance of dropdown container
-        this.dropDownContainer = new scope.DropDownContainer({},this);
+        this.dropDownContainer = new scope.DropDownContainer(this);
 	}
 
 
