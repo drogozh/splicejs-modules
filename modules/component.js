@@ -94,10 +94,9 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
                 args = utils.blend(defaultArgs,args);
                 var comp = new controller(parent,args);
                     comp.parent = parent;
-                    comp.__name__ = parts[0]; 
+                    comp._templateName_ = parts[0]; 
                     comp.init(args);
-                    comp.onResolve();
-                    comp.resolve(parent,args);
+                    comp.resolve();
                    
                 if(!listener.isLoaded){
                    listener.subscribe((function(t){
@@ -162,28 +161,27 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
 
     ComponentBase.prototype.init = function(args){
-        this.__init_args__ = args;        
-        //default layout mode
-        this.layout = 'css';
-        
-        //read out arguments
-        if(args){
-            this.animated =args.animated;
-            this.layout = args.layout || this.layout; 
-        }
+        this._bindings_ = [];
+        utils.mixin(this,args,(function(t,s){
+            if(s.inst[s.prop] instanceof Binding){
+                var binding = s.inst[s.prop];
+                binding.targetProperty = t.prop;
+                this._bindings_.push(binding);
+                return false;
+            }
+                return s.inst[s.prop];
+        }).bind(this));
         this.onInit(args);
     }
 
 
-    ComponentBase.prototype.resolve = function(args,parent){
-        if(!parent) return;
-        var scope = parent.scope;
-        if(!args) return;  
-        foreach(args,(function(value,prop){
-            if(value instanceof Binding){
-                Binding.resolveBinding(value,this,prop,scope);
-            }
+    ComponentBase.prototype.resolve = function(){
+        if(!this._bindings_ ||this._bindings_.length < 1) return;
+        var scope = this.parent.scope;
+        foreach(this._bindings_,(function(value,prop){
+            Binding.resolveBinding(value,this,scope);
         }).bind(this));
+        this.onResolve();
     }
 
 
@@ -201,7 +199,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             
         //root node of the component's DOM
         this.node = templateInstance.node;
-        this.node.__obj = this;
+        this.node._obj = this;
        
         //child collection
         //todo: this property should be turned into 'private' 
@@ -251,17 +249,13 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     //   includes are special types of children and processed separately from any other content child
     //   this is because they are a part of template composition
     function _integrateIncludes(includes){
-        var _includes = {};
-        var _includeMap = {};
 
         this.components = {};
         var keys = Object.keys(includes);
         for(var key in keys){
             var inc = includes[keys[key]];
-             //set visual parent
-            _includes[keys[key]] = inc.component;
-            _includeMap[keys[key]] = inc.anchor;
-                        
+
+                            
             var args = inc.includeArgs;
             
             if(!args) continue;
@@ -274,8 +268,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             this.content[args.content] = inc.component;
         }
 
-        this.includes = _includes;
-        this.includeMap = _includeMap;
+        this._includes = includes;
     }
 
 
@@ -288,24 +281,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     // 4. content key value object
     function processCompositionContent(content){
         content = toComponent(content,this);
-        content._parent = this;  //visual parent  
-
-        //content is proxy
-        // if(content.isProxy){
-        //     content = content(this);
-        //     content._parent = this;  //visual parent  
-        // }
-        if(content.__parent_content__){
-            var cnt = content.__parent_content__;
-            this.override[cnt] = this.content[cnt];
-            this.content[cnt] = content;
-            content.__sjs_useoverride__ = true;
-            this.set(content,cnt);    
-            console.log('user content');    
-            return;
-        }
         this.set(content);
-
     }
 
     
@@ -326,7 +302,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     ComponentBase.prototype.displayChild = function(child,key,mode){
 
         if(mode == 'include'){
-            target = this.includeMap[key];
+            target = this._includes[key].anchor;
             // this here means that include child is no londer required
             if(!target.parentNode){
                 //delete all the references of the include is
@@ -335,14 +311,15 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             }
             target.parentNode.replaceChild(child.node,target);            
             child.displayStatus = {vParent:this,key:key, mode:mode};
+            return;
         }
 
 
 
         //content id = cid
         //content mode  = cmode
-        var id = child.contentId || 'default';
-        var target = this.content[id];
+        key = key || 'default';
+        var target = this.content[key];
 
         child.displayStatus = {vParent:this,key:key, mode:mode};
 
@@ -350,7 +327,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         
 
         if(!target) {
-            console.warn('Content target for ' + id + ' is not found, content is not rendered');
+            console.warn('Content target for ' + key + ' is not found, content is not rendered');
             return;
         }
 
@@ -412,9 +389,9 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         
       
         
-        var keys = Object.keys(this.includes);
+        var keys = Object.keys(this._includes);
         for(var i in keys){
-            this.includes[keys[i]].display(this,keys[i],'include');
+            this._includes[keys[i]].component.display(this,keys[i],'include');
         }
 
         
@@ -757,6 +734,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
     /**
      * Clones template's DOM and returns it
+     * @param {ComponentBase} component - component instance requesting template instance
      */
     Template.prototype.getInstance = function(component){
         var clone = this.clone()
@@ -882,10 +860,15 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             "var binding = arguments[0][1];" +
             "var window = null; var document = null; return " + json)
             .call(parent.scope,[proxy,binding]);
+
+        var compArgs = fn.proxyArgs.args;
         
+        //remove component constructor arguments
+        delete fn.proxyArgs.args;
+
         return {
             proxyArgs:fn.proxyArgs,
-            result:fn(parent,fn.proxyArgs.args)
+            result:fn(parent,compArgs)
         }
     }
 
@@ -907,7 +890,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
   	function _convertToProxyJson(dom, parent, replace,template){
 
   		var scope = this;
-        //any tag other than <include> or <element> is processed as html tag 
+        //any tag other than <include> is processed as html tag 
   		if(	dom.tagName != tags.include &&	dom.tagName != tags.element)
   			return _handle_INLINE_HTML.call(scope, dom, parent, true,template);
 

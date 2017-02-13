@@ -46,14 +46,14 @@ function(data){
     /**
      * 
      */
-  	Binding.resolveBinding = function resolveBinding(binding, instance, key, scope){
+  	Binding.resolveBinding = function resolveBinding(binding, instance, scope){
   	    if(!binding) return;
   		//resolveBinding(binding.prev, instance, key, scope);
 
   		var source = null;
         var sourceInstance = null;
         //target of the binding
-        var target = new DataItem(instance).path(key);
+        var target = new DataItem(instance).path(binding.targetProperty);
 
   		switch(binding.kind){
             case BINDING_TYPES.SELF:
@@ -128,11 +128,18 @@ function(data){
 
     function findBindingInstance(binding,instance){
         var parent = instance.parent;
+        var target = null;
         while(parent!= null) {
-            if(parent.__name__ == binding.targetName)
-            return new DataItem(parent).path(binding.property);    
+            if(parent._templateName_ == binding.targetName) {
+                target = parent;
+                break;
+            }
+            //check is parent's includes
+
+            
             parent = parent.parent;
         }
+        return new DataItem(target).path(binding.property);    
     }      
 
 

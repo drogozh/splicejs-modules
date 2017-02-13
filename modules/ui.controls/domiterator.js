@@ -19,6 +19,7 @@ define([
 
     var DomIterator = Class(function DomIterator(parent,args){
         this.parent = parent;
+        this.init(args);
         this.resolve(parent,args);
         this.loaded(new Template(document.createElement('span')),scope,args);
 
@@ -30,17 +31,17 @@ define([
             this.from = args.range ? args.range[0] : 0;
             this.to = args.range ? args.range[1] : 1;
         }
-        console.log('processing dom iterator');
+        
+        if(!this.pageSize || this.pageSize < 1) this.pageSize = 1; 
+
         if(this.domContent){
-            for(var i=this.from; i<=this.to; i++){
-                  var c = this.add(this.domContent).set(i);
-            }
-            /*
-            async.loop(this.from,this.to,1,1).for((function(i){
+            // for(var i=this.from; i<=this.to; i++){
+            //       var c = this.add(this.domContent).set(i);
+            // }
+            async.loop(this.from,this.to,this.pageSize,1).for((function(i){
                 var c = this.add(this.domContent).set(i);
                 return true;
             }).bind(this))
-            */
         }
 
     }).extend(ComponentBase);
@@ -57,7 +58,7 @@ define([
     /**
      * Input must be a collection or an object
      */
-    DomIterator.prototype.dataIn = function(data){
+    DomIterator.prototype.dataIn = function dataIn(data){
         var keys = Object.keys(data);
         for(var i=0; i<keys.length; i++){
             applyContent.call(this.add(this.domContent),data[keys[i]]);

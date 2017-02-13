@@ -7,29 +7,57 @@ function fileExt(f){
 	return f.substring(f.lastIndexOf('.'));
 }
 
-function mixin(_t, _s){
+/**
+ * 
+ * @param {array[string]}  some - optional paramater for property names to copy
+ */
+function mixin(_t, _s, some, onProperty){
 	if(!_s) return _t;
-	var keys = Object.keys(_s);
 	if(	_s == window || _s == document ||
 			_t == window || _t == document
 			){
 		log.error("Invalid object access " + _s.toString());
 		return _t;
 	}
-	for(var key in keys){
+
+    //swap arguments if 'some' is ommited and 'onProperty' is provided
+    if(typeof some == 'function'){
+        onProperty = some;
+        some = null;
+    }
+
+	var keys = null;
+    if(some){
+        keys = some;
+    }
+    else 
+        keys = Object.keys(_s);
+	
+    for(var key in keys){
 		var p = _s[keys[key]];
-		_t[keys[key]] = p;
+        if(typeof onProperty == 'function'){
+            var transform = onProperty({inst:_t,prop:keys[key]},{inst:_s,prop:keys[key]}); 
+             if(transform) {   
+                _t[keys[key]] = transform;
+            }
+        } else {
+            _t[keys[key]] = p;
+        }
+		
 	}
 	return _t;
 }
 
 /**
  * Blends properties of two objects into one
- * in case of duplicate properties values in the source object win
+ * in case of duplicate properties 
+ * values in the source object win
  */
-function blend(target,source){
-    return mixin(mixin({},target),source);
+function blend(target,source,some){
+    return mixin(mixin({},target),source,some);
 }
+
+
 
 function foreach(collection,callback){
     if(!collection) return;
