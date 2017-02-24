@@ -6,9 +6,10 @@ define([
 	'{splice.modules}/event',
 	'{splice.modules}/view',
     '{splice.modules}/async',
+    '{splice.modules}/dataitem',
 	'preload|{splice.modules}/component.loader',
 
-],function(require,inheritance,component,event,view,async){
+],function(require,inheritance,component,event,view,async,di){
 
 
 	var Class = inheritance.Class
@@ -22,6 +23,9 @@ define([
         this.init(args);
         this.resolve(parent,args);
         this.loaded(new Template(document.createElement('span')),scope,args);
+
+        //#holds a list of items
+        this.itemBuffer = [];
 
         this.domContent = args.template;
 
@@ -39,7 +43,9 @@ define([
             //       var c = this.add(this.domContent).set(i);
             // }
             async.loop(this.from,this.to,this.pageSize,1).for((function(i){
-                var c = this.add(this.domContent).set(i);
+                var c = this.add(this.domContent);
+                c.set(i);
+                this.itemBuffer.push(c);
                 return true;
             }).bind(this))
         }
@@ -61,11 +67,12 @@ define([
     DomIterator.prototype.dataIn = function dataIn(data){
         var keys = Object.keys(data);
         for(var i=0; i<keys.length; i++){
+            //todo: use ComponentBase.prototype.applyContent 
             applyContent.call(this.add(this.domContent),data[keys[i]]);
         }
     }
 
-
+    //todo: use 
     function applyContent(content){
         //its a keys content
         if( content.constructor == Object.prototype.constructor || 

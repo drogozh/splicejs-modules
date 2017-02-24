@@ -101,6 +101,13 @@ function(data){
         return;
       }
 
+      //1.5 source value is a dataItem
+      if(sourceValue instanceof DataItem && 
+            typeof(targetValue) == 'function'){
+        sourceValue.subscribe(targetValue,instance);
+        return;          
+      }
+
       //2. if target is event subscribe to it
       if(targetValue && targetValue.__sjs_event__ === true &&
         typeof(sourceValue) == 'function'){
@@ -108,6 +115,7 @@ function(data){
         return;
       }
 
+      //2.5 
       if(targetValue && targetValue.__sjs_event__ &&
          sourceValue && sourceValue.__sjs_event__ ){
         targetValue.subscribe(sourceValue,sourceInstance);

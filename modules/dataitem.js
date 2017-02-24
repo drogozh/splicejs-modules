@@ -115,9 +115,10 @@ function(imports){
         return this;
     };
 
+    DataItem.prototype.set = DataItem.prototype.setValue;
+
   	/**
   		returns child DataItem
-      throws exception if path is invalid
   	*/
   	DataItem.prototype.path = function(path){
       return _path(this,path);

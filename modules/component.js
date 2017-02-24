@@ -245,6 +245,15 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         if(this._state_.display == DISPLAY_DELAYED) this.display(); 
     }
 
+    ComponentBase.prototype.when = function(queueName){
+        return function(callback){
+            
+        }
+    };
+
+    function _subscribeToQueue(queueName, callback){
+
+    }
 
 
     //   all includes must be derived from ComponentBase
