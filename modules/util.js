@@ -206,7 +206,7 @@ Namespace.prototype = {
 
 
 //logging setup
-var log = !window.console ? {} : window.console;
+var log = !console ? {} : console;
 //console log interface
 if(!log.error) 	log.error = function(){};
 if(!log.debug) 	log.debug = function(){};
