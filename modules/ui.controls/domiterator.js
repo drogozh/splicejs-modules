@@ -21,6 +21,12 @@ define([
     var DomIterator = Class(function DomIterator(parent,args){
         this.parent = parent;
         this.init(args);
+        
+        // important! attach event before binding resolution takes place
+        event.attach(this,{
+            onItemSelected : event.MulticastEvent
+        });
+        
         this.resolve(parent,args);
         
         // template is cloned when loaded call is complete
@@ -31,8 +37,9 @@ define([
         //#holds a list of items
         this.itemBuffer = [];
 
-
+        // todo: find a way to extact template type
         this.domContent = args.template;
+        
 
         // setup on click handler
         // handler is invoked with data as argument
@@ -63,15 +70,11 @@ define([
                 return true;
             }).bind(this))
         }
-
     }).extend(ComponentBase);
 
-
-    DomIterator.prototype.onAttach = function(){
-        
-    }
-
+    
     DomIterator.prototype.onChildDisplay = function(child){
+       // intended to notify parent of the change
        this.parent.onChildChanged();
     }
 
@@ -81,37 +84,19 @@ define([
         for(var i=0; i<keys.length; i++){
             //todo: use ComponentBase.prototype.applyContent
             var cmp = this.add(this.domContent); 
-            
-            _applyContent.call(cmp,data[keys[i]],i);
+
+            // record item type, ideally this should be done once
+            this.contentType = cmp.constructor;
+            cmp.applyContent(data[keys[i]]);
         }
     }
 
     // private calls
     function _onItemClicked(args){
-        console.log('item clicked');
         console.log(args.source);
+        var item = component.locate.visual(args.source,this.contentType);
+        this.onItemSelected(item);
     }
-
-
-
-    //todo: use ComponentBase API
-    function _applyContent(content, idx){
-        //its a keys content
-        if( content.constructor == Object.prototype.constructor || 
-            content instanceof Array){
-            var keys = Object.keys(content);
-            for(var i=0; i<keys.length; i++){
-                var l = keys[i];
-                var c = content[keys[i]];
-                this.set(c,l,idx);
-            }        
-        } else {
-            this.set(content.toString(),idx);
-        } 
-
-        return this;
-    }
-
 
 
     return DomIterator;

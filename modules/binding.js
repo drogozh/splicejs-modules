@@ -43,9 +43,9 @@ function(data){
     }  
 
 
-    /**
-     * 
-     */
+    // todo: DO NOT allow arbitrary function assignments
+    // to avoid infinite recursive call
+    // functions may only be bound to events
   	Binding.resolveBinding = function resolveBinding(binding, instance, scope){
   	    if(!binding) return;
   		//resolveBinding(binding.prev, instance, key, scope);

@@ -165,6 +165,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     ComponentBase.prototype.onChildChanged =
     ComponentBase.prototype.onChildDisplay =
     ComponentBase.prototype.onDispose =
+    ComponentBase.prototype.onApplyContent = 
     
     ComponentBase.prototype.onResize  = function(){};
 
@@ -566,7 +567,8 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             }        
         } else {
             this.set(content.toString());
-        } 
+        }
+        this.onApplyContent(content); 
         return this;
     }
 
@@ -1096,34 +1098,6 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
   		return s[0].toUpperCase() + s.substring(1);
   	}
     
-    /**
-     * 
-     */
-    function locate__deadcode(start,type){
-        //look in the component chain
-        if(start instanceof ComponentBase) {
-            var parent = start;
-            while(parent){
-                if(parent instanceof type) return parent;
-                parent = parent.parent;
-            }
-            return null;
-        }
-
-        //look in the dom tree
-        var parent = null;
-        if(start instanceof Element){
-            parent = start.htmlElement._obj_;  
-        }
-            parent = start;
-         
-        while(parent){
-            if(parent.__obj instanceof type) return parent.__obj;
-            parent = parent.parentNode;
-        }
-        return null;
-
-    }
 
     function searchVisualTree(source, target){
         if(source instanceof Element){
@@ -1132,7 +1106,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
         while(source){
             if(source._obj_ instanceof target) {
-                return source._obj;
+                return source._obj_;
             }
             source = source.parentNode;
         }
@@ -1143,11 +1117,9 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         throw 'not implemented';
     }
 
-    /**
-     * 
-     * Document Application
-     * Uses document.body as a template instance
-     */
+
+    //  Document Application
+    //  Uses document.body as a template instance
     var DocumentApplication = Class(function DocumentApplication(){
     }).extend(ComponentBase);
 
