@@ -9,7 +9,7 @@ define([
     '{splice.modules}/dataitem',
 	'preload|{splice.modules}/component.loader',
 
-],function(require,inheritance,component,event,view,async,di){
+],function(require,inheritance,component,event,Element,async,di){
 
 
 	var Class = inheritance.Class
@@ -22,12 +22,26 @@ define([
         this.parent = parent;
         this.init(args);
         this.resolve(parent,args);
+        
+        // template is cloned when loaded call is complete
         this.loaded(new Template(document.createElement('span')),scope,args);
+
+        this.elements.root = new Element(this.node);
 
         //#holds a list of items
         this.itemBuffer = [];
 
+
         this.domContent = args.template;
+
+        // setup on click handler
+        // handler is invoked with data as argument
+        // at this point onItemSelected may stil be a binding
+        if(args.onItemSelected){
+            event.attach(this.node, {
+                onclick : Element.DomUnicastEvent
+            }).onclick.subscribe(_onItemClicked,this);    
+        }
 
         if(!args.range) return;
 
@@ -53,27 +67,35 @@ define([
     }).extend(ComponentBase);
 
 
-    DomIterator.prototype.onDisplay = function(){
-
+    DomIterator.prototype.onAttach = function(){
+        
     }
 
     DomIterator.prototype.onChildDisplay = function(child){
        this.parent.onChildChanged();
     }
 
-    /**
-     * Input must be a collection or an object
-     */
+    // argument must be a collection or an object
     DomIterator.prototype.dataIn = function dataIn(data){
         var keys = Object.keys(data);
         for(var i=0; i<keys.length; i++){
-            //todo: use ComponentBase.prototype.applyContent 
-            applyContent.call(this.add(this.domContent),data[keys[i]]);
+            //todo: use ComponentBase.prototype.applyContent
+            var cmp = this.add(this.domContent); 
+            
+            _applyContent.call(cmp,data[keys[i]],i);
         }
     }
 
-    //todo: use 
-    function applyContent(content){
+    // private calls
+    function _onItemClicked(args){
+        console.log('item clicked');
+        console.log(args.source);
+    }
+
+
+
+    //todo: use ComponentBase API
+    function _applyContent(content, idx){
         //its a keys content
         if( content.constructor == Object.prototype.constructor || 
             content instanceof Array){
@@ -81,10 +103,10 @@ define([
             for(var i=0; i<keys.length; i++){
                 var l = keys[i];
                 var c = content[keys[i]];
-                this.set(c,l);
+                this.set(c,l,idx);
             }        
         } else {
-            this.set(content.toString());
+            this.set(content.toString(),idx);
         } 
 
         return this;

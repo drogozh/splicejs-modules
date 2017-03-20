@@ -1,10 +1,8 @@
-define(
-[
+define([
   {Inheritance  :'/{splice.modules}/inheritance.js',
-  Events       :'/{splice.modules}/event.js',
-  Util         :'/{splice.modules}/util.js'}
-],
-function(imports){
+  Events        :'/{splice.modules}/event.js',
+  Util          :'/{splice.modules}/util.js'}
+],function(imports){
   "use strict";
   
   var
@@ -12,6 +10,7 @@ function(imports){
   ,     Interface = imports.Inheritance.Interface
   ,     Events = imports.Events
   ,     TextUtil = imports.Util.Text
+  ,     log = imports.Util.log
   ;
 
     var EXCEPTIONS  = {
@@ -47,6 +46,11 @@ function(imports){
       this.pathmap = Object.create(null);
       this._change = 0;
 
+      //-1 indicates empty dataItem
+      this._version = -1;
+      this._versionMap = {};
+      
+
       if(data!= null) this.setValue(data);
 
     };
@@ -57,9 +61,76 @@ function(imports){
       return !s ? null : s[this._path];
     };
 
+    DataItem.prototype.get = function(){
+         var value = {};
+         _getVersionSource(this,function(di){
+            value._result = di._value;
+         });       
+         return value._result;
+    }
+
+ 
+
+    DataItem.prototype.set = function(value){
+        //1. no parent - this is root, set source to value
+        if(this.parent == null) {
+            this.source = this.source || new VersionItem();
+            this.source.set(value);
+            return this;
+        }
+        _getVersionSource(this,function(root){
+            root._parent._map[root._path].push(
+                new VersionItem(value,root._parent,root._path)
+            );
+        });
+    }
+
+    //up the path tree
+    //down the version tree
+    function _getVersionSource(di,fn,x){
+        if(di.parent == null) {
+            if(!di.source || !di.source._map) return null;
+            if(!di.source._map['root']) return null;
+            
+            var v = di.source._map['root'].length - 1;
+            if(v < 0 ) v = 0;
+            return di.source._map['root'][v];
+        }
+        var root = _getVersionSource(di.parent,fn,1);
+        root._map = root._map || {};
+        var versionPath = root._map[di._path];
+        //initialize empty version path map
+        if(versionPath == null) {
+            versionPath = root._map[di._path] = []; 
+        }
+
+        //last version
+        var version = versionPath.length-1;
+        if(version < 0) version = 0;
+
+        var versionItem = versionPath[version];
+        if(!versionItem){
+            versionItem = versionPath[version] = 
+                new VersionItem(root._value[di._path],root);
+            versionItem._path = di._path;
+        }
+
+        //recursion entry
+        if(x == null) {
+            fn(versionItem);
+        }
+        return versionItem;
+    }
+
+
+
+
     DataItem.prototype.getOwner = function(){
       return _recGetSource(this);
     };
+
+
+
 
 
     /*
@@ -115,7 +186,7 @@ function(imports){
         return this;
     };
 
-    DataItem.prototype.set = DataItem.prototype.setValue;
+    
 
   	/**
   		returns child DataItem
@@ -188,6 +259,35 @@ function(imports){
     DataItem.prototype.unsubscribe = function(fn){
       if(this.onChange) this.onChange.unsubscribe(fn);
     };
+
+
+    function VersionItem(value,parent,path){
+        this._value = value;
+        
+        if(parent){
+            this._parent = parent;
+        }
+
+        if(path){
+            this._path = path;
+        }
+    }
+
+    VersionItem.prototype.set = function(value){
+        var versions = null;
+        if(this._parent == null){
+            this._map = this._map || {};
+            this._map.root = this._map.root || [];
+            versions = this._map.root;
+        } else {
+            versions = this._parent._map[this._path];
+        }
+        
+        versions.push(new VersionItem(value,this));
+        return this;
+    }
+
+
 
 
     /**
@@ -296,7 +396,7 @@ function(imports){
 
 
     /**
-      Module private methods
+      
     */
     function _path(dataItem, path){
       if(!path || path == null || path === '') return dataItem;

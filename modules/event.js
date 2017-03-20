@@ -128,13 +128,14 @@ function(inheritance,sync,util){
     }
 
     function _multicastRun(){
-      if(!this.subs) return;
-      var callbacks = this.subs;
+        "use strict";
+        if(!this.subs) return;
+        var callbacks = this.subs;
 
-      for(var key in callbacks){
-        if(callbacks[key].isDisabled === true) continue;
-        callbacks[key].callback.apply(callbacks[key].instance,arguments);
-      }
+        for(var key in callbacks){
+            if(callbacks[key].isDisabled === true) continue;
+            callbacks[key].callback.apply(callbacks[key].instance,arguments);
+        }
     }
 
 

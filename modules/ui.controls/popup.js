@@ -21,7 +21,7 @@ define([
 
 	
 	Popup.prototype.onDisplay = function() {
-	    var popup = this.elements['popup'];
+	    var popup = this.elements['popup'].htmlElement;
 	    var mask = this.elements['popupMask'];
 
 	    //measure document

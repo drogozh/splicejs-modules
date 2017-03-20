@@ -320,7 +320,7 @@ DomEvent.prototype.attach = function(instance, property){
     instance[property] = evt;
     if(instance instanceof Element) {
         instance.htmlElement[property] = evt;
-    }
+    } 
     return evt;
 };
 
@@ -429,8 +429,10 @@ Element.prototype.removeClass = function(className){
 
 Element.prototype.replaceClass = function(oldClass, newClass){
     var idx =  this.classMap[oldClass]
+    // undefined or null, dont do anything
+    if(idx == null) return; 
     this.classStore[idx] = newClass;
-    delete this.classMap.oldClass;
+    delete this.classMap[oldClass];
     this.classMap[newClass] = idx;
 
     _commitClassMap.call(this);

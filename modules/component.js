@@ -18,6 +18,12 @@ define([
 // new template         new vm
 // existing template    new vm
 // new template         existing vm 
+
+// todo: locating content children within parent item required work
+// content:<div sjs-name="sub"></div>
+// create new property to collect markup attributes _markup_
+// component call can then be used to search component tree and locate
+// sought component
 function(inheritance,events,doc,data,utils,effects,Element,_binding){
     "use strict";
 
@@ -83,18 +89,19 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
      * Component genesis
      */
     function ComponentFactory(require,scope){
-        return {define:function(template,controller,defaultArgs,p){
+        return {define:function(template,vm,defaultArgs,p){
+            if(!vm) throw 'vm argument must be specified';
             var parts = template.split(":");
             var listener = new Listener();
             listener.p = p;
-            scope[utils.functionName(controller)] = controller;
+            scope[utils.functionName(vm)] = vm;
             require('!'+[parts[1]],function(t){
                 listener.loaded(t,scope);
             });
             //every component must have a parent
             var componentConstructor = function Component(parent,args){
                 args = utils.blend(defaultArgs,args);
-                var comp = new controller(parent,args);
+                var comp = new vm(parent,args);
                     comp.parent = parent;
                     comp._templateName_ = parts[0]; 
                     comp.init(args);
@@ -111,7 +118,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
                 return comp;
             }
             //this will allow extending components
-            componentConstructor.prototype = controller.prototype;
+            componentConstructor.prototype = vm.prototype;
             return componentConstructor;
         }
     }
@@ -202,7 +209,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             
         //root node of the component's DOM
         this.node = templateInstance.node;
-        this.node._obj = this;
+        this.node._obj_ = this;
        
         //child collection
         //todo: this property should be turned into 'private' 
@@ -234,7 +241,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         var _x = null;
         if(this.toReplace) {
             while(this.toReplace && (_x = this.toReplace.shift()) ) {
-                this.set(_x.child,_x.location);
+                this.set(_x.child, _x.location, _x.meta);
             }
         } else if(this.toAdd){
             while(this.toAdd && (_x = this.toAdd.shift()) ){
@@ -367,12 +374,16 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     }
 
     ComponentBase.prototype.detach = function(){
-        if(!this._state_.parent) throw 'Unable to detach orphaned component';
+        if(!this._state_.parent) {
+           console.log('Unable to detach orphaned component');
+           return;
+        }
         this._state_.parent.detachChild(this);
         
         //set state
         this._state_.display = DISPLAY_FALSE;
         this._state_.parent = null;
+        this.onDetach();
     }
 
     /**
@@ -422,14 +433,12 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         }).bind(this));
 
         parent.displayChild(this,key,mode);  
-
-        
         this._state_.display = DISPLAY_TRUE;
-        
 
         var timeEnd = window.performance.now();
 
         log.debug(this.constructor.name,timeStart,timeEnd, timeEnd-timeStart);
+        this.onAttach();
         this.onDisplay();
         return this;
     }
@@ -485,20 +494,21 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     }
 
     
-    /**
-     * Replaces content at provided location
-     */
-    ComponentBase.prototype.set = function(child, key){
+    // Replaces content at provided location
+    // onset is only called on loaded components
+    ComponentBase.prototype.set = function(child, key, meta){
         //queue replacement if component is not loaded yet
         if(!this.isLoaded ) {
             this.toReplace = this.toReplace || [];
-            this.toReplace.push({child:child, location:key});
+            this.toReplace.push({child:child, location:key, meta:meta});
             return child;
         }
         //nothing to do here, if placement is not set
         key = key || 'default';
         
-        //we could be dealing with an object that is yet to be loaded
+        // we could be dealing with an object that is yet to be loaded
+        // content collection is a collection of containers that may accept
+        // content
         var content = this.content != null ? this.content[key] : null;
         
         //push forward
@@ -519,6 +529,13 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             return child;
         } 
         
+        // if child by the same key exists detach them
+        // 0 is an item index
+        if(this.children[key]){
+            for(var i=0; i<this.children[key].length; i++){
+                this.children[key][i][0].detach();
+            }
+        }
         
         this.children[key]= [[child,'set']];
         child.parent = this;
@@ -528,6 +545,12 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             child.display(this,key,'set');
             this.onChildDisplay(child);
         }
+
+        // set metadata on component' node
+        if(meta){
+            this.node._meta_ = meta;
+        }
+
         return child;
     }
 
@@ -1076,7 +1099,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     /**
      * 
      */
-    function locate(start,type){
+    function locate__deadcode(start,type){
         //look in the component chain
         if(start instanceof ComponentBase) {
             var parent = start;
@@ -1090,7 +1113,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         //look in the dom tree
         var parent = null;
         if(start instanceof Element){
-            parent = start.__obj;  
+            parent = start.htmlElement._obj_;  
         }
             parent = start;
          
@@ -1102,6 +1125,23 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
     }
 
+    function searchVisualTree(source, target){
+        if(source instanceof Element){
+            source = source.htmlElement;
+        }
+
+        while(source){
+            if(source._obj_ instanceof target) {
+                return source._obj;
+            }
+            source = source.parentNode;
+        }
+        return null;
+    }
+
+    function searchRelationalTree(){
+        throw 'not implemented';
+    }
 
     /**
      * 
@@ -1127,7 +1167,10 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         DocumentApplication: DocumentApplication,
         proxy:proxy,
         toComponent:toComponent,
-        locate:locate,
+        locate:{
+            visual: searchVisualTree,
+            relational : searchRelationalTree
+        },
         logTo:function(lg){log = lg;}
     }
 

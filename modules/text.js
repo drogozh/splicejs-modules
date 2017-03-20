@@ -75,7 +75,7 @@ function stringbody(){
 	var result = '';
 	while(this.c != '{' && !this.isEOF) {
 
-	reult+=this.consume();
+	result+=this.consume();
 
 		/*process escape sequence*/
 		if(this.c == '\\') {
