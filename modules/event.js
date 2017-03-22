@@ -149,7 +149,8 @@ function(inheritance,sync,util){
         _unicastRun.apply(_closure,arguments);
       };
       f.subscribe = function(callback,instance){
-        return _unicastSubscribe.call(f,_closure,callback,instance);
+        _unicastSubscribe.call(f,_closure,callback,instance);
+        return f.__sjs_owner__;
       };
       f.dispose = function(){
         _closure.sub = null;

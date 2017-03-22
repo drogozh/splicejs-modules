@@ -557,7 +557,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
     ComponentBase.prototype.applyContent = function(content){
         //its a keys content
-        if( content.constructor == Object.prototype.constructor || 
+        if( !(content instanceof ComponentBase ) || 
             content instanceof Array){
             var keys = Object.keys(content);
             for(var i=0; i<keys.length; i++){
