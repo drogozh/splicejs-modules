@@ -44,7 +44,7 @@
 	position:absolute;
 	display:none;
 	height:9px;
-	botttom:3px; /* margin from the bottom edge */
+	bottom:3px; /* margin from the bottom edge */
 }
 
 .-splicejs-scrolling-vertical {

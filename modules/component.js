@@ -24,6 +24,11 @@ define([
 // create new property to collect markup attributes _markup_
 // component call can then be used to search component tree and locate
 // sought component
+
+//todo:
+//undefined template cause inifinite-loop behavior
+//<template sjs-name="SomeControl"></template>
+
 function(inheritance,events,doc,data,utils,effects,Element,_binding){
     "use strict";
 
@@ -785,6 +790,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
         var aMap = {};
         utils.foreach(_anchors,function(a){
+            if(!a.getAttribute) return;
             aMap['child'+a.getAttribute('sjs-child-id')] = a;
         });
 
@@ -1130,6 +1136,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         this.loaded(template,scope);
         this.content['default'] = document.body;
         this.display();
+
     };
 
     return {
