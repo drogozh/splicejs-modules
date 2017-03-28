@@ -81,14 +81,20 @@ define([
     // argument must be a collection or an object
     DomIterator.prototype.dataIn = function dataIn(data){
         var keys = Object.keys(data);
+        // update existing or add new
         for(var i=0; i<keys.length; i++){
-            //todo: use ComponentBase.prototype.applyContent
-            var cmp = this.add(this.domContent); 
-
+            var cmp =  this.itemBuffer[i];
+            if(!cmp) {
+                cmp = this.add(this.domContent); 
+                this.itemBuffer.push(cmp);
+                this.contentType = cmp.constructor;
+            }
             // record item type, ideally this should be done once
-            this.contentType = cmp.constructor;
             cmp.applyContent(data[keys[i]]);
         }
+
+        // remove extras
+
     }
 
     // private calls
