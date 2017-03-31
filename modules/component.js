@@ -124,6 +124,12 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             }
             //this will allow extending components
             componentConstructor.prototype = vm.prototype;
+
+            componentConstructor.is = function(type){
+                if(type.constructor ==  vm.prototype.constructor)
+                if(type._templateName_ == parts[0] ) return true;
+            }
+
             return componentConstructor;
         }
     }
@@ -1111,6 +1117,11 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         }
 
         while(source){
+            if(source._obj_ != null && target == null ){
+                return source._obj_;
+            }
+
+            if(target != null)
             if(source._obj_ instanceof target) {
                 return source._obj_;
             }

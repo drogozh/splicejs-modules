@@ -93,7 +93,15 @@ define([
             cmp.applyContent(data[keys[i]]);
         }
 
+        //difference
+        var d = this.itemBuffer.length - keys.length
+
         // remove extras
+        while(d--){
+            var cmp = this.itemBuffer[keys.length];
+            this.itemBuffer.splice(keys.length,1);
+            cmp.detach();
+        }
 
     }
 
@@ -101,7 +109,8 @@ define([
     function _onItemClicked(args){
         console.log(args.source);
         var item = component.locate.visual(args.source,this.contentType);
-        this.onItemSelected(item);
+        var source = component.locate.visual(args.source);
+        this.onItemSelected(item,source);
     }
 
 
