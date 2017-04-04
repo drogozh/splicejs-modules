@@ -135,7 +135,7 @@ define([
 		/* careful its a prototype call */
 		var scrollBar = ScrollPanel.prototype.attachScrollBars.call(
 			this,
-			this.domRoot,{
+			this.elements.root,{
 				scrollClient:this.elements.scrollClient,
 				horizontalDisable:this.horizontalDisable
 			}
