@@ -29,6 +29,11 @@ define([
 //undefined template cause inifinite-loop behavior
 //<template sjs-name="SomeControl"></template>
 
+//todo:
+//consider component intance having a queueue that is processed 
+//when component is already
+//also, items in the queue can have a prerequsite for example
+//process on load or on resize etc..
 function(inheritance,events,doc,data,utils,effects,Element,_binding){
     "use strict";
 
@@ -184,6 +189,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     ComponentBase.prototype.init = function(args){
         this._state_ = {};
         this._bindings_ = [];
+        this._action_queue_ = [];
         utils.mixin(this,args,(function(t,s){
             if(s.inst[s.prop] instanceof Binding){
                 var binding = s.inst[s.prop];
@@ -285,7 +291,6 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         var keys = Object.keys(includes);
         for(var key in keys){
             var inc = includes[keys[key]];
-
                             
             var args = inc.includeArgs;
             
@@ -1049,8 +1054,8 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     //      component's node to allow inline styling  
 
     //todo: rename sjs prefix to s
-    var reservedAttr = ['sjs-type', 'sjs-content','sjs-vm','sjs-name'];
-    var reservedAttrPropNames = ['type','content','vm','name'];
+    var reservedAttr = ['sjs-type', 'sjs-content','sjs-vm','sjs-name','sjs-css-class'];
+    var reservedAttrPropNames = ['type','content','vm','name','cssClass'];
   	function _collectAttributes(node, filter){
         if(!node) return {};
 
