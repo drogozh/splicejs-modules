@@ -133,19 +133,53 @@ define(function(){
         }
     }
 
-    /**
-     * 
-     */
+    // Delayed execution 
     function execute(fn,delay){
         if(delay == null || delay <= 0) delay = 1;
         setTimeout(fn,delay);
     }
 
+    
+    // Chained Promise-like deffered execution
+    function defer(worker,observer){
+        return new Deferral(worker,observer).invoke();
+    }
+
+    function Deferral(worker, observer){
+        // new constructor is called         
+        this.observer = observer;
+        this.worker = worker;
+        this.isReady = false;
+    }
+
+    Deferral.prototype = {
+        then:function(worker, observer){
+            this.next = new Deferral(worker,observer);
+            if(this.isReady) this.next.invoke(this.result);
+            return this.next;            
+        },
+        invoke:function(arg){
+            this.worker({
+                ok:(function(arg){
+                    this.isReady = true;
+                    this.result = this.observer.ok(arg);
+                    if(this.next) this.next.invoke(this.result);
+                }).bind(this),
+                fail:(function(arg){
+                    this.isReady = true;
+                    this.result = this.observer.fail(arg);
+                    if(this.next) this.next.invoke(this.result);
+                }).bind(this)
+            },arg);            
+            return this;
+        }
+    };
 
 return {
 	loop:asyncLoop,
     iterator:asyncIterator,
-    run:execute
+    run:execute,
+    defer:defer
 }
 
 
