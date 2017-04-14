@@ -20,7 +20,10 @@ define(['loader'
         var params = ''
         ,   separator = ''
 		,   requestURL = config.url
-	 	,   self = this;
+	 	,   self = this
+        ,   requestTimeOut = {
+            handle:0
+        };
 
         if (config.formData)
         for(var d=0; d < config.formData.length; d++){
@@ -33,6 +36,8 @@ define(['loader'
         }
 
 		this.transport.open(type,requestURL,true);
+
+       // this.transport.setRequestHeader('Access-Control-Allow-Origin','*');
 
 	    //custom content type
 		if (config.contentType) {
@@ -61,6 +66,7 @@ define(['loader'
                 xml:  transport.responseXML
             };
 
+            clearTimeout(requestTimeOut.handle);
             switch (transport.status) {
                 case 200:
                     if(typeof config.onok == 'function') config.onok(response);
@@ -82,10 +88,15 @@ define(['loader'
             }    
         }
 
-
         if (type == 'POST' && !params) params = config.data;
-		    this.transport.send(params);
 		
+        // exceptions thrown by the send method cannot be caught
+        // hence we need a work-around using a timeout model
+        requestTimeOut.handle = setTimeout(function(){
+            if(typeof config.onfail == 'function') config.onfail();
+        },5000);
+        this.transport.send(params);
+
         return this;
 	};
 

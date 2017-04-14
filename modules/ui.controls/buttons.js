@@ -288,9 +288,21 @@ TextField.prototype.onLoaded = function(args){
 	}
 }
 
+TextField.prototype.dataIn = function(item){
+	if(!item) return;
+	this.elements.root.attr({value:item.toString()});
+};
+
+TextField.prototype.dataOut = function(){
+    this.elements.root.attr({
+        value:this.elements.root.htmlElement.value
+    });
+    return this.elements.root.attrGet('value');
+}
+
 TextField.prototype.onDataIn = function(item){
 	if(!item) return;
-	this.views.root.attr({value:item.getValue()});
+	this.elements.root.attr({value:item.getValue()});
 };
 
 TextField.prototype.clear = function(){

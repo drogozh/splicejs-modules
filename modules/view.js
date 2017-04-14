@@ -443,12 +443,18 @@ Element.prototype.appendClass = function(className){
     addClass(this.node,className);
     return this;
 }
-
+// todo: replace attr call with 
+//      attr(name).set()
+//      attr(name).get();
 View.prototype.attr = function(attr){
-for(var k in attr){
-    this.htmlElement.setAttribute(k,attr[k]);
-}
-return this;
+    for(var k in attr){
+        this.htmlElement.setAttribute(k,attr[k]);
+    }
+    return this;
+};
+
+View.prototype.attrGet = function(attr){
+    return this.htmlElement.getAttribute(attr);
 };
 
   View.prototype.style = function(styleString){

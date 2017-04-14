@@ -9,14 +9,12 @@ define([
     '{splice.modules}/dataitem',
 	'preload|{splice.modules}/component.loader',
 
-],function(require,inheritance,component,event,Element,async,di){
-
+],function(require,inheritance,component,event,Element,_async,di){
 
 	var Class = inheritance.Class
     ,   ComponentBase = component.ComponentBase
     ,   Template  = component.Template
     ,   scope = {};
-
 
     var DomIterator = Class(function DomIterator(parent,args){
         this.parent = parent;
@@ -60,10 +58,7 @@ define([
         if(!this.pageSize || this.pageSize < 1) this.pageSize = 1; 
 
         if(this.domContent){
-            // for(var i=this.from; i<=this.to; i++){
-            //       var c = this.add(this.domContent).set(i);
-            // }
-            async.loop(this.from,this.to,this.pageSize,1).for((function(i){
+            _async.loop(this.from,this.to,this.pageSize,1).for((function(i){
                 var c = this.add(this.domContent);
                 c.set(i);
                 this.itemBuffer.push(c);
@@ -71,16 +66,16 @@ define([
             }).bind(this))
         }
     }).extend(ComponentBase);
-
     
     DomIterator.prototype.onChildDisplay = function(child){
        // intended to notify parent of the change
        this.parent.onChildChanged();
-    }
+    };
 
     // argument must be a collection or an object
     DomIterator.prototype.dataIn = function dataIn(data){
         var keys = Object.keys(data);
+
         // update existing or add new
         for(var i=0; i<keys.length; i++){
             var cmp =  this.itemBuffer[i];
@@ -90,7 +85,7 @@ define([
                 this.contentType = cmp.constructor;
             }
             // record item type, ideally this should be done once
-            cmp.applyContent(data[keys[i]]);
+            cmp.applyContent(_convert.call(this,data[keys[i]]));
         }
 
         //difference
@@ -102,8 +97,7 @@ define([
             this.itemBuffer.splice(keys.length,1);
             cmp.detach();
         }
-
-    }
+    };
 
     // private calls
     function _onItemClicked(args){
@@ -113,8 +107,11 @@ define([
         this.onItemSelected(item,source);
     }
 
+    // passthrough data if converter is not defined or convert
+    function _convert(data) {
+        if(!this.converter) return data;
+        return this.converter(data);
+    }
 
     return DomIterator;
-
-
-})
+});

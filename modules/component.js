@@ -10,7 +10,7 @@ define([
     'preload|component.loader'
 ],
 //todo: Component mode supports data-driven component selection
-//requires unicast event hander to return a value
+//requires unicast event handler to return a value
 
 //todo: add new attribute to the <include> tag
 //sjs-vm and sjs-template to allow including adhoc components
