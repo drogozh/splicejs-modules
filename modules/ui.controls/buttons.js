@@ -290,6 +290,7 @@ TextField.prototype.onLoaded = function(args){
 
 TextField.prototype.dataIn = function(item){
 	if(!item) return;
+    this.elements.root.htmlElement.value = item.toString();
 	this.elements.root.attr({value:item.toString()});
 };
 
