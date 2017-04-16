@@ -399,6 +399,11 @@ Element.prototype.show = function(type){
     this.node.style.display = type || 'inline-block';
 };
 
+Element.prototype.remove = function(){
+    if(!this.node.parentNode) return;
+    this.node.parentNode.removeChild(this.node);
+};
+
 function _buildClassMap(){
     this.classMap = {};
     this.classStore = [];
