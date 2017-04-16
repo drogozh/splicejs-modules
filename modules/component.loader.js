@@ -26,6 +26,7 @@ define(
     for(var i=0; i<nodes.length; i++){
       var node = nodes[i];
       var attr = node.getAttribute('sjs-name');
+      var mode = node.getAttribute('sjs-mode');
       if(!attr) continue;
 
       if(node.tagName == 'TEMPLATE' && node.content){
@@ -44,11 +45,21 @@ define(
         }
         node = root;
       }  
-      
-
-      this.templates[attr] = new Template(node);
+      //this.templates[attr] = new Template(node);
+      this.add(attr, new Template(node, {
+          name:attr,
+          mode:mode
+      }));
     }
   }
+
+    TemplateCollection.prototype.add = function add(key,template){
+        var list = this.templates[key];
+        if(!list){
+            this.templates[key] = list = [];
+        }
+        this.templates[key].push(template);
+    };
 
 
   function HtmlSpec(fileName){

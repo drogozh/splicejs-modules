@@ -70,24 +70,26 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     /**
      * @param scope - scope object passed to a component factory
      */
-    Listener.prototype.loaded = function(t,scope){	
+    Listener.prototype.loaded = function(collection,scope){	
         if(this.isLoaded) { 
             console.log('already loaded');
             return; 
         }//already loaded
         
         //compile templates
-        var keys = Object.keys(t);
+        var keys = Object.keys(collection);
 
-  		for(var i=0; i< keys.length; i++) {
-            if(t[keys[i]].isCompiled) continue;
-            t[keys[i]] = new Template(t[keys[i]].node,keys[i]).compile(scope);
+  		for(var i = 0; i < keys.length; i++) {
+            for(var j = 0; j < collection[keys[i]].length; j++){
+                var tSource = collection[keys[i]][j];
+                if(tSource.isCompiled) continue;
+                collection[keys[i]][j] = new Template(tSource.node,keys[i]).compile(scope);
+            }
   		}
         
-        this.t = t;
+        this.t = collection;
         this.isLoaded = true;
-        this.onloaded(t);
-       
+        this.onloaded(collection);
     }
 
     Listener.prototype.subscribe = function(callback){
@@ -105,8 +107,8 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             var listener = new Listener();
             listener.p = p;
             scope[utils.functionName(vm)] = vm;
-            require('!'+[parts[1]],function(t){
-                listener.loaded(t,scope);
+            require('!'+[parts[1]],function(collection){
+                listener.loaded(collection, scope);
             });
             //every component must have a parent
             var componentConstructor = function Component(parent,args){
@@ -119,9 +121,13 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
                    
                 if(!listener.isLoaded){
                    listener.subscribe((function(t){
+                        // reference to  componentConstructor function
+                        comp.constructor._templates_ = t[parts[0]];
                         this.loaded(t[parts[0]],scope,args)
                     }).bind(comp));
                 } else {
+                    // reference to  componentConstructor function
+                    comp.constructor._templates_ = listener.t[parts[0]];
                     // component is created
                     comp.loaded(listener.t[parts[0]],scope,args);
                 }
@@ -134,7 +140,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
                 if(type.constructor ==  vm.prototype.constructor)
                 if(type._templateName_ == parts[0] ) return true;
             }
-
+            
             return componentConstructor;
         }
     }
@@ -223,7 +229,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         this.override = {};
 
         //template instance is created here
-        var templateInstance = template.getInstance(this);
+        var templateInstance = template[0].getInstance(this);
             
         //root node of the component's DOM
         this.node = templateInstance.node;
@@ -1149,7 +1155,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         this.init();
         var template = new Template(document.body).compile(scope);
         template.clone = function(){return this.node;}
-        this.loaded(template,scope);
+        this.loaded([template],scope);
         this.content['default'] = document.body;
         this.display();
 
