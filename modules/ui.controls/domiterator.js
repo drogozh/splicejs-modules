@@ -104,6 +104,8 @@ define([
         console.log(args.source);
         var item = component.locate.visual(args.source,this.contentType);
         var source = component.locate.visual(args.source);
+        // no item selected
+        if(!item)  return;
         this.onItemSelected(item,source);
     }
 
