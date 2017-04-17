@@ -34,6 +34,12 @@ define([
 //when component is already
 //also, items in the queue can have a prerequsite for example
 //process on load or on resize etc..
+
+//todo:
+// review ALL of the component reflow design
+
+//todo:
+// implement light template allocation, where child component proxies are not invoked
 function(inheritance,events,doc,data,utils,effects,Element,_binding){
     "use strict";
 
@@ -83,7 +89,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             for(var j = 0; j < collection[keys[i]].length; j++){
                 var tSource = collection[keys[i]][j];
                 if(tSource.isCompiled) continue;
-                collection[keys[i]][j] = new Template(tSource.node,keys[i]).compile(scope);
+                collection[keys[i]][j] = new Template(tSource.node,keys[i],tSource.key).compile(scope);
             }
   		}
         
@@ -196,6 +202,8 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         this._state_ = {};
         this._bindings_ = [];
         this._action_queue_ = [];
+        this._reflow_mode_ = 'css';
+
         utils.mixin(this,args,(function(t,s){
             if(s.inst[s.prop] instanceof Binding){
                 var binding = s.inst[s.prop];
@@ -221,15 +229,22 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
 
 
-    ComponentBase.prototype.loaded = function(template,scope,args){
+    ComponentBase.prototype.loaded = function(templates,scope,args){
 
         this.isLoaded = true;
         this.scope = scope;
         this.content = {};
         this.override = {};
-
+        this.templateInstances = {};
+        this._active_template_ = 'default';
         //template instance is created here
-        var templateInstance = template[0].getInstance(this);
+        var template = null;
+        for(var i=0; i < templates.length; i++){
+            template = templates[i];
+            if(template.key == this._active_template_) break;
+        }
+        
+        var templateInstance = this.templateInstances[this._active_template_] = template.getInstance(this);
             
         //root node of the component's DOM
         this.node = templateInstance.node;
@@ -502,6 +517,47 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     }
 
     
+    ComponentBase.prototype.activateTemplate = function(key){
+        var templates = this.constructor._templates_;
+        if(!templates) return;
+
+        var instance = this.templateInstances[key];
+        if(instance == null){
+            var target = null;
+            for(var i=0; i < templates.length; i++){
+                if(templates[i].key == key){
+                    target = templates[i];
+                    break;
+                }
+            }
+
+            if(!target) return;
+            instance = target.getInstance(this);
+            this.templateInstances[key] = instance;
+        }
+
+        var current = this.templateInstances[this._active_template_];
+        var currentParentNode = this.node.parentNode;
+        var selfNode = this.node.parentNode;
+
+        utils.foreach(current.children,function(from){
+            utils.foreach(instance.children,function(child){
+                if(child.includeArgs.name != from.includeArgs.name) return;
+                //do replacement here
+                from.component.node.parentNode.replaceChild(from.anchor, from.component.node);
+                child.component = from.component;
+                child.anchor.parentNode.replaceChild(from.component.node, child.anchor);
+            })
+        });
+
+        this._active_template_ = key;
+        
+        this.node.parentNode.replaceChild(instance.node,this.node);
+        this.node = instance.node;
+    };
+
+
+
     /**
      * Remove content child at location
      * if content location contains only a single child then
@@ -646,6 +702,30 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     ComponentBase.prototype.reflow = function(x,y,w,h,b){
         if(!this.node) return;
 
+        if(this._reflow_mode_ !== 'css') {
+            _applyReflow.call(this, x, y, w, h, b);
+        }
+
+        // reflow includes
+        foreach(this._includes,function(inc){
+            if(!inc.component) return;
+            inc.component.reflow(null, null, w, h);
+        });
+
+        // reflow children
+        foreach(this.children,function(child){
+            for(var i=0; i<child.length; i++ ){
+                var comp = child[i][0];
+                if(!comp.reflow) continue;
+                comp.reflow(x, y, w, h);
+            }
+            // if(child instanceof ComponentBase &&  child.layout == "container"){
+            //     child.reflow(null, null, w, h);
+            // }    
+        });
+    }
+
+    function _applyReflow(x,y,w,h,b){
         var style = this.node.style;
         if(x != null)
             style.left = x + 'px';
@@ -672,16 +752,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
             style.height = h + 'px';
         }
-
-        //reflow children
-        foreach(this.children,function(child){
-            if(child instanceof ComponentBase &&  child.layout == "container"){
-                child.reflow(null,null,w,h);
-            }    
-        });
-
     }
-
 
     /**
      * 
@@ -713,8 +784,9 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     /** 
      *  Template
      */
-    function Template(node,name){
+    function Template(node,name,key){
         this.node = node;
+        this.key = key;
         //when top-level template child element is include
         //wrap it into span
         if(node.tagName == TAG_INCLUDE) {
@@ -801,7 +873,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
      * Clones template's DOM and returns it
      * @param {ComponentBase} component - component instance requesting template instance
      */
-    Template.prototype.getInstance = function(component){
+    Template.prototype.getInstance = function(component, ignoreChildren){
         var clone = this.clone()
         ,   _anchors = clone.querySelectorAll('[sjs-child-id]');
 
@@ -815,6 +887,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         var keys = Object.keys(this.children);
         for(var i=0; i < keys.length; i++){
             var r = _runProxy(component,this.children[keys[i]].json);
+            
             includes[keys[i]] = {
                 component:r.result,
                 includeArgs:r.proxyArgs,
@@ -1158,7 +1231,11 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         this.loaded([template],scope);
         this.content['default'] = document.body;
         this.display();
+    };
 
+    DocumentApplication.prototype.reflow =  function(x,y,w,h,b){
+        console.log(x);
+        ComponentBase.prototype.reflow.call(this,x,y,w,h,b);
     };
 
     return {
