@@ -1109,7 +1109,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
   		
   		// build new template and store within scope
   		// run template compiler
-        var template = new Template(node).compile(scope);
+        var template = new Template(node,_type,"default").compile(scope);
         var vm = ComponentBase;
         //locate adhoc vm
         if(attributes.values.vm){
@@ -1121,7 +1121,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             comp.parent = parent;
             comp.init(args);
             comp.resolve(parent != null ? parent.scope : null);
-            comp.loaded(template,scope,args);
+            comp.loaded([template],scope,args);
             return comp;
         };  
 
