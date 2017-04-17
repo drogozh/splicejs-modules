@@ -159,15 +159,22 @@ define(function(){
             return this.next;            
         },
         invoke:function(arg){
+            var observer = 
             this.worker({
                 ok:(function(arg){
                     this.isReady = true;
                     this.result = this.observer.ok(arg);
+                    if(typeof(this.observer.complete) === 'function'){
+                        this.observer.complete(this.result);
+                    } 
                     if(this.next) this.next.invoke(this.result);
                 }).bind(this),
                 fail:(function(arg){
                     this.isReady = true;
                     this.result = this.observer.fail(arg);
+                    if(typeof(this.observer.complete) === 'function'){
+                        this.observer.complete(this.result);
+                    } 
                     if(this.next) this.next.invoke(this.result);
                 }).bind(this)
             },arg);            
