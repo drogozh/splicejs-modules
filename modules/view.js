@@ -404,6 +404,15 @@ Element.prototype.remove = function(){
     this.node.parentNode.removeChild(this.node);
 };
 
+Element.prototype.setClass = function(className){
+    this.node.className = className;
+    _buildClassMap.call(this);
+}
+
+Element.prototype.clearClass = function(className){
+    this.node.className = '';
+}
+
 function _buildClassMap(){
     this.classMap = {};
     this.classStore = [];
@@ -433,6 +442,9 @@ Element.prototype.removeClass = function(className){
 } 
 
 Element.prototype.replaceClass = function(oldClass, newClass){
+    if(newClass === undefined || newClass === null) {
+        newClass = '';
+    }
     var idx =  this.classMap[oldClass]
     // undefined or null, dont do anything
     if(idx == null) return; 
