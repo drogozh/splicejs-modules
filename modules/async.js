@@ -155,27 +155,39 @@ define(function(){
     Deferral.prototype = {
         then:function(worker, observer){
             this.next = new Deferral(worker,observer);
-            if(this.isReady) this.next.invoke(this.result);
+            if(this.isReady) {
+                this.next.prior = this.isOkState;
+                this.next.invoke(this.result);
+            }
             return this.next;            
         },
         invoke:function(arg){
             var observer = 
             this.worker({
+                prior:this.prior,
                 ok:(function(arg){
                     this.isReady = true;
+                    this.isOkState = true;
                     this.result = this.observer.ok(arg);
                     if(typeof(this.observer.complete) === 'function'){
                         this.observer.complete(this.result);
                     } 
-                    if(this.next) this.next.invoke(this.result);
+                    if(this.next) {
+                        this.next.prior = this.isOkState;
+                        this.next.invoke(this.result);
+                    }
                 }).bind(this),
                 fail:(function(arg){
                     this.isReady = true;
+                    this.isOkState = false;
                     this.result = this.observer.fail(arg);
                     if(typeof(this.observer.complete) === 'function'){
                         this.observer.complete(this.result);
                     } 
-                    if(this.next) this.next.invoke(this.result);
+                    if(this.next) {
+                        this.next.prior = this.isOkState;
+                        this.next.invoke(this.result);
+                    }
                 }).bind(this)
             },arg);            
             return this;
