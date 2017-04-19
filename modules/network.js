@@ -59,6 +59,7 @@ define(['loader'
             [this] inside handler function will refer to window object and not transport object
         */
         function onLoadHandler(){
+            if( requestTimeOut._isTimeOut == true) return;
             var transport = self.transport;
 
             var response = {
@@ -69,12 +70,22 @@ define(['loader'
             clearTimeout(requestTimeOut.handle);
             switch (transport.status) {
                 case 200:
-                    if(typeof config.onok == 'function') config.onok(response);
+                    if(typeof config.onok == 'function') {
+                        config.onok(response);
+                    }
+                    if(typeof(config.oncomplete) == 'function') {
+                        config.oncomplete();
+                    }
                     break;
                 case 400, 401, 402, 403, 404, 405, 406:
                 case 500:
                 default:
-                    if (typeof config.onfail == 'function') config.onfail(response);
+                    if (typeof config.onfail == 'function') {
+                         config.onfail(response);
+                    }
+                    if(typeof(config.oncomplete) == 'function') {
+                        config.oncomplete();
+                    }
                     break;
             }
         }
@@ -84,7 +95,7 @@ define(['loader'
         }
         else {
             this.transport.onreadystatechange = function(e){
-                if(self.transport.readyState == 4 ) onLoadHandler();
+                if(self.transport.readyState == 4 ) onLoadHandler.call(this);
             }    
         }
 
@@ -93,8 +104,16 @@ define(['loader'
         // exceptions thrown by the send method cannot be caught
         // hence we need a work-around using a timeout model
         requestTimeOut.handle = setTimeout(function(){
-            if(typeof config.onfail == 'function') config.onfail();
+            requestTimeOut._isTimeOut = true;
+            if(typeof config.onfail == 'function') { 
+                config.onfail();
+            }
+            if(typeof config.oncomplete == 'function') {
+                config.oncomplete();
+            }
         },5000);
+
+
         this.transport.send(params);
 
         return this;
