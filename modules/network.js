@@ -1,20 +1,45 @@
-define(['loader'
+define([
+    'loader'
 ],function(loader){
   "use strict";
 
-  var context = loader.context;
+    var context = loader.context;
 
-    /**
-     *  HttpRequest
-     */
-    var HttpRequest = function HttpRequest(){
-		var a = Array("Msxml2.XMLHTTP","Microsoft.XMLHTTP");
-    	if (window.ActiveXObject)
-        for (var i = 0; i < a.length; i++) {
-           	this.transport = new ActiveXObject(a[i]);
-        }
-        else if (window.XMLHttpRequest)   this.transport =  new XMLHttpRequest();
+    // constants map for request types
+    var REQUEST_TYPES = {
+        FORM: 1,
+        TEXT: 2,
+        JSON: 3
+    };
+
+    var READY_STATES = {
+        UNSENT:0,
+        OPENED:1,
+        HEADERS_RECEIVED:2,
+        LOADING:3,
+        DONE:4
+    };
+
+    // used to time and recognize request failure
+    var DEFAULT_TIMEOUT = 5000;
+
+    var HttpRequest = function HttpRequest(request){
+        this.transport =  new XMLHttpRequest();
+        
+        // setup onload handler
+        this.transport.onload = (function(){
+            _handleStateChange.call(this,this._observer);
+        }).bind(this);
+        
+        this._url = request.url;
+
+        // setup request object
+        this._headers = _setTypeHeaders.call(this, request);
+
+        // prepare data based on request type
+        this._data = _prepareData.call(this, request);
 	};
+
 
 	HttpRequest.prototype.request = function(type,config){
         var params = ''
@@ -119,13 +144,97 @@ define(['loader'
         return this;
 	};
 
-	function httpPost(config) {
-		return new HttpRequest().request('POST',config);
-	};
 
-	function httpGet(config){
-		return new HttpRequest().request('GET',config);
-	};
+    HttpRequest.prototype.stop = function(){
+        this.transport.abort();
+    }
+
+    function _send(observer,verb){
+        this._observer = observer;
+        this._requestTimeOut = false;
+        
+        //start request
+        this.transport.open(verb, this._url);
+
+        // apply request headers
+        var keys = Object.keys(this._headers);
+        for(var i=0; i<keys.length; i++){
+            this.transport.setRequestHeader(keys[i],this._headers[keys[i]]);
+        }
+
+        if(verb == 'POST')
+            this.transport.send(this._request.data);
+        else 
+            this.transport.send();    
+
+        return this;
+    }
+
+
+    function _prepareData(request){
+
+    }
+
+    function _setTypeHeaders(request){
+        if(request.type && !REQUEST_TYPES[request.type])
+        throw "Unsupported request type: " + request.type;
+
+        var type = !REQUEST_TYPES[request.type];
+        var headers = request.headers || {};
+
+        switch(type){
+            case REQUEST_TYPES.FORM:
+            headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=utf-8';
+            break;
+
+            case REQUEST_TYPES.JSON:
+            headers['Content-Type'] = 'application/json; charset=utf-8';
+            break;
+
+            case REQUEST_TYPES.TEXT:
+            headers['Content-Type'] = 'text/html; charset=utf-8';
+            break;
+        }
+
+        return headers;
+    }
+
+    function _handleStateChange(observer){
+        if(this.transport.readyState != READY_STATES.DONE) return;
+        switch(this.transport.status){
+            case 200:
+                if(typeof observer.ok === 'function'){
+                    observer.ok({
+                        text:this.transport.responseText,
+                        xml:this.transport.responseXML
+                    });
+                }
+            break;
+            default:
+                if(typeof observer.fail === 'function'){
+                    observer.fail({code:this.transport.status});
+                }
+            break;
+        }
+
+        if(typeof observer.complete === 'function'){
+            observer.complete();
+        }
+    }
+
+	function httpPost(request) {
+        var httpRequest= new HttpRequest(request);
+        return function(observer){
+            return _send.call(httpRequest,observer,'POST');
+        }
+	}
+
+	function httpGet(request){
+        var httpRequest= new HttpRequest(request);
+        return function(observer){
+            return _send.call(httpRequest, observer,'GET');
+        }
+	}
 
 
     /**

@@ -81,9 +81,8 @@ define(
       },
       load:function(loader, spec){
         loader.add(spec);
-        http.get({
-            url: spec.fileName,
-            onok:function(response){
+        http.get({url: spec.fileName})({
+            ok:function(response){
               spec.innerHTML = response.text;
               var delay = 1;
               if(/buttons.html$/.test(spec.fileName) || 
@@ -92,7 +91,6 @@ define(
               setTimeout(function(){
                 loader.notify(spec);
               },delay);
-              
             }
         });
       }
