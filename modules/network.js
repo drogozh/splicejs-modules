@@ -21,7 +21,7 @@ define([
     };
 
     // used to time and recognize request failure
-    var DEFAULT_TIMEOUT = 5000;
+    var REQUEST_TIMEOUT = 5000;
 
     var HttpRequest = function HttpRequest(request){
         this.transport =  new XMLHttpRequest();
@@ -40,119 +40,22 @@ define([
         this._data = _prepareData.call(this, request);
 	};
 
-
-	HttpRequest.prototype.request = function(type,config){
-        var params = ''
-        ,   separator = ''
-		,   requestURL = config.url
-	 	,   self = this
-        ,   requestTimeOut = {
-            handle:0
-        };
-
-        if (config.formData)
-        for(var d=0; d < config.formData.length; d++){
-            params += separator + config.formData[d].name + '=' + encodeURIComponent(config.formData[d].value);
-            separator = '&';
-        }
-
-        if(params.length > 0 && type === 'GET'){
-            requestURL = requestURL + "?" + params;
-        }
-
-		this.transport.open(type,requestURL,true);
-
-       // this.transport.setRequestHeader('Access-Control-Allow-Origin','*');
-
-	    //custom content type
-		if (config.contentType) {
-		    this.transport.setRequestHeader('Content-Type', config.contentType);
-		}
-
-	    //form url encoded data
-		else if (config.formData) {
-		    this.transport.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=utf-8');
-		}
-
-        //post plain text
-		else if (config.data) {
-		    this.transport.setRequestHeader('Content-Type', 'text/html; charset=utf-8');
-		}
-
-        /*
-            in ie8 onreadystatechange is attached to a quasy window object
-            [this] inside handler function will refer to window object and not transport object
-        */
-        function onLoadHandler(){
-            if( requestTimeOut._isTimeOut == true) return;
-            var transport = self.transport;
-
-            var response = {
-                text: transport.responseText,
-                xml:  transport.responseXML
-            };
-
-            clearTimeout(requestTimeOut.handle);
-            switch (transport.status) {
-                case 200:
-                    if(typeof config.onok == 'function') {
-                        config.onok(response);
-                    }
-                    if(typeof(config.oncomplete) == 'function') {
-                        config.oncomplete();
-                    }
-                    break;
-                case 400, 401, 402, 403, 404, 405, 406:
-                case 500:
-                default:
-                    if (typeof config.onfail == 'function') {
-                         config.onfail(response);
-                    }
-                    if(typeof(config.oncomplete) == 'function') {
-                        config.oncomplete();
-                    }
-                    break;
-            }
-        }
-
-        if(this.transport.onload !== undefined ) {
-            this.transport.onload = onLoadHandler;
-        }
-        else {
-            this.transport.onreadystatechange = function(e){
-                if(self.transport.readyState == 4 ) onLoadHandler.call(this);
-            }    
-        }
-
-        if (type == 'POST' && !params) params = config.data;
-		
-        // exceptions thrown by the send method cannot be caught
-        // hence we need a work-around using a timeout model
-        requestTimeOut.handle = setTimeout(function(){
-            requestTimeOut._isTimeOut = true;
-            if(typeof config.onfail == 'function') { 
-                config.onfail();
-            }
-            if(typeof config.oncomplete == 'function') {
-                config.oncomplete();
-            }
-        },5000);
-
-
-        this.transport.send(params);
-
-        return this;
-	};
-
-
     HttpRequest.prototype.stop = function(){
         this.transport.abort();
     }
 
     function _send(observer,verb){
         this._observer = observer;
-        this._requestTimeOut = false;
+        this._requestTimeOut = {};
         
+        if(verb == 'GET' && this._data){
+            if(/\?/.test(this._url)) {
+                this._url = this._url + '&' + this._data;    
+            } else {
+                this._url = this._url + '?' + this._data;
+            } 
+        }
+
         //start request
         this.transport.open(verb, this._url);
 
@@ -163,26 +66,55 @@ define([
         }
 
         if(verb == 'POST')
-            this.transport.send(this._request.data);
+            this.transport.send(this._data);
         else 
             this.transport.send();    
+
+        this._requestTimeOut.timerId = setTimeout((function(){
+            if(typeof observer.fail === 'function'){
+                observer.fail({code:-1});
+            }
+            if(typeof observer.complete === 'function'){
+                observer.complete();
+            }
+        }).bind(this), REQUEST_TIMEOUT);   
+
 
         return this;
     }
 
 
     function _prepareData(request){
+        if(!request.data) return;
+        switch(request.type) {
 
+            case REQUEST_TYPES.FORM:
+            case REQUEST_TYPES.TEXT:            
+                return _formData(request.data);
+            break;
+
+            case REQUEST_TYPES.JSON:
+                return JSON.stringify(request.data);
+            break;
+        }
+    }
+
+    function _formData(data){
+        var separator = ''
+        ,   data = '';
+
+        var keys = Object.keys(request.data);
+        for(var i=0; i<keys.length; i++){
+            data += separator + keys[i] + '=' + encodeURIComponent(request.data[keys[i]])
+        }
+        return data;
     }
 
     function _setTypeHeaders(request){
-        if(request.type && !REQUEST_TYPES[request.type])
-        throw "Unsupported request type: " + request.type;
-
-        var type = !REQUEST_TYPES[request.type];
         var headers = request.headers || {};
+        if(!request.type) return headers;        
 
-        switch(type){
+        switch(request.type){
             case REQUEST_TYPES.FORM:
             headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=utf-8';
             break;
@@ -194,13 +126,29 @@ define([
             case REQUEST_TYPES.TEXT:
             headers['Content-Type'] = 'text/html; charset=utf-8';
             break;
+        
+            default:
+            throw "Unsupported request type: " + request.type;
+            break;
         }
-
         return headers;
     }
 
     function _handleStateChange(observer){
         if(this.transport.readyState != READY_STATES.DONE) return;
+        
+        clearTimeout(this._requestTimeOut.timerId);
+
+        // local filesystem requests on hybrid apps will respond
+        // with status code 0
+        if(this.transport.status === 0 && this.transport.response != null) {
+            if(typeof observer.ok === 'function'){
+                observer.ok({
+                    text:this.transport.responseText,
+                    xml:this.transport.responseXML
+                });
+            }    
+        } else 
         switch(this.transport.status){
             case 200:
                 if(typeof observer.ok === 'function'){
@@ -377,6 +325,11 @@ define([
         http : { 
             get:  httpGet, 
             post: httpPost
+        },
+        REQUEST_TYPES : {
+            FORM: 1,
+            TEXT: 2,
+            JSON: 3
         }
     }
 
