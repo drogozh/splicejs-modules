@@ -108,7 +108,8 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
      */
     function ComponentFactory(require,scope){
         return {define:function(template,vm,defaultArgs,p){
-            if(!vm) throw 'vm argument must be specified';
+            // use vm or use default vm
+            vm = vm || ComponentBase;
             var parts = template.split(":");
             var listener = new Listener();
             listener.p = p;
@@ -476,8 +477,10 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         var timeEnd = window.performance.now();
 
         log.debug(this.constructor.name,timeStart,timeEnd, timeEnd-timeStart);
-        this.onAttach();
-        this.onDisplay();
+        setTimeout((function(){
+            this.onAttach();
+            this.onDisplay();
+        }).bind(this),1);
         return this;
     }
        

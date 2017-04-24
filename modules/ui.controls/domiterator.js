@@ -44,7 +44,7 @@ define([
         // at this point onItemSelected may stil be a binding
         if(args.onItemSelected){
             event.attach(this.node, {
-                onclick : Element.DomUnicastEvent
+                onclick : Element.DomUnicastStopEvent
             }).onclick.subscribe(_onItemClicked,this);    
         }
 

@@ -25,11 +25,24 @@ define([
 
     var HttpRequest = function HttpRequest(request){
         this.transport =  new XMLHttpRequest();
-        
+
         // setup onload handler
-        this.transport.onload = (function(){
-            _handleStateChange.call(this,this._observer);
-        }).bind(this);
+        this.transport.onload = (
+            function(type){
+                if(type == REQUEST_TYPES.JSON){
+                    return (function(){
+                        _handleStateChange.call(this,this._observer,function(r){return JSON.parse(r.text);});
+                    }).bind(this);     
+                }
+                // default
+                return (function(){
+                    _handleStateChange.call(this,this._observer,function(r){return r;});
+                }).bind(this);
+            }
+        ).call(this,request.type);
+        
+        
+        
         
         this._url = request.url;
 
@@ -101,13 +114,13 @@ define([
 
     function _formData(data){
         var separator = ''
-        ,   data = '';
+        ,   _data = '';
 
-        var keys = Object.keys(request.data);
+        var keys = Object.keys(data);
         for(var i=0; i<keys.length; i++){
-            data += separator + keys[i] + '=' + encodeURIComponent(request.data[keys[i]])
+            _data += separator + keys[i] + '=' + encodeURIComponent(data[keys[i]])
         }
-        return data;
+        return _data;
     }
 
     function _setTypeHeaders(request){
@@ -134,7 +147,7 @@ define([
         return headers;
     }
 
-    function _handleStateChange(observer){
+    function _handleStateChange(observer,transform){
         if(this.transport.readyState != READY_STATES.DONE) return;
         
         clearTimeout(this._requestTimeOut.timerId);
@@ -143,19 +156,19 @@ define([
         // with status code 0
         if(this.transport.status === 0 && this.transport.response != null) {
             if(typeof observer.ok === 'function'){
-                observer.ok({
+                observer.ok(transform({
                     text:this.transport.responseText,
                     xml:this.transport.responseXML
-                });
+                }));
             }    
         } else 
         switch(this.transport.status){
             case 200:
                 if(typeof observer.ok === 'function'){
-                    observer.ok({
+                    observer.ok(transform({
                         text:this.transport.responseText,
                         xml:this.transport.responseXML
-                    });
+                    }));
                 }
             break;
             default:

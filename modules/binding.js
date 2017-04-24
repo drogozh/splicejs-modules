@@ -1,3 +1,5 @@
+// todo: ensure to capture instance context before asigning methods to other objects
+// for example instance functions to button onclick events
 define([
     'dataitem'
 ],
