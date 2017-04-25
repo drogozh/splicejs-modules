@@ -27,22 +27,11 @@ define([
         this.transport =  new XMLHttpRequest();
 
         // setup onload handler
-        this.transport.onload = (
-            function(type){
-                if(type == REQUEST_TYPES.JSON){
-                    return (function(){
-                        _handleStateChange.call(this,this._observer,function(r){return JSON.parse(r.text);});
-                    }).bind(this);     
-                }
-                // default
-                return (function(){
-                    _handleStateChange.call(this,this._observer,function(r){return r;});
-                }).bind(this);
-            }
-        ).call(this,request.type);
-        
-        
-        
+        this.transport.onload = (function(){
+            if(this._requestTimeOut && this._requestTimeOut.isTimeOut) return;
+            _handleStateChange.call(this,this._observer,function(r){return r;});
+        }).bind(this);
+            
         
         this._url = request.url;
 
@@ -84,6 +73,7 @@ define([
             this.transport.send();    
 
         this._requestTimeOut.timerId = setTimeout((function(){
+            this._requestTimeOut.isTimeOut = true;
             if(typeof observer.fail === 'function'){
                 observer.fail({code:-1});
             }
