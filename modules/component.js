@@ -258,7 +258,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         this.children = {};
 
         //1. construct element map
-        _buildElementMap.call(this);
+        this.elements = templateInstance.elements;
 
         //2. content map
         _buildContentMap.call(this);
@@ -543,6 +543,8 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         var currentParentNode = this.node.parentNode;
         var selfNode = this.node.parentNode;
 
+        // migrate included components
+        // todo: do something with this nested loop
         utils.foreach(current.children,function(from){
             utils.foreach(instance.children,function(child){
                 if(child.includeArgs.name != from.includeArgs.name) return;
@@ -553,13 +555,28 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             })
         });
 
+        // migrate elements from current to the new instance
+        utils.foreach(current.elements, function(from,key){
+            var te = instance.elements[key];
+            _swapElements(from,te);
+            console.log(key);
+        });
+
         this._active_template_ = key;
         
         this.node.parentNode.replaceChild(instance.node,this.node);
         this.node = instance.node;
     };
 
-
+    var _cursorNode = document.createElement('span');
+    function _swapElements(e1,e2){
+        var p1 = e1.node.parentNode;
+        var p2 = e2.node.parentNode;
+        
+        p2.replaceChild(_cursorNode,e2.node);
+        p1.replaceChild(e2.node,e1.node);
+        p2.replaceChild(e1.node,_cursorNode);
+    }
 
     /**
      * Remove content child at location
@@ -898,20 +915,23 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             }            
         }
 
+        this.elements = _buildElementMap(clone);
+
         return {
             node:clone,
-            children:includes
+            children:includes,
+            elements:this.elements
         }
     }
 
 
 
 
-    function _buildElementMap(){
-        var element = this.node;
+    function _buildElementMap(node){
+        var element = node;
         var elementNodes = element.querySelectorAll('[sjs-element]');
         
-        var elementMap = this.elements = {};
+        var elementMap = {};
         var node = element;
         for(var i=-1; i <elementNodes.length; i++){
             if(i>-1)  node = elementNodes[i];
@@ -925,7 +945,6 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
                 
                 elementMap[key] = Element(node);
             }
-            
         }
         return elementMap;
     }
