@@ -6,9 +6,7 @@ define([
 	'{splice.modules}/event',
 	'{splice.modules}/view',
     '{splice.modules}/async',
-    '{splice.modules}/dataitem',
-	'preload|{splice.modules}/component.loader',
-
+    '{splice.modules}/dataitem'
 ],function(require,inheritance,component,event,Element,_async,di){
 
 	var Class = inheritance.Class

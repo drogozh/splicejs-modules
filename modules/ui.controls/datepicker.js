@@ -10,7 +10,7 @@ define([
 		Calendar:'{splice.controls}/calendar/calendar',
 		Selectors:'dropdown'
 	},
-    'preload|{splice.modules}/component.loader'
+    'preload|{splice.modules}/loader.css'
 
 ],function(require,inheritance,component,event,view,text,controls){
 	"use strict";

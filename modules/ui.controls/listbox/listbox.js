@@ -7,7 +7,7 @@ define([
 	'{splice.modules}/component.interaction',
     '{splice.modules}/util',
     '{splice.modules}/async',
-	'preload|{splice.modules}/component.loader',
+	'preload|{splice.modules}/loader.css',
 	'!listbox.css'
 ],function(require,inheritance,component,event,view,interaction,utils,async){
 	"use strict";

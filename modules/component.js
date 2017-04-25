@@ -7,7 +7,7 @@ define([
     'animation',
     'view',
     'binding',
-    'preload|component.loader'
+    'preload|loader.template'
 ],
 //todo: Component mode supports data-driven component selection
 //requires unicast event handler to return a value

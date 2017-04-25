@@ -7,7 +7,7 @@ define([
     '{splice.modules}/event',
     '{splice.modules}/view',
     '{splice.controls}/themeprovider',
-    'preload|{splice.modules}/component.loader',
+    'preload|{splice.modules}/loader.css',
     '!buttons.css'
 
 ],function(require,inheritance,component,event,dom,styleProvider){

@@ -7,7 +7,7 @@ define([
 	'{splice.modules}/view',
     '{splice.modules}/async',
 	'{splice.modules}/component.interaction',
-	'preload|{splice.modules}/component.loader',
+	'preload|{splice.modules}/loader.css',
 	'!scrollpanel.css'
 //todo:
 /*

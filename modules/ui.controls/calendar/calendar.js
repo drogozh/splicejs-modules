@@ -6,7 +6,7 @@ define([
 	'{splice.modules}/view',
     '!calendar.css',
 	'!theme/default/theme.css',
-    'preload|{splice.modules}/component.loader'
+    'preload|{splice.modules}/loader.css'
 ],function(require,context,loader,inheritance,component,event,element){
 	"use strict"
 

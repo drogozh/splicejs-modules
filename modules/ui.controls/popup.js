@@ -4,7 +4,7 @@ define([
 	'{splice.modules}/component',
 	'{splice.modules}/event',
 	'{splice.modules}/component.interaction',
-	'preload|{splice.modules}/component.loader',
+	'preload|{splice.modules}/loader.css',
 	'!popup.css'
 ],function(require,inheritance,component,event,interaction){
     "use strict";
