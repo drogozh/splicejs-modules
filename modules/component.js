@@ -573,11 +573,15 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         this.node = instance.node;
     };
 
-    var _cursorNode = document.createElement('span');
+    
     function _swapElements(e1,e2){
+        var _cursorNode = document.createElement('span');
         var p1 = e1.node.parentNode;
         var p2 = e2.node.parentNode;
         
+        // element and content are the same node and already swapped
+        if(!p1 || !p2) return; 
+
         p2.replaceChild(_cursorNode,e2.node);
         p1.replaceChild(e2.node,e1.node);
         p2.replaceChild(e1.node,_cursorNode);
