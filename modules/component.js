@@ -186,6 +186,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     //interface callbacks, intended for override
     ComponentBase.prototype.onInit = 
     ComponentBase.prototype.onLoaded = 
+    ComponentBase.prototype.onSelectTemplate = 
     ComponentBase.prototype.onAttach = 
     ComponentBase.prototype.onDetach =
     ComponentBase.prototype.onDisplay =
@@ -235,19 +236,31 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         this.isLoaded = true;
         this.scope = scope;
         this.content = {};
-        this.override = {};
         this.templateInstances = {};
-        this._active_template_ = 'default';
-        //template instance is created here
+        
+        // select template
+        this._active_template_ = this.onSelectTemplate() || 'default';
+
+        // template instance is created here
         var template = null;
         for(var i=0; i < templates.length; i++){
             template = templates[i];
             if(template.key == this._active_template_) break;
         }
-        
-        var templateInstance = this.templateInstances[this._active_template_] = template.getInstance(this);
+
+        // still grab default template if no templated were found
+        // there should always be one and only one default template
+        if(!template) { 
+            this._active_template_ = 'default';
+            template = templates[this._active_template_];
+        }
+
+        // create template instance
+        var templateInstance = 
+            this.templateInstances[this._active_template_] = 
+            template.getInstance(this);
             
-        //root node of the component's DOM
+        // root node of the component's DOM
         this.node = templateInstance.node;
         this.node._obj_ = this;
        
@@ -902,7 +915,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
      * Clones template's DOM and returns it
      * @param {ComponentBase} component - component instance requesting template instance
      */
-    Template.prototype.getInstance = function(component, ignoreChildren){
+    Template.prototype.getInstance = function(component){
         var clone = this.clone()
         ,   _anchors = clone.querySelectorAll('[sjs-child-id]');
 
