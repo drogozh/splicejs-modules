@@ -261,7 +261,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         this.elements = templateInstance.elements;
 
         //2. content map
-        _buildContentMap.call(this);
+        this.content = templateInstance.content;
 
         //3. process included components
         _integrateIncludes.call(this,templateInstance.children);
@@ -559,7 +559,12 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         utils.foreach(current.elements, function(from,key){
             var te = instance.elements[key];
             _swapElements(from,te);
-            console.log(key);
+        });
+
+        // migrate content
+        utils.foreach(current.content,function(from,key){
+            var te = instance.content[key];
+            _swapElements(from,te);
         });
 
         this._active_template_ = key;
@@ -916,11 +921,13 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         }
 
         this.elements = _buildElementMap(clone);
+        this.content = _buildContentMap(clone);
 
         return {
             node:clone,
             children:includes,
-            elements:this.elements
+            elements:this.elements,
+            content:this.content
         }
     }
 
@@ -951,22 +958,21 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
 
     /**
-     * 
+     * Constructs reference content map to keep track of container nodes
+     * @param {*} node : HTMLNode
      */
-    function _buildContentMap(){
+    function _buildContentMap(node){
+        if(node.tagName == 'TEMPLATE')
+            node = node.content;
 
-        var element = this.node;
-
-        if(element.tagName == 'TEMPLATE')
-            element = element.content;
-
-        var contentNodes = element.querySelectorAll('[sjs-content]')
-        ,	cMap = this.content;
+        var contentNodes = node.querySelectorAll('[sjs-content]')
+        ,	cMap = {};
 
         if(!contentNodes || contentNodes.length < 1) {
-            return cMap['default'] = Element(element);
+            cMap['default'] = Element(node);
+            return cMap;
         }
-        var node = element;
+        
         for(var i=0; i<=contentNodes.length; i++){
             if(!node.getAttribute) { 
                 node = contentNodes[i];
