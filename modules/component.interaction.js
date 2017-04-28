@@ -40,6 +40,8 @@ mouse:function(e){
 /*
     Returns element coordinates in
     document.body coordinate space
+    relative to top,left corner of the 
+    client area
 */
 abs: function(obj) {
     var n = obj

@@ -1,8 +1,8 @@
 define([
-  { Inheritance : '/{splice.modules}/inheritance',
-    Syntax 		: '/{splice.modules}/syntax',
-    Document  	: '/{splice.modules}/document',
-    Events		: '/{splice.modules}/event'}
+  { Inheritance : '{splice.modules}/inheritance',
+    Syntax 		: '{splice.modules}/syntax',
+    Document  	: '{splice.modules}/document',
+    Events		: '{splice.modules}/event'}
 ]
 ,
 function(imports){
@@ -460,6 +460,11 @@ Element.prototype.appendClass = function(className){
     addClass(this.node,className);
     return this;
 }
+
+Element.prototype.arent = function(){
+    return this.node.parentNode;
+}
+
 // todo: replace attr call with 
 //      attr(name).set()
 //      attr(name).get();

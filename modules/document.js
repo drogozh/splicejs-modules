@@ -419,7 +419,10 @@ function(syntax){
 		},
 		create:create,
 		dom	: dom,
-		cssvalue : _unit
+		cssvalue : _unit,
+		visualRoot:function(){
+			return document;
+		}
 
 	};
 
