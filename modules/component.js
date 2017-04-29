@@ -196,43 +196,54 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     ComponentBase.prototype.onChildDisplay =
     ComponentBase.prototype.onDispose =
     ComponentBase.prototype.onApplyContent = 
-    
+
     ComponentBase.prototype.onResize  = function(){};
 
 
     ComponentBase.prototype.init = function(args){
         this._state_ = {};
-        this._bindings_ = [];
-        this._action_queue_ = [];
+        this._action_queue_ = []; 
+        
+        // default reflow mode is css
         this._reflow_mode_ = 'css';
+        
+        // stores markup and constructor arguments
+        this._args = {
+            // binding arguments are separated out from the arguments 
+            bindings:[],
+            content:null,
+            other:{}
+        };
 
-        utils.mixin(this,args,(function(t,s){
-            if(s.inst[s.prop] instanceof Binding){
-                var binding = s.inst[s.prop];
-                binding.targetProperty = t.prop;
-                this._bindings_.push(binding);
-                return false;
+        // split arguments
+        utils.foreach(args,(function(item, key){
+            if(item instanceof Binding){
+                item.targetProperty = key;
+                this._args.bindings.push(item);
+            } 
+            else if( key == 'content'){
+                this._args.content = item;
             }
-                return s.inst[s.prop];
+            else {
+                this._args.other[key] = item;
+            }
         }).bind(this));
-        this.onInit(args);
+
+        // innvoke init callback(event)
+        // with sanitized arguments
+        this.onInit(this._args.other);
     }
 
-
     ComponentBase.prototype.resolve = function(){
-        if(!this._bindings_ ||this._bindings_.length < 1) return;
+        if(!this._args.bindings ||this._args.bindings.length < 1) return;
         var scope = this.parent.scope;
-        foreach(this._bindings_,(function(value,prop){
+        foreach(this._args.bindings,(function(value,prop){
             Binding.resolveBinding(value,this,scope);
         }).bind(this));
         this.onResolve();
     }
 
-
-
-
-    ComponentBase.prototype.loaded = function(templates,scope,args){
-
+    ComponentBase.prototype.loaded = function(templates,scope){
         this.isLoaded = true;
         this.scope = scope;
         this.content = {};
@@ -280,13 +291,18 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         _integrateIncludes.call(this,templateInstance.children);
 
         //4. process 'content' argument 
-        if(args && args.content){
-            processCompositionContent.call(this,args.content);
+        if(this._args.content){
+            processCompositionContent.call(this,this._args.content);
         }
-       
+
+        //5. process css arguments
+        _processCssArguments.call(this,this._args.other.css);
 
         //notify view model
-        this.onLoaded();
+        this.onLoaded(this._args.other);
+        this._args = null;
+        delete this._args;
+        // after this point arguments do not exist any longer
 
         //process replacement queue
         //or toadd queue but not both
@@ -307,9 +323,17 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
     ComponentBase.prototype.when = function(queueName){
         return function(callback){
-            
         }
     };
+
+    function _processCssArguments(args){
+        if(!args) return;
+        var e = Element(this.node);
+
+        utils.foreach(args.add.split(','), function(item){
+            e.appendClass(item);
+        });
+    }
 
     function _subscribeToQueue(queueName, callback){
 
@@ -400,7 +424,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         var animation = isAnimation.call(child);
 
         if(!target) {
-            console.warn('Content target for ' + key + ' is not found, content is not rendered');
+            //console.warn('Content target for ' + key + ' is not found, content is not rendered');
             return;
         }
 
