@@ -413,31 +413,13 @@ Element.prototype.clearClass = function(className){
     this.node.className = '';
 }
 
-function _buildClassMap(){
-    this.classMap = {};
-    this.classStore = [];
-    var attr = this.node.getAttribute('class');
-    if(!attr) return;
-    var parts = attr.split(' ');
-    for(var i=0; i<parts.length; i++){
-        this.classMap[parts[i]] = i;
-        this.classStore[i] = parts[i];
-    }
-}
-
-function _commitClassMap(){
-    var result = '', sep = '';
-
-    for(var i=0; i<this.classStore.length; i++){
-        result = result + sep +  this.classStore[i];
-        sep = ' '; 
-    }
-    this.node.className = result;
-    return result;
-}
-
 Element.prototype.removeClass = function(className){
-    removeClass(this.node,className);
+    var idx = this.classMap[className];
+    if(idx == null) return;
+
+    this.classStore[idx] = null;
+    delete this.classMap[className];
+     _commitClassMap.call(this);
     return this;
 } 
 
@@ -457,9 +439,38 @@ Element.prototype.replaceClass = function(oldClass, newClass){
 };
 
 Element.prototype.appendClass = function(className){
-    addClass(this.node,className);
+    this.classStore.push(className);
+    this.classMap[className] = this.classStore.length - 1;
+    _commitClassMap.call(this);
     return this;
 }
+
+
+function _buildClassMap(){
+    this.classMap = {};
+    this.classStore = [];
+    var attr = this.node.getAttribute('class');
+    if(!attr) return;
+    var parts = attr.split(' ');
+    for(var i=0; i<parts.length; i++){
+        this.classMap[parts[i]] = i;
+        this.classStore[i] = parts[i];
+    }
+}
+
+function _commitClassMap(){
+    var result = '', sep = '';
+    for(var i=0; i<this.classStore.length; i++){
+        if(!this.classStore[i]) continue;
+        result = result + sep +  this.classStore[i];
+        sep = ' '; 
+    }
+    this.node.className = result;
+    return result;
+}
+
+
+
 // todo: replace attr call with 
 //      attr(name).set()
 //      attr(name).get();
@@ -506,106 +517,14 @@ View.prototype.attrGet = function(attr){
     return View.addContent.call(this,content,key);
   }
 
-  
-  
-  function CssTokenizer(input){
-  	var t = new Tokenizer(input);
-  	var rules = []
-  	,	token = null;
-
-  	var acc = '';
-  	while(token = t.nextToken()){
-  		if(Tokenizer.isSpace(token)) continue;
-  		if(Tokenizer.isAlphaNum(token)) {
-  			acc += token; continue;
-  		}
-  		//rule value mode
-  		if(token == ':') {
-  			var rule = {property:acc, values:cssRuleValue(t)}
-  			rules.push(rule);
-  			acc = '';
-  			continue;
-  		}
-  	}
-  	return rules;
-  }
-
-  function composeCssRules(){
-  	var rules
-  	for(var i=0; i<rules.length; i++){
-  		var prop = rules[i].property;
-  	}
-  }
-
-
-  function cssRuleValue(tokenizer){
-  	var token = null
-  	,	acc = ''
-  	,	values = [];
-  	while(token = tokenizer.nextToken()){
-  		if(Tokenizer.isSpace(token) && acc != ''){
-  			values.push(acc); acc = ''; continue;
-  		}
-  		if(Tokenizer.isAlphaNum(token)) {
-  			acc += token; continue;
-  		}
-  		if(token == ';') {
-  			if(acc != '') values.push(acc);
-  			return values;
-  		}
-  	}
-  	return values;
-  }
-
-  function ClassTokenizer(input){
-  	var tokenizer = new Tokenizer(input)
-  	,	token = null;
-  	var classes = Object.create(null)
-  	,	acc = '';
-  	while(token = tokenizer.nextToken()){
-  		if(Tokenizer.isSpace(token)) {
-  			classes[acc] = 1;
-  			acc = '';
-  			continue;
-  		}
-  		acc += token;
-  	}
-  	if(acc != '') classes[acc] = 1;
-  	return classes;
-  };
-
-
-function addClass(element, className){
-    var current = ClassTokenizer(element.className)
-    ,	toAdd = ClassTokenizer(className)
-    ,	clean = element.className;
-
-    for(var key in toAdd ){
-        if(key in current) continue;
-        clean += ' ' + key;
-    }
-
-    element.className = clean;
-};
-
-function removeClass(element, className){
-    var current = ClassTokenizer(element.className)
-    ,	toRemove = ClassTokenizer(className)
-    ,	clean = '';
-    for(var key in current){
-        if(key in toRemove) continue;
-        clean += ' ' + key;
-    }
-    element.className = clean;
-};
 
 function create(name){
     return new View(document.createElement(name));
 }
 
 Element.css = {
-    addClass:   addClass,
-    removeClass:removeClass
+    addClass:   function(){throw 'not implemented';},
+    removeClass:function(){throw 'not implemented';}
 };
 
 Element.DomMulticastEvent       = new DomMulticastEvent();
