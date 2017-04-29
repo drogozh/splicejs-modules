@@ -23,10 +23,10 @@ define([
             onItemSelected : event.MulticastEvent
         });
         
-        this.resolve(parent,args);
+        this.resolve();
         
         // template is cloned when loaded call is complete
-        this.loaded([new Template(document.createElement('span'),'','default')],scope,args);
+        this.loaded([new Template(document.createElement('span'),'','default')],scope);
 
         this.elements.root = new Element(this.node);
 
