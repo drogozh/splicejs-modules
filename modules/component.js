@@ -104,7 +104,8 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
 
     /**
-     * Component genesis
+     * Component factory
+     * note, template are compiler per factor definition
      */
     function ComponentFactory(require,scope){
         return {define:function(template,vm,defaultArgs,p){
@@ -114,6 +115,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             var listener = new Listener();
             listener.p = p;
             scope[utils.functionName(vm)] = vm;
+            // collection is a loaded collection of templates
             require('!'+[parts[1]],function(collection){
                 listener.loaded(collection, scope);
             });
@@ -328,10 +330,9 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
     function _processCssArguments(args){
         if(!args) return;
-        var e = Element(this.node);
-
+        var root = this.elements.root;
         utils.foreach(args.add.split(','), function(item){
-            e.appendClass(item);
+            root.appendClass(item);
         });
     }
 
@@ -972,15 +973,14 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         }
     }
 
-
-
-
     function _buildElementMap(node){
         var element = node;
         var elementNodes = element.querySelectorAll('[sjs-element]');
         
         var elementMap = {};
         var node = element;
+        // tamplate root
+        elementMap['root'] = Element(node);
         for(var i=-1; i <elementNodes.length; i++){
             if(i>-1)  node = elementNodes[i];
 
@@ -989,6 +989,8 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             var keys = attr.split(' ');
             for(var k=0; k<keys.length; k++){
                 var key = keys[k];
+                //ignore root, since its a reserved element name
+                if(key == 'root') continue;
                 if(elementMap[key]) throw 'Duplicate name map key ' + key;
                 
                 elementMap[key] = Element(node);
