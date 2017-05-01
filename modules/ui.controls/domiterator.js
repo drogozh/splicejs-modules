@@ -28,7 +28,7 @@ define([
         this.resolve();
         
         // template is cloned when loaded call is complete
-        this.loaded([new Template(document.createElement('span'),'','default')],scope);
+        this.loaded({default:new Template(document.createElement('span'))},scope);
 
         this.elements.root = new Element(this.node);
 
