@@ -1,18 +1,20 @@
 define([
-
 	'require',
+    'loader',
 	'{splice.modules}/inheritance',
 	'{splice.modules}/component',
 	'{splice.modules}/event',
 	'{splice.modules}/view',
     '{splice.modules}/async',
     '{splice.modules}/dataitem'
-],function(require,inheritance,component,event,Element,_async,di){
+],function(require,loader,inheritance,component,event,Element,_async,di){
 
 	var Class = inheritance.Class
     ,   ComponentBase = component.ComponentBase
     ,   Template  = component.Template
     ,   scope = {};
+
+    var touchSupport = loader.getVar('{touchsupport}');
 
     var DomIterator = Class(function DomIterator(parent,args){
         this.parent = parent;
@@ -23,10 +25,10 @@ define([
             onItemSelected : event.MulticastEvent
         });
         
-        this.resolve(parent,args);
+        this.resolve();
         
         // template is cloned when loaded call is complete
-        this.loaded([new Template(document.createElement('span'),'','default')],scope,args);
+        this.loaded({default:new Template(document.createElement('span'))},scope);
 
         this.elements.root = new Element(this.node);
 
@@ -41,9 +43,8 @@ define([
         // handler is invoked with data as argument
         // at this point onItemSelected may stil be a binding
         if(args.onItemSelected){
-            event.attach(this.node, {
-                onclick : Element.DomUnicastStopEvent
-            }).onclick.subscribe(_onItemClicked,this);    
+           event.attach(this.node,Element.UnicastClickEvent)
+                .subscribe(_onItemClicked,this);
         }
 
         if(!args.range) return;

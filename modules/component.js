@@ -43,7 +43,6 @@ define([
 function(inheritance,events,doc,data,utils,effects,Element,_binding){
     "use strict";
 
-
     var TAG_INCLUDE = 'INCLUDE'
     ,   TAG_TEMPLATE = 'TEMPLATE'
     ,   TAG_ELEMENT = 'ELEMENT';
@@ -52,11 +51,9 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     ,   DISPLAY_FALSE = 0
     ,   DISPLAY_TRUE = 1;
 
-
     var log = {
         debug:function(){}
     };
-
 
     var DataItem = data.DataItem
     ,   foreach = utils.foreach
@@ -65,94 +62,93 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     ,   Animation = effects.Animation
     ,   Binding = _binding;
 
-
     /**
      *  Listens for template loader
      */
     function Listener(){
-        events.attach(this,{'onloaded':events.MulticastEvent});
+        events.attach(this,{'onloaded':events.MulticastQueueEvent});
     }
 
     /**
      * @param scope - scope object passed to a component factory
      */
     Listener.prototype.loaded = function(collection,scope){	
-        if(this.isLoaded) { 
-            console.log('already loaded');
-            return; 
-        }//already loaded
-        
         //compile templates
+        this.compiledTemplates = {};
         var keys = Object.keys(collection);
 
   		for(var i = 0; i < keys.length; i++) {
+            this.compiledTemplates[keys[i]] = this.compiledTemplates[keys[i]] || {};
             for(var j = 0; j < collection[keys[i]].length; j++){
                 var tSource = collection[keys[i]][j];
-                if(tSource.isCompiled) continue;
-                collection[keys[i]][j] = new Template(tSource.node,keys[i],tSource.key).compile(scope);
+                var key = tSource.key || 'default';
+                this.compiledTemplates[keys[i]][key] = new Template(tSource.node.cloneNode(true),keys[i],tSource.key).compile(scope);
             }
   		}
-        
-        this.t = collection;
         this.isLoaded = true;
-        this.onloaded(collection);
+        this.onloaded(this.compiledTemplates);
     }
 
-    Listener.prototype.subscribe = function(callback){
-        this.onloaded.subscribe(callback);
+    Listener.prototype.ready = function(fn){
+        if(this.isLoaded) {
+            fn(this.compiledTemplates)
+            return;
+        } 
+        this.onloaded.subscribe(fn);
     }
-
-
-    /**
-     * Component genesis
-     */
+    
     function ComponentFactory(require,scope){
-        return {define:function(template,vm,defaultArgs,p){
-            // use vm or use default vm
-            vm = vm || ComponentBase;
-            var parts = template.split(":");
-            var listener = new Listener();
-            listener.p = p;
-            scope[utils.functionName(vm)] = vm;
-            require('!'+[parts[1]],function(collection){
-                listener.loaded(collection, scope);
-            });
-            //every component must have a parent
-            var componentConstructor = function Component(parent,args){
-                args = utils.blend(defaultArgs,args);
-                var comp = new vm(parent,args);
-                    comp.parent = parent;
-                    comp._templateName_ = parts[0]; 
-                    comp.init(args);
-                    comp.resolve();
-                   
-                if(!listener.isLoaded){
-                   listener.subscribe((function(t){
-                        // reference to  componentConstructor function
-                        comp.constructor._templates_ = t[parts[0]];
-                        this.loaded(t[parts[0]],scope,args)
-                    }).bind(comp));
-                } else {
-                    // reference to  componentConstructor function
-                    comp.constructor._templates_ = listener.t[parts[0]];
-                    // component is created
-                    comp.loaded(listener.t[parts[0]],scope,args);
-                }
-                return comp;
-            }
-            //this will allow extending components
-            componentConstructor.prototype = vm.prototype;
-
-            componentConstructor.is = function(type){
-                if(type.constructor ==  vm.prototype.constructor)
-                if(type._templateName_ == parts[0] ) return true;
-            }
-            
-            return componentConstructor;
+        if(!(this instanceof ComponentFactory)) {
+            return new ComponentFactory(require,scope);
         }
-    }
+        this.require = require;
+        this.scope = scope;
+        this.listeners = {};
+        this.compiledTemplates = {};
     }
 
+    ComponentFactory.prototype.define = function(templateLocation, controller, defaultArgs){
+        var templateName =  templateLocation.split(':')[0];
+        var templateFile =  templateLocation.split(':')[1];
+
+        // set default controller
+        controller = controller || ComponentBase;
+
+        // set listener
+        var listener = this.listeners[templateFile];
+        if(!listener){
+            listener = this.listeners[templateFile] = new Listener();
+            // load template
+            this.require('!'+templateFile, (function(collection){
+               listener.loaded(collection, this.scope);
+            }).bind(this));
+        }
+
+        var scope = this.scope;
+        // component constructor
+        var component = function Component(parent,args){
+            var comp = new controller(parent,args);
+            comp.parent = parent;
+            comp._templateName_ = templateName; 
+            comp.init(args);
+            comp.resolve();
+           
+            listener.ready((function(t){
+                // reference to  componentConstructor function
+                comp.constructor._templates_ = t[templateName];
+                this.loaded(t[templateName],scope,args)
+            }).bind(comp));
+
+            return comp;
+        };
+        
+        component.prototype = controller.prototype;
+        component.is = function(type){
+            if(type.constructor ==  controller.prototype.constructor)
+            if(type._templateName_ == templateName ) return true;
+        }
+        return component;
+    }
 
     /**
      * Top level pseudo component
@@ -180,8 +176,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     /**
      * Base Component
      */
-    function ComponentBase(){
-    }
+    function ComponentBase(){}
 
     //interface callbacks, intended for override
     ComponentBase.prototype.onInit = 
@@ -196,43 +191,54 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     ComponentBase.prototype.onChildDisplay =
     ComponentBase.prototype.onDispose =
     ComponentBase.prototype.onApplyContent = 
-    
+
     ComponentBase.prototype.onResize  = function(){};
 
 
     ComponentBase.prototype.init = function(args){
         this._state_ = {};
-        this._bindings_ = [];
-        this._action_queue_ = [];
+        this._action_queue_ = []; 
+        
+        // default reflow mode is css
         this._reflow_mode_ = 'css';
+        
+        // stores markup and constructor arguments
+        this._args = {
+            // binding arguments are separated out from the arguments 
+            bindings:[],
+            content:null,
+            other:{}
+        };
 
-        utils.mixin(this,args,(function(t,s){
-            if(s.inst[s.prop] instanceof Binding){
-                var binding = s.inst[s.prop];
-                binding.targetProperty = t.prop;
-                this._bindings_.push(binding);
-                return false;
+        // split arguments
+        utils.foreach(args,(function(item, key){
+            if(item instanceof Binding){
+                item.targetProperty = key;
+                this._args.bindings.push(item);
+            } 
+            else if( key == 'content'){
+                this._args.content = item;
             }
-                return s.inst[s.prop];
+            else {
+                this._args.other[key] = item;
+            }
         }).bind(this));
-        this.onInit(args);
+
+        // innvoke init callback(event)
+        // with sanitized arguments
+        this.onInit(this._args.other);
     }
 
-
     ComponentBase.prototype.resolve = function(){
-        if(!this._bindings_ ||this._bindings_.length < 1) return;
+        if(!this._args.bindings ||this._args.bindings.length < 1) return;
         var scope = this.parent.scope;
-        foreach(this._bindings_,(function(value,prop){
+        foreach(this._args.bindings,(function(value,prop){
             Binding.resolveBinding(value,this,scope);
         }).bind(this));
         this.onResolve();
     }
 
-
-
-
-    ComponentBase.prototype.loaded = function(templates,scope,args){
-
+    ComponentBase.prototype.loaded = function(templates,scope){
         this.isLoaded = true;
         this.scope = scope;
         this.content = {};
@@ -242,15 +248,8 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         this._active_template_ = this.onSelectTemplate() || 'default';
 
         // template instance is created here
-        var template = null;
-        for(var i=0; i < templates.length; i++){
-            template = templates[i];
-            if(template.key == this._active_template_) break;
-        }
-
-        // still grab default template if no templated were found
-        // there should always be one and only one default template
-        if(!template) { 
+        var template = templates[this._active_template_];
+        if(!template){
             this._active_template_ = 'default';
             template = templates[this._active_template_];
         }
@@ -280,13 +279,18 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         _integrateIncludes.call(this,templateInstance.children);
 
         //4. process 'content' argument 
-        if(args && args.content){
-            processCompositionContent.call(this,args.content);
+        if(this._args.content){
+            processCompositionContent.call(this,this._args.content);
         }
-       
+
+        //5. process css arguments
+        _processCssArguments.call(this,this._args.other.css);
 
         //notify view model
-        this.onLoaded();
+        this.onLoaded(this._args.other);
+        this._args = null;
+        delete this._args;
+        // after this point arguments do not exist any longer
 
         //process replacement queue
         //or toadd queue but not both
@@ -307,9 +311,16 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
     ComponentBase.prototype.when = function(queueName){
         return function(callback){
-            
         }
     };
+
+    function _processCssArguments(args){
+        if(!args) return;
+        var root = this.elements.root;
+        utils.foreach(args.add.split(','), function(item){
+            root.appendClass(item);
+        });
+    }
 
     function _subscribeToQueue(queueName, callback){
 
@@ -400,7 +411,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         var animation = isAnimation.call(child);
 
         if(!target) {
-            console.warn('Content target for ' + key + ' is not found, content is not rendered');
+            //console.warn('Content target for ' + key + ' is not found, content is not rendered');
             return;
         }
 
@@ -539,14 +550,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
         var instance = this.templateInstances[key];
         if(instance == null){
-            var target = null;
-            for(var i=0; i < templates.length; i++){
-                if(templates[i].key == key){
-                    target = templates[i];
-                    break;
-                }
-            }
-
+            var target = templates[key];
             if(!target) return;
             instance = target.getInstance(this);
             this.templateInstances[key] = instance;
@@ -745,7 +749,6 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             function(value){
                 style.opacity = value * 0.1 / 10;
             })]);  
-
         }
         return animation;
     }
@@ -989,15 +992,14 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         }
     }
 
-
-
-
     function _buildElementMap(node){
         var element = node;
         var elementNodes = element.querySelectorAll('[sjs-element]');
         
         var elementMap = {};
         var node = element;
+        // tamplate root
+        elementMap['root'] = Element(node);
         for(var i=-1; i <elementNodes.length; i++){
             if(i>-1)  node = elementNodes[i];
 
@@ -1006,6 +1008,8 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             var keys = attr.split(' ');
             for(var k=0; k<keys.length; k++){
                 var key = keys[k];
+                //ignore root, since its a reserved element name
+                if(key == 'root') continue;
                 if(elementMap[key]) throw 'Duplicate name map key ' + key;
                 
                 elementMap[key] = Element(node);
@@ -1207,7 +1211,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             comp.parent = parent;
             comp.init(args);
             comp.resolve(parent != null ? parent.scope : null);
-            comp.loaded([template],scope,args);
+            comp.loaded({default:template},scope,args);
             return comp;
         };  
 
@@ -1314,7 +1318,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         this.init();
         var template = new Template(document.body).compile(scope);
         template.clone = function(){return this.node;}
-        this.loaded([template],scope);
+        this.loaded({default:template},scope);
         this.content['default'] = document.body;
         this.display();
     };

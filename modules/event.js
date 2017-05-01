@@ -43,12 +43,27 @@ function(inheritance,sync,util){
     }).extend(BaseEvent);
 
     MulticastEvent.prototype.attach = function(instance, property){
-      var event = _createMulticastEvent();
-      _attachEvent(instance, property, event);
-      return event;
+        var event = _createMulticastEvent();
+        _attachEvent(instance, property, event);
+        return event;
     }
 
+    /**
+     *  Multicast queued event clears subscribed list each time
+     *  after it fires
+     */
+    var MulticastQueueEvent = Class(function MulticastQueueEvent(){
+    }).extend(BaseEvent);
 
+    MulticastQueueEvent.prototype.attach = function(instance, property){
+        var event = _createMulticastEvent(true);
+        _attachEvent(instance, property, event);
+        return event;
+    };
+
+    /**
+     * 
+     */
     var UnicastEvent = Class(function UnicastEvent(){
     }).extend(BaseEvent);
 
@@ -84,24 +99,32 @@ function(inheritance,sync,util){
       Multicast Event
     */
 
-    function _createMulticastEvent(){
-      var _closure = {subs:[]};
-      var f = function MulticastEvent(){
-        _multicastRun.apply(_closure,arguments);
-      };
-      f.subscribe = function(callback,instance){
-        if(callback == f) throw 'Recursive event subscription on ' + fname(instance.constructor) + ' "' + fname(callback)+'"';
-        return _multicastSubscribe.call(f,_closure,callback,instance);
-      };
-      f.unsubscribe = function(callback){
-        return _multicastUnsubscribe.call(f,_closure,callback);
-      };
-      f.dispose = function(){
-        return _multicastDispose(_closure);
-      };
-      f.subscribers = function(){
-        return _closure.subs.length;  
-      };
+    function _createMulticastEvent(isQueued){
+        var _closure = {subs:[]};
+      
+        var f = function MulticastEvent(){
+            _multicastRun.apply(_closure,arguments);
+            if(isQueued === true){
+                _closure.subs = [];
+            }
+        };
+      
+        f.subscribe = function(callback,instance){
+            if(callback == f) throw 'Recursive event subscription on ' + fname(instance.constructor) + ' "' + fname(callback)+'"';
+            return _multicastSubscribe.call(f,_closure,callback,instance);
+        };
+      
+        f.unsubscribe = function(callback){
+            return _multicastUnsubscribe.call(f,_closure,callback);
+        };
+
+        f.dispose = function(){
+            return _multicastDispose(_closure);
+        };
+
+        f.subscribers = function(){
+            return _closure.subs.length;  
+        };
       return f;
     }
 
@@ -180,38 +203,38 @@ function(inheritance,sync,util){
     }
 
 
-    /**
-    */
     function _attach(instance,events){
-      var keys = Object.keys(events);
-      for(var key in  keys){
-        var evt = events[keys[key]];
-        if(!evt) {
-          throw 'Invalid event property ' + keys[key] + ':' + evt;
+        if(events instanceof BaseEvent){
+            var e = events.attach(instance, null);
+            e.__sjs_event__ = true;
+            e.__sjs_owner__ = instance;
+            return e;
         }
-        if(!(evt instanceof BaseEvent) ) {
-          throw 'Invalid event property ' + keys[key] + ':' + fname(evt.constructor) + ' does not implement "attach(object, string)" function';
-        }
-        var e = evt.attach(instance, keys[key]);
-        e.__sjs_event__ = true;
-        e.__sjs_owner__ = instance;
 
-      }
-      return instance;
+        var keys = Object.keys(events);
+        for(var key in  keys){
+            var evt = events[keys[key]];
+            if(!evt) {
+                throw 'Invalid event property ' + keys[key] + ':' + evt;
+            }
+            if(!(evt instanceof BaseEvent) ) {
+                throw 'Invalid event property ' + keys[key] + ':' + fname(evt.constructor) + ' does not implement "attach(object, string)" function';
+            }
+            
+            var e = evt.attach(instance, keys[key]);
+            e.__sjs_event__ = true;
+            e.__sjs_owner__ = instance;
+        }
+        return instance;
     }
 
-
-
-    /*
-        ------------------------------------------------------------------------------
-        Exports
-    */
-return {    
-  BaseEvent:BaseEvent,
-  attach:_attach,
-  createMulticastRunner: _createMulticastEvent,
-  createUnicastRunner:_createUnicastEvent,
-  MulticastEvent:new MulticastEvent(),
-  UnicastEvent:new UnicastEvent()    
-};
+    return {    
+        BaseEvent: BaseEvent,
+        attach: _attach,
+        createMulticastRunner: _createMulticastEvent,
+        createUnicastRunner: _createUnicastEvent,
+        MulticastEvent: new MulticastEvent(),
+        MulticastQueueEvent : new MulticastQueueEvent(),
+        UnicastEvent: new UnicastEvent()    
+    };
 });

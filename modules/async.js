@@ -198,6 +198,8 @@ return {
 	loop:asyncLoop,
     iterator:asyncIterator,
     run:execute,
+    lapse:function(fn){execute(fn,16)},      //delay 1/60s ~ 16.7ms x 1frame
+    soon:function(fn){execute(fn,4*16)},    //delay 1/60s ~ 16.7ms x 4frames
     defer:defer
 }
 
