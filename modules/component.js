@@ -144,7 +144,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         
         component.prototype = controller.prototype;
         component.is = function(type){
-            if(type.constructor ==  vm.prototype.constructor)
+            if(type.constructor ==  controller.prototype.constructor)
             if(type._templateName_ == templateName ) return true;
         }
         return component;
@@ -550,14 +550,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
         var instance = this.templateInstances[key];
         if(instance == null){
-            var target = null;
-            for(var i=0; i < templates.length; i++){
-                if(templates[i].key == key){
-                    target = templates[i];
-                    break;
-                }
-            }
-
+            var target = templates[key];
             if(!target) return;
             instance = target.getInstance(this);
             this.templateInstances[key] = instance;
@@ -715,7 +708,6 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             function(value){
                 style.opacity = value * 0.1 / 10;
             })]);  
-
         }
         return animation;
     }
