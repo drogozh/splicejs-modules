@@ -180,26 +180,33 @@ function(inheritance,sync,util){
     }
 
 
-    /**
-    */
     function _attach(instance,events){
-      var keys = Object.keys(events);
-      for(var key in  keys){
-        var evt = events[keys[key]];
-        if(!evt) {
-          throw 'Invalid event property ' + keys[key] + ':' + evt;
+        if(events instanceof BaseEvent){
+            var e = events.attach(instance, null);
+            e.__sjs_event__ = true;
+            e.__sjs_owner__ = instance;
+            return e;
         }
-        if(!(evt instanceof BaseEvent) ) {
-          throw 'Invalid event property ' + keys[key] + ':' + fname(evt.constructor) + ' does not implement "attach(object, string)" function';
-        }
-        var e = evt.attach(instance, keys[key]);
-        e.__sjs_event__ = true;
-        e.__sjs_owner__ = instance;
 
-      }
-      return instance;
+        var keys = Object.keys(events);
+        for(var key in  keys){
+            var evt = events[keys[key]];
+            if(!evt) {
+                throw 'Invalid event property ' + keys[key] + ':' + evt;
+            }
+            if(!(evt instanceof BaseEvent) ) {
+                throw 'Invalid event property ' + keys[key] + ':' + fname(evt.constructor) + ' does not implement "attach(object, string)" function';
+            }
+            
+            var e = evt.attach(instance, keys[key]);
+            e.__sjs_event__ = true;
+            e.__sjs_owner__ = instance;
+        }
+        return instance;
     }
 
+    
+    
 
 
     /*
