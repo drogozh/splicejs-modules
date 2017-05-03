@@ -699,6 +699,47 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         return this;
     }
 
+        /**
+     * Returns true if component is attached to display tree
+     */
+    ComponentBase.prototype.isVisible = function(){
+        if(!this.node) return false;
+        var parent = this.node.parentNode;
+        var visRoot = doc.visualRoot();
+
+        var scroll = {
+            top:0,
+            left:0
+        };
+
+        var offset = {
+            top:this.node.offsetTop,
+            left:this.node.offsetLeft
+        };
+
+        while(parent != null) {
+            console.log('scroll: ' + parent.scrollTop);
+            
+            //offset positions
+            offset.top += parent.offsetTop;
+            offset.left +=
+
+            
+            // scroll positions
+            scroll.top+= (parent.scrollTop ? parent.scrollTop : 0);
+            scroll.left+= (parent.scrollLeft ? parent.scrollLeft : 0);
+                      
+            if(parent == visRoot) break;
+            parent = parent.parentNode;
+        }
+        // no visual root was found, component is detached
+        if(parent == null) return false;
+
+        // get the component box and 
+        // calculate for scroll positions
+        var box = Element.box(this.node);
+    };
+
     /**
      * 
      */
