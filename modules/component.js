@@ -506,8 +506,11 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             this.onDisplay();
         }).bind(this),1);
         return this;
-    }
+    };
        
+    ComponentBase.prototype.isAttached = function(){
+        return this._state_.display == DISPLAY_TRUE;
+    };
 
     /**
      * Append content child and a content location
