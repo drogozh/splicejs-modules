@@ -168,6 +168,18 @@ var DragAndDrop =
     }
 };
 
+function _disableSelection(element){
+    element.onselectstart = function() {return false;};
+    element.unselectable = "on";
+    element.style.MozUserSelect = "none";
+}
+
+function _enableSelection(element){
+    element.onselectstart = null;
+    element.unselectable = "off";
+    element.style.MozUserSelect = "all";    
+}
+
 /**
  *      Global KeyListener
  *
@@ -200,7 +212,9 @@ var KeyListener = Class(function KeyListener(){
 return {
     DragAndDrop: DragAndDrop,
     KeyListener: KeyListener,
-    Positioning: Positioning
+    Positioning: Positioning,
+    DisableSelection: _disableSelection,
+    EnableSelection: _enableSelection
 }
 
 });
