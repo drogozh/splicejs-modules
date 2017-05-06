@@ -563,18 +563,6 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         var currentParentNode = this.node.parentNode;
         var selfNode = this.node.parentNode;
 
-        // migrate included components
-        // todo: do something with this nested loop
-        utils.foreach(current.children,function(from){
-            utils.foreach(instance.children,function(child){
-                if(child.includeArgs.name != from.includeArgs.name) return;
-                //do replacement here
-                from.component.node.parentNode.replaceChild(from.anchor, from.component.node);
-                child.component = from.component;
-                child.anchor.parentNode.replaceChild(from.component.node, child.anchor);
-            })
-        });
-
         // migrate elements from current to the new instance
         utils.foreach(current.elements, function(from,key){
             var te = instance.elements[key];
@@ -587,6 +575,28 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             _swapElements(from,te);
         });
 
+
+        // migrate included components
+        // todo: do something with this nested loop
+        utils.foreach(current.children,function(from){
+            utils.foreach(instance.children,function(child){
+                if(child.includeArgs.name != from.includeArgs.name) return;
+                // check if component is already migrated
+                if(_findParentInstance(from.component.node, instance.node)){
+                    return;
+                }
+
+                if(!from.component.node.parentNode) {
+                    return;
+                }
+
+                //do replacement here
+                from.component.node.parentNode.replaceChild(from.anchor, from.component.node);
+                child.component = from.component;
+                child.anchor.parentNode.replaceChild(from.component.node, child.anchor);
+            })
+        });
+
         this._active_template_ = key;
         
         this.node.parentNode.replaceChild(instance.node,this.node);
@@ -594,6 +604,14 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     };
 
     
+    function _findParentInstance(source,parent){
+        while(source){
+            if(source == parent) return true;
+            source = source.parentNode;
+        }
+        return false;
+    }
+
     function _swapElements(e1,e2){
         var cursor = document.createElement('span');
         var p1 = e1.node.parentNode;
