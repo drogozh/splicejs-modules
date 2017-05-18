@@ -68,6 +68,20 @@ function foreach(collection,callback){
     }    
 }
 
+function _filter(collection,callback){
+    if(!collection) return;
+	var	keys = Object.keys(collection)
+    ,   idx= 0;
+    var out = [];
+    for(var key in keys ){
+        var result = callback(collection[keys[key]],keys[key],idx++);
+        if(result != null) {
+            out.push(result);
+        }
+    }    
+    return out;
+}
+
 function max(collection,callback,min){
     if(!collection) return min;
 	var	keys = Object.keys(collection)
@@ -226,6 +240,7 @@ return {
     ext:fileExt,
     Namespace:Namespace,
     foreach:foreach,
+    filter:_filter,
     formany:formany,
     blend:blend,
     max:max,

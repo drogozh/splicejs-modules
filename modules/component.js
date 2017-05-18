@@ -548,6 +548,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
     
     ComponentBase.prototype.activateTemplate = function(key){
+        if(this._active_template_ == key) return;
         var templates = this.constructor._templates_;
         if(!templates) return;
 
@@ -565,6 +566,8 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
         // migrate elements from current to the new instance
         utils.foreach(current.elements, function(from,key){
+            if(key == 'root') return;
+            if(from._reflowMigrateIgnore) return;
             var te = instance.elements[key];
             _swapElements(from,te);
         });
@@ -701,17 +704,21 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     }
 
     ComponentBase.prototype.applyContent = function(content){
+        if(typeof content === 'string' || typeof content === 'number') {
+            this.set(content.toString());
+        }
         //its a keys content
-        if( !(content instanceof ComponentBase ) || 
-            content instanceof Array){
+        else if( content.constructor === Object.prototype.constructor ||
+                 content.constructor === Array.prototype.constructor){
             var keys = Object.keys(content);
             for(var i=0; i<keys.length; i++){
                 var l = keys[i];
                 var c = content[keys[i]];
                 this.set(c,l);
             }        
-        } else {
-            this.set(content.toString());
+        }         
+        else {
+            this.set(content);
         }
         this.onApplyContent(content); 
         return this;
@@ -1021,6 +1028,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         var node = element;
         // tamplate root
         elementMap['root'] = Element(node);
+        elementMap['root'].name = 'root';
         for(var i=-1; i <elementNodes.length; i++){
             if(i>-1)  node = elementNodes[i];
 
@@ -1034,6 +1042,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
                 if(elementMap[key]) throw 'Duplicate name map key ' + key;
                 
                 elementMap[key] = Element(node);
+                elementMap[key].name = key;
             }
         }
         return elementMap;
@@ -1345,7 +1354,6 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     };
 
     DocumentApplication.prototype.reflow =  function(x,y,w,h,b){
-        console.log(x);
         ComponentBase.prototype.reflow.call(this,x,y,w,h,b);
     };
 

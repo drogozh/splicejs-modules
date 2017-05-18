@@ -228,9 +228,18 @@ function(inheritance,sync,util){
         return instance;
     }
 
+
+    function _clear(instance, events) {
+        if(events instanceof BaseEvent) {
+            var e = events.clear(instance, null);
+            return e;
+        }
+    }
+
     return {    
         BaseEvent: BaseEvent,
         attach: _attach,
+        clear: _clear,
         createMulticastRunner: _createMulticastEvent,
         createUnicastRunner: _createUnicastEvent,
         MulticastEvent: new MulticastEvent(),

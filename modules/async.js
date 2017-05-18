@@ -165,10 +165,10 @@ define(function(){
             var observer = 
             this.worker({
                 result:this.priorResult,
-                ok:(function(arg){
+                ok:(function(){
                     this.isReady = true;
                     this.currentResult = 'ok';
-                    this.result = this.observer.ok(arg);
+                    this.result = this.observer.ok.apply(this.observer, arguments);
                     if(typeof(this.observer.complete) === 'function'){
                         this.observer.complete(this.result);
                     } 
@@ -177,10 +177,10 @@ define(function(){
                         this.next.invoke(this.result);
                     }
                 }).bind(this),
-                fail:(function(arg){
+                fail:(function(){
                     this.isReady = true;
                     this.currentResult = 'fail';
-                    this.result = this.observer.fail(arg);
+                    this.result = this.observer.fail.apply(this.observer, arguments);
                     if(typeof(this.observer.complete) === 'function'){
                         this.observer.complete(this.result);
                     } 

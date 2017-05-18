@@ -301,11 +301,18 @@ DomEvent.prototype.attach = function(instance, property){
     else 
         evt = Events.createUnicastRunner();
 
-
+    var self = this;
     var fn = evt;
     evt = function(e){
         if(!e) e = window.event;
-        cancelBubble(e);
+        if(self.stopPropagation) {
+            cancelBubble(e);
+        }
+        
+        if(self.stopDefault && e.preventDefault) {
+            e.preventDefault();
+        }
+
         setTimeout(function(){
             fn(this.args);
         }.bind({args:_domEventArgs(e)}),1);
@@ -349,9 +356,15 @@ var DomUnicastStopEvent = Class(function UnicastStopEvent(){
     this.stopPropagation = true;
 }).extend(DomEvent);
 
-var UnicastMouseDownEvent = Class(function UnicastMouseDownEvent(){
+
+/**
+ * MouseDown-like even supporting touch interractions
+ * */
+var UnicastMouseDownEvent = Class(function UnicastMouseDownEvent(isCapture, isStopDefault){
     this.base();
-    this.stopPropagation = true;
+    this.stopPropagation = isCapture;
+    this.stopDefault = isStopDefault;
+
 }).extend(DomEvent);
 
 UnicastMouseDownEvent.prototype.attach = function(instance, property) {
@@ -360,6 +373,12 @@ UnicastMouseDownEvent.prototype.attach = function(instance, property) {
         property = 'ontouchstart';
     return DomEvent.prototype.attach.call(this,instance,property);
 };
+
+UnicastMouseDownEvent.prototype.mode = function(mode){
+   return new UnicastMouseDownEvent(mode.capture, mode.nodefault);
+};
+
+
 
 
 var UnicastClickEvent = Class(function UnicastClickEvent(){
@@ -420,20 +439,22 @@ function _domEventArgs(e){
  */
 var Element;
 var View = Element = function Element(dom){
-if(!(this instanceof View)){
-    return new View(dom);
-}
-if(typeof dom === 'string'){
-    this.htmlElement = (function(d){
-        var e = document.createElement('span');
-        e.innerHTML = d;
-        return e.children[0];
-    })(dom);
-} else
-    this.htmlElement = dom;
+    if(!(this instanceof View)){
+        return new View(dom);
+    }
+    if(typeof dom === 'string'){
+        this.htmlElement = (function(d){
+            var e = document.createElement('span');
+            e.innerHTML = d;
+            return e.children[0];
+        })(dom);
+    } else
+        this.htmlElement = dom;
 
-this.node = this.htmlElement;
-_buildClassMap.call(this);
+    this.node = this.htmlElement;
+    _buildClassMap.call(this);
+
+    this._reflowMigrateIgnore = this.node.getAttribute('sjs-reflow-migrate-ignore');
 };
 
 
@@ -493,7 +514,8 @@ Element.prototype.appendClass = function(className){
 };
 
 Element.prototype.addClass = function(name){
-    if(this.classMap[name]) return;
+    // class map index could 0, check for null
+    if(this.classMap[name] != null) return;
     this.appendClass(name);
 };
 
