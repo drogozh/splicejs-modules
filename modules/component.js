@@ -567,8 +567,11 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         // migrate elements from current to the new instance
         utils.foreach(current.elements, function(from,key){
             if(key == 'root') return;
-            if(from._reflowMigrateIgnore) return;
             var te = instance.elements[key];
+            if(from._reflowMigrateIgnore) { 
+                te.swap(from);                
+                return;
+            }
             _swapElements(from,te);
         });
 

@@ -491,6 +491,18 @@ Element.prototype.removeClass = function(className){
     return this;
 } 
 
+Element.prototype.swap = function(element){
+    var node = this.node;
+    
+    this.node = element.node;
+    this.htmlElement = element.node;
+    _buildClassMap.call(this);
+
+    element.node = node;
+    element.htmlElement = node;
+    _buildClassMap.call(element);
+};
+
 Element.prototype.replaceClass = function(oldClass, newClass){
     if(newClass === undefined || newClass === null) {
         newClass = '';
