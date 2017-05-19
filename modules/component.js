@@ -572,12 +572,19 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
                 te.swap(from);                
                 return;
             }
-            _swapElements(from,te);
+            _swapElements(from,te); // dom swap
         });
 
         // migrate content
+        
         utils.foreach(current.content,function(from,key){
             var te = instance.content[key];
+            // when content is also an element
+            //detect migration and ignore
+            if(_findParentInstance(from.node, instance.node)) { 
+                 //te.swap(from);      
+                return;
+            }
             _swapElements(from,te);
         });
 
@@ -604,8 +611,11 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         });
 
         this._active_template_ = key;
-        
-        this.node.parentNode.replaceChild(instance.node,this.node);
+
+        // component might have been detached from the dom
+        if(this._state_.display > 0) {
+            this.node.parentNode.replaceChild(instance.node,this.node);
+        }
         this.node = instance.node;
     };
 
