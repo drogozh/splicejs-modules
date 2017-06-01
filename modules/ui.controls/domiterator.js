@@ -22,7 +22,8 @@ define([
         
         // important! attach event before binding resolution takes place
         event.attach(this,{
-            onItemSelected : event.MulticastEvent
+            onItemSelected : event.MulticastEvent,
+            onItem : event.UnicastEvent
         });
         
         this.resolve();
@@ -83,8 +84,10 @@ define([
                 this.itemBuffer.push(cmp);
                 this.contentType = cmp.constructor;
             }
+
             // record item type, ideally this should be done once
             cmp.applyContent(_convert.call(this,data[keys[i]]));
+            this.onItem(cmp);
         }
 
         //difference
