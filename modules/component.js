@@ -165,7 +165,11 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
             if(animation) animation.animate();
 
-            child.onDisplay();
+            setTimeout((function(){
+                child.onAttach();
+                child.onDisplay();
+            }).bind(this),1);
+
         }, 
         detachChild:function(child){
             document.body.removeChild(child.node);
