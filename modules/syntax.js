@@ -1,6 +1,6 @@
 define(
 [
-	'/{splice.modules}/util.js'
+	'{splice.modules}/util.js'
 ],	
 function(utils){
 

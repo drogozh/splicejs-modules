@@ -1,7 +1,7 @@
 define([
-  {Inheritance  :'/{splice.modules}/inheritance.js',
-  Events        :'/{splice.modules}/event.js',
-  Util          :'/{splice.modules}/util.js'}
+  {Inheritance  :'{splice.modules}/inheritance.js',
+  Events        :'{splice.modules}/event.js',
+  Util          :'{splice.modules}/util.js'}
 ],function(imports){
   "use strict";
   

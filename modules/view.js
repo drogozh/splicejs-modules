@@ -1,10 +1,10 @@
 define([
     'loader',
     { 
-        Inheritance : '/{splice.modules}/inheritance',
-        Syntax 		: '/{splice.modules}/syntax',
-        Document  	: '/{splice.modules}/document',
-        Events		: '/{splice.modules}/event'
+        Inheritance : '{splice.modules}/inheritance',
+        Syntax 		: '{splice.modules}/syntax',
+        Document  	: '{splice.modules}/document',
+        Events		: '{splice.modules}/event'
     }
 ],function(loader, imports){
  	"use strict";
