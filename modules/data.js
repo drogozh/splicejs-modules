@@ -923,10 +923,67 @@ function _objectToMap(onitem){
     }
 
 
+    function CircularBuffer(size){
+        this._size = size;
+        this._count = 0;
+        this._head = -1;
+        this._buffer = [];
+    }
+
+    CircularBuffer.prototype.add = function(item) {
+        this._buffer[++this._head % this._size] = item;
+        this._count++;
+        if(this._count > this._size) this._count = this._size;
+    };
+
+    CircularBuffer.prototype.iterator = function(item) {
+        var self = this;
+        var state = { 
+            start : 0,
+            position:0,
+        };
+
+        function _start(dir){
+            if(dir == -1) {
+                return this._head;
+            }
+            return this._count >= this._size ? (this._head + 1  % this._size) : 0;
+        }
+
+        function _move(dir){
+            if(dir == -1 ) {
+                return (self._count + state.start + -1*state.position++) % self._count;
+            }
+            return (state.start + state.position++) % self._count;
+        }
+
+        return ({
+            _direction:1,
+            hasNext:function() {
+                if(state.position < self._count) return true;
+                return false;
+            },
+            next:function() {
+                var idx = _move(this._direction);
+                return self._buffer[idx];                
+            },
+            reset:function() {
+                state.position = 0;
+                state.start = _start.call(self,this._direction);
+                return this;
+            },
+            invert:function(){
+                this._direction *= -1;
+                return this.reset();
+            }
+        }).reset();
+    };
+
     return {
         data:data,
         DataStep:DataStep,
         FilterableHierarchy:FilterableHierarchy,
+        CircularBuffer : CircularBuffer,
         compare: {'default':defaultComparator}
     }
 
