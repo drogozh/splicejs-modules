@@ -176,6 +176,21 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         }
     };
 
+    /** 
+     *  Component event pool 
+     * 
+     */
+    
+    function ComponentEventMap(){
+
+    }
+    
+    ComponentEventMap.prototype = {
+        onLoaded:function(callback, instance){
+            return this;
+        }
+    };
+
 
     /**
      * Base Component
@@ -195,7 +210,6 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     ComponentBase.prototype.onChildDisplay =
     ComponentBase.prototype.onDispose =
     ComponentBase.prototype.onApplyContent = 
-
     ComponentBase.prototype.onResize  = function(){};
 
 
@@ -313,9 +327,13 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         if(this._state_.display == DISPLAY_DELAYED) this.display(); 
     }
 
-    ComponentBase.prototype.when = function(queueName){
-        return function(callback){
-        }
+    ComponentBase.prototype.when = function(evtName, callback, instance){
+        return this._eventMap_ || new ComponentEventMap();
+
+        // var evt = this._eventMap_[evtName];
+        // if(!evt) {
+        //     evt = this._eventMap_[evtName] = _attachEvent(evtName);
+        // }
     };
 
     function _processCssArguments(args){
