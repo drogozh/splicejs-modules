@@ -184,23 +184,42 @@ define([
     httpGet.poll = function(request){
         var httpRequest = new HttpRequest(request);
         var interval = request.interval || 1000;
-        return function(observer){
+        return function(observer) {
+            var _monitor = {  active:true };
+
             var fn = function() {
                 var url = request.url;
                 if(request.nocache === true){
                       url += '?'+Math.floor(Math.random() * 100000) + '' + Math.floor(Math.random() * 100000);
                 }
-                return _send.call(httpRequest, url, {
+                _send.call(httpRequest, url, {
                     ok:observer.ok,
                     fail:observer.fail,
                     complete:function() {
-                        if(typeof(observer.complete) == 'function')
+                        if(typeof(observer.complete) == 'function') {
                             observer.complete();
-                        setTimeout(fn, interval);
+                        }
+                        if(_monitor.active === true) {    
+                            setTimeout(fn, interval);
+                        }
                     }
                 },'GET');
             }
-            return fn(observer);
+
+            var control = {
+                stop : function(){
+                    _monitor.active = false;
+                    return this;
+                },    
+                resume:function(){
+                    _monitor.active = true;
+                    fn(observer);
+                    return this;
+                }
+            };
+
+            fn(observer);
+            return control;
         }
     };
 
