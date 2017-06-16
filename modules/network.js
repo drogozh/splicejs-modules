@@ -46,20 +46,20 @@ define([
         this.transport.abort();
     }
 
-    function _send(observer,verb){
+    function _send(url, observer,verb){
         this._observer = observer;
         this._requestTimeOut = {};
         
         if(verb == 'GET' && this._data){
-            if(/\?/.test(this._url)) {
-                this._url = this._url + '&' + this._data;    
+            if(/\?/.test(url)) {
+                url = url + '&' + this._data;    
             } else {
-                this._url = this._url + '?' + this._data;
+                url = url + '?' + this._data;
             } 
         }
 
         //start request
-        this.transport.open(verb, this._url);
+        this.transport.open(verb, url);
 
         // apply request headers
         var keys = Object.keys(this._headers);
@@ -81,8 +81,6 @@ define([
                 observer.complete();
             }
         }).bind(this), REQUEST_TIMEOUT);   
-
-
         return this;
     }
 
@@ -90,15 +88,11 @@ define([
     function _prepareData(request){
         if(!request.data) return;
         switch(request.type) {
-
             case REQUEST_TYPES.FORM:
             case REQUEST_TYPES.TEXT:            
                 return _formData(request.data);
-            break;
-
             case REQUEST_TYPES.JSON:
                 return JSON.stringify(request.data);
-            break;
         }
     }
 
@@ -132,8 +126,7 @@ define([
             break;
         
             default:
-            throw "Unsupported request type: " + request.type;
-            break;
+                throw "Unsupported request type: " + request.type;
         }
         return headers;
     }
@@ -177,16 +170,39 @@ define([
 	function httpPost(request) {
         var httpRequest= new HttpRequest(request);
         return function(observer){
-            return _send.call(httpRequest,observer,'POST');
+            return _send.call(httpRequest, request.url, observer,'POST');
         }
 	}
 
 	function httpGet(request){
         var httpRequest= new HttpRequest(request);
         return function(observer){
-            return _send.call(httpRequest, observer,'GET');
+            return _send.call(httpRequest, request.url, observer,'GET');
         }
 	}
+
+    httpGet.poll = function(request){
+        var httpRequest = new HttpRequest(request);
+        var interval = request.interval || 1000;
+        return function(observer){
+            var fn = function() {
+                var url = request.url;
+                if(request.nocache === true){
+                      url += '?'+Math.floor(Math.random() * 100000) + '' + Math.floor(Math.random() * 100000);
+                }
+                return _send.call(httpRequest, url, {
+                    ok:observer.ok,
+                    fail:observer.fail,
+                    complete:function() {
+                        if(typeof(observer.complete) == 'function')
+                            observer.complete();
+                        setTimeout(fn, interval);
+                    }
+                },'GET');
+            }
+            return fn(observer);
+        }
+    };
 
 
     /**
