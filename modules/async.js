@@ -240,7 +240,7 @@ define(function(){
                     case PROMISE_STATE.REJECTED:
                         _result = _isfn(onRejected) ? onRejected(result) : null;
                         if(_result instanceof _Promise) {
-                            _result.reject(resolve);
+                            _result.catch(reject);
                             return;        
                         }
                         reject(_result !=null ? _result : result);
@@ -258,7 +258,16 @@ define(function(){
                     _result.catch(resolve);
                     return;        
                 }
-                reject(_result != null ? _result : result);
+                // option - 1.
+                // break the catch chain if no rejection handler returns 
+                // no result
+                if(_result != null) { 
+                    reject(_result);
+                }
+                // option - 2.
+                // continue rejection propagation dow the catch chain
+                // event if no rejection handler result is available 
+                //reject(_result != null ? _result : result);
             })
         }).bind(this));
     };
