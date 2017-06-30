@@ -1,6 +1,10 @@
 define(function(){
 
-//todo: add loop JOIN method to put them on the same timer
+    function _isfn(value) {
+        return typeof value === 'function'
+    }
+
+    //todo: add loop JOIN method to put them on the same timer
     function loop(from, to, pageSize, pageTimeOut, oncallback, oncomplete, onpage){
 		var page_size = 20
 		,	length = 0
@@ -194,13 +198,95 @@ define(function(){
         }
     };
 
+    var PROMISE_STATE = {
+        PENDING :   1,
+        FULFILLED:  2,
+        REJECTED:   3
+    };
+
+  
+    function _Promise(worker) {
+        this._state = PROMISE_STATE.PENDING;
+        this._result = null;
+
+        worker(
+            (function resolve(result) {
+                this._state = PROMISE_STATE.FULFILLED;
+                this._result = result;
+                if(_isfn(this._handler))
+                    this._handler(this._result, this._state);
+            }).bind(this), 
+            (function reject(reason) {
+                this._state = PROMISE_STATE.REJECTED;
+                this._result = reason;
+                if(_isfn(this._handler))
+                    this._handler(this._result, this._state);
+            }).bind(this)
+        );
+    }
+
+    _Promise.prototype.then = function then(onFulfilled, onRejected) {
+        return new _Promise((function(resolve, reject) {
+           this._handler = _handle_promise.call(this,function(result, state) {
+                var _result = null; 
+                switch(state){
+
+                    case PROMISE_STATE.FULFILLED:
+                        _result = onFulfilled(result);
+                        if(_result instanceof _Promise) {
+                            _result.then(resolve);
+                            return;        
+                        }
+                        resolve(_result);
+                        break;
+                    
+                    case PROMISE_STATE.REJECTED:
+                        _result = _isfn(onRejected) ? onRejected(result) : null;
+                        if(_result instanceof _Promise) {
+                            _result.reject(resolve);
+                            return;        
+                        }
+                        reject(_result ? _result : result);
+                        break;
+                }
+            })
+        }).bind(this));
+    };
+
+    _Promise.prototype['catch'] = function (onRejected) {
+       return new _Promise((function(resolve, reject) {
+           this._handler = _handle_promise.call(this,function(result, state) {
+                var _result = onRejected(result);
+                if(_result instanceof _Promise) {
+                    _result.catch(resolve);
+                    return;        
+                }
+                reject(_result ? _result : result);
+            })
+        }).bind(this));
+    };
+
+    function _handle_promise(callback) {
+        if(this._state != PROMISE_STATE.PENDING ) {
+            callback(this._result, this._state);
+            return;
+        }
+        return callback;
+    }
+
+
+
+
 return {
 	loop:asyncLoop,
     iterator:asyncIterator,
     run:execute,
     lapse:function(fn){execute(fn,16)},      //delay 1/60s ~ 16.7ms x 1frame
     soon:function(fn){execute(fn,4*16)},    //delay 1/60s ~ 16.7ms x 4frames
-    defer:defer
+    defer: defer,
+    promise: function(worker) {
+        return new _Promise(worker);
+    }
 }
 
 
