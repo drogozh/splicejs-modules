@@ -5,9 +5,9 @@ define(function(){
     }
 
     //todo: add loop JOIN method to put them on the same timer
-    function loop(from, to, pageSize, pageTimeOut, oncallback, oncomplete, onpage){
+    function _loop(from, to, pageSize, pageTimeOut, oncallback, oncomplete, onpage){
 		var page_size = 20
-		,	length = 0
+		,   length = 0
         ,   page_time_out = 1;
 
         var length = to - from + 1;
@@ -45,12 +45,12 @@ define(function(){
     function asyncLoop(from, to, pageSize, pageTimeOut){
         return {
             for:function(oncallback,oncomplete,onpage){
-               loop(from, to, pageSize, pageTimeOut, oncallback, oncomplete, onpage);
+               _loop(from, to, pageSize, pageTimeOut, oncallback, oncomplete, onpage);
             }
         }
     }
 
-    function peek(stack){
+    function _peek(stack){
         var frame = stack[stack.length-1];
         if(!frame) return {node:null, n:-1};
         return {
@@ -63,9 +63,9 @@ define(function(){
      * oncallback(currenNode, parentNode, currentNodeId, parentNodeId)
      * 
      */
-    function Iterator(obj, children, oncallback, pageSize, delay,oncomplete,onpage){
+    function Iterator(obj, children, oncallback, pageSize, delay, oncomplete, onpage){
         if(!delay || delay <= 0 ) delay  = 1;
-        if(!pageSize || pageSize <=0 ) pageSize = 10000;
+        if(!pageSize || pageSize <= 0 ) pageSize = 10000;
         
         this.frameStack = [];
 
@@ -90,7 +90,7 @@ define(function(){
                 }
                 
                 var key = p.f.keys[p.f.count];
-                var pk = peek(frameStack)
+                var pk = _peek(frameStack)
                 oncallback(p.f.obj[key],pk.node,p.n,pk.id);
                 p.f.id = p.n;
                 p.f.count++;
@@ -124,10 +124,6 @@ define(function(){
         this._stop = true;    
     }
 
-    /** 
-     * 
-     * 
-     */
     function asyncIterator(obj){
         return {
             for:function(){},
@@ -142,7 +138,6 @@ define(function(){
         if(delay == null || delay <= 0) delay = 1;
         setTimeout(fn,delay);
     }
-
     
     // Chained Promise-like deffered execution
     function defer(worker,observer){
@@ -203,7 +198,6 @@ define(function(){
         FULFILLED:  2,
         REJECTED:   3
     };
-
   
     function _Promise(worker) {
         this._state = PROMISE_STATE.PENDING;
@@ -227,7 +221,7 @@ define(function(){
 
     _Promise.prototype.then = function then(onFulfilled, onRejected) {
         return new _Promise((function(resolve, reject) {
-           this._handler = _handle_promise.call(this,function(result, state) {
+           this._handler = _handlePromise.call(this,function(result, state) {
                 var _result = null; 
                 switch(state){
 
@@ -255,7 +249,7 @@ define(function(){
 
     _Promise.prototype['catch'] = function (onRejected) {
        return new _Promise((function(resolve, reject) {
-           this._handler = _handle_promise.call(this,function(result, state) {
+           this._handler = _handlePromise.call(this,function(result, state) {
                 var _result = onRejected(result);
                 if(_result instanceof _Promise) {
                     _result.catch(resolve);
@@ -266,7 +260,7 @@ define(function(){
         }).bind(this));
     };
 
-    function _handle_promise(callback) {
+    function _handlePromise(callback) {
         if(this._state != PROMISE_STATE.PENDING ) {
             callback(this._result, this._state);
             return;
@@ -274,20 +268,19 @@ define(function(){
         return callback;
     }
 
-
-
-
-return {
-	loop:asyncLoop,
-    iterator:asyncIterator,
-    run:execute,
-    lapse:function(fn){execute(fn,16)},      //delay 1/60s ~ 16.7ms x 1frame
-    soon:function(fn){execute(fn,4*16)},    //delay 1/60s ~ 16.7ms x 4frames
-    defer: defer,
-    promise: function(worker) {
-        return new _Promise(worker);
+    return {
+        loop: asyncLoop,
+        iterator: asyncIterator,
+        run: execute,
+        lapse: function(fn) { 
+            execute(fn,16);    // delay 1/60s ~ 16.7ms x 1frame 
+        },      
+        soon: function(fn) { 
+            execute(fn,4*16)   // delay 1/60s ~ 16.7ms x 4frames
+        },    
+        defer: defer,
+        promise: function(worker) {
+            return new _Promise(worker);
+        }
     }
-}
-
-
 });
