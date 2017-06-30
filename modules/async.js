@@ -193,12 +193,16 @@ define(function(){
         }
     };
 
+    // Promise (like) object
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise
+    // supports only prototype methods, static APIs as described in the MDN reference is not included
+
     var PROMISE_STATE = {
         PENDING :   1,
         FULFILLED:  2,
         REJECTED:   3
     };
-  
+    
     function _Promise(worker) {
         this._state = PROMISE_STATE.PENDING;
         this._result = null;
@@ -224,7 +228,6 @@ define(function(){
            this._handler = _handlePromise.call(this,function(result, state) {
                 var _result = null; 
                 switch(state){
-
                     case PROMISE_STATE.FULFILLED:
                         _result = onFulfilled(result);
                         if(_result instanceof _Promise) {
@@ -240,7 +243,7 @@ define(function(){
                             _result.reject(resolve);
                             return;        
                         }
-                        reject(_result ? _result : result);
+                        reject(_result !=null ? _result : result);
                         break;
                 }
             })
@@ -255,7 +258,7 @@ define(function(){
                     _result.catch(resolve);
                     return;        
                 }
-                reject(_result ? _result : result);
+                reject(_result != null ? _result : result);
             })
         }).bind(this));
     };
