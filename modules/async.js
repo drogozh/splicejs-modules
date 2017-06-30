@@ -259,7 +259,7 @@ define(function(){
                     return;        
                 }
                 // option - 1.
-                // break the catch chain if no rejection handler returns 
+                // break the catch chain if rejection handler returns 
                 // no result
                 if(_result != null) { 
                     reject(_result);
