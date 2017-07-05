@@ -231,7 +231,7 @@ define(function(){
                     case PROMISE_STATE.FULFILLED:
                         _result = onFulfilled(result);
                         if(_result instanceof _Promise) {
-                            _result.then(resolve);
+                            _result.then(resolve, reject);
                             return;        
                         }
                         resolve(_result);
@@ -253,9 +253,12 @@ define(function(){
     _Promise.prototype['catch'] = function (onRejected) {
        return new _Promise((function(resolve, reject) {
            this._handler = _handlePromise.call(this,function(result, state) {
+                // fire handler only on rejected state
+                if(state != PROMISE_STATE.REJECTED) return;
+                
                 var _result = onRejected(result);
                 if(_result instanceof _Promise) {
-                    _result.catch(resolve);
+                    _result.catch(reject);
                     return;        
                 }
                 // option - 1.
