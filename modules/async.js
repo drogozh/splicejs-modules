@@ -10,7 +10,7 @@ define(function(){
 		,   length = 0
         ,   page_time_out = 1;
 
-        var length = to - from + 1;
+        var length = Math.abs(to - from) + 1;
 
 		if(pageSize) page_size = pageSize;
         if(pageTimeOut) page_time_out = pageTimeOut;
@@ -20,7 +20,9 @@ define(function(){
 
 		var fn = function(){
 			if(count.p >=  pages) {
-				if(typeof oncomplete === 'function' ) oncomplete();
+				if(typeof oncomplete === 'function' ) {
+                    oncomplete(p.count);
+                }
 				return;
 			}
 			var start = from + page_size * count.p
@@ -44,8 +46,14 @@ define(function(){
      */
     function asyncLoop(from, to, pageSize, pageTimeOut){
         return {
-            for:function(oncallback,oncomplete,onpage){
-               _loop(from, to, pageSize, pageTimeOut, oncallback, oncomplete, onpage);
+            for: function(oncallback, onpage) {
+                return new _Promise(function(resolve, reject) {
+                    try {
+                        _loop(from, to, pageSize, pageTimeOut, oncallback, resolve, onpage);
+                    } catch (ex) {
+                        reject(ex);
+                    }
+                });
             }
         }
     }
@@ -255,7 +263,7 @@ define(function(){
            this._handler = _handlePromise.call(this,function(result, state) {
                 // fire handler only on rejected state
                 if(state != PROMISE_STATE.REJECTED) return;
-                
+
                 var _result = onRejected(result);
                 if(_result instanceof _Promise) {
                     _result.catch(reject);
