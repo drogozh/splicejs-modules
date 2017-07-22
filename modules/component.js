@@ -304,6 +304,9 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         //5. process css arguments
         _processCssArguments.call(this,this._args.other.css);
 
+        //6. process style argument
+        _processStyleArguments.call(this,this._args.other.style);
+
         //notify view model
         this.onLoaded(this._args.other);
         this._args = null;
@@ -343,6 +346,16 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             root.appendClass(item);
         });
     }
+
+    function _processStyleArguments(args) {
+        if(!args) return;
+        var stl = this.elements.root.node.style;
+        var keys = Object.keys(args);
+        for(var i=0; i< keys.length; i++) {
+            stl[keys[i]] = args[keys[i]];
+        }
+    }
+
 
     function _subscribeToQueue(queueName, callback){
 
