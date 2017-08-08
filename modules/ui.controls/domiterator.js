@@ -23,13 +23,19 @@ define([
         // important! attach event before binding resolution takes place
         event.attach(this,{
             onItemSelected : event.MulticastEvent,
-            onItem : event.UnicastEvent
+            onItem : event.UnicastEvent,
+            onDataUpdated: event.MulticastEvent
         });
         
         this.resolve();
         
+        var rootElement = 'span';
+        if(args && args.rootElement) {
+            rootElement = args.rootElement;
+        }
+
         // template is cloned when loaded call is complete
-        this.loaded({default:new Template(document.createElement('span'))},scope);
+        this.loaded({default:new Template(document.createElement(rootElement))},scope);
 
         this.elements.root = new Element(this.node);
 
@@ -99,6 +105,8 @@ define([
             this.itemBuffer.splice(keys.length,1);
             cmp.detach();
         }
+
+        this.onDataUpdated(this.itemBuffer);
     };
 
     // private calls
