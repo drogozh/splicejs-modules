@@ -82,6 +82,30 @@ function _filter(collection,callback){
     return out;
 }
 
+function _isPrimitive(value){
+    return  typeof value == 'number' || 
+            typeof value == 'string' ||
+            typeof value == 'boolean';
+}
+
+function _unique(collection, callback){
+    if(!collection) return;
+	var	keys = Object.keys(collection)
+    ,   idx= 0
+    ,   out = []
+    ,   map = {};
+
+    for(var key in keys ){
+        var result = callback(collection[keys[key]],keys[key],idx++);
+        if(!_isPrimitive(result)) continue;
+        if(!map[result]) {
+            map[result] = true;
+            out.push(result);
+        }
+    }    
+    return out;
+}
+
 function max(collection,callback,min){
     if(!collection) return min;
 	var	keys = Object.keys(collection)
@@ -110,8 +134,6 @@ function formany(groups, callback){
         
     }
 }
-
-
 
 
 function trim(s){if(!s) return s;
@@ -244,6 +266,7 @@ return {
     formany:formany,
     blend:blend,
     max:max,
+    unique:_unique
 };
 
 });
