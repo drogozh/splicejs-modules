@@ -751,6 +751,15 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         return child;
     }
 
+   function _getValue(path, value) {
+        var parts = path.split('.');
+        for (var i = 0; i < parts.length; i++) {
+            value = value[parts[i]];
+            if (value == null) break;
+        }
+        return value;
+    }
+
     ComponentBase.prototype.applyContent = function(content){
         if(typeof content === 'string' || typeof content === 'number') {
             this.set(content.toString());
@@ -758,11 +767,12 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         //its a keys content
         else if( content.constructor === Object.prototype.constructor ||
                  content.constructor === Array.prototype.constructor){
-            var keys = Object.keys(content);
+            var keys = Object.keys(this.content);
             for(var i=0; i<keys.length; i++){
-                var l = keys[i];
-                var c = content[keys[i]];
-                this.set(c,l);
+                var key = keys[i];
+                var value = _getValue(key, content);
+                if(value == null) continue;
+                this.set(value,key);
             }        
         }         
         else {

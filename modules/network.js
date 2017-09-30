@@ -21,7 +21,7 @@ define([
     };
 
     // used to time and recognize request failure
-    var REQUEST_TIMEOUT = 5000;
+    var REQUEST_TIMEOUT = 10000;
 
     var HttpRequest = function HttpRequest(request){
         this.transport =  new XMLHttpRequest();
