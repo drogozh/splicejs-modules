@@ -378,9 +378,6 @@ UnicastMouseDownEvent.prototype.mode = function(mode){
    return new UnicastMouseDownEvent(mode.capture, mode.nodefault);
 };
 
-
-
-
 var UnicastClickEvent = Class(function UnicastClickEvent(){
     this.base();
     this.stopPropagation = true;
@@ -397,14 +394,16 @@ UnicastClickEvent.prototype.attach = function(instance){
         if(!e) e = window.event;
         cancelBubble(e);
         runner.touchStartTime = new Date().getTime();
+        runner.point = {x:e.pageX, y:e.pageY};
     };
     
     instance.ontouchend = function(e){
         if(!e) e = window.event;
         cancelBubble(e);
         var touchEnd = new Date().getTime();
-        console.log(touchEnd - runner.touchStartTime);
-        if (touchEnd - runner.touchStartTime < 100){
+        var distance = _distance(runner.point,{x:e.pageX, y:e.pageY});
+        //console.log(touchEnd - runner.touchStartTime);
+        if (touchEnd - runner.touchStartTime < 500 && distance <= 30){
             setTimeout(function(){
                 runner(this.args);
             }.bind({args:_domEventArgs(e)}),1);
@@ -412,6 +411,10 @@ UnicastClickEvent.prototype.attach = function(instance){
         runner.touchStartTime = 0;
     };
     return runner;
+}
+
+function _distance(p1,p2){
+    return Math.floor(Math.sqrt((p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y))); 
 }
 
 function cancelBubble(e){
