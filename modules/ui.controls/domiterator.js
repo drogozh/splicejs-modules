@@ -115,7 +115,7 @@ define([
         var source = component.locate.visual(args.source);
         // no item selected
         if(!item)  return;
-        this.onItemSelected(item,source);
+        this.onItemSelected(item,source,args.source);
     }
 
     // passthrough data if converter is not defined or convert

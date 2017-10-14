@@ -29,7 +29,7 @@ define([
 			onDateSelected : event.MulticastEvent
 		});
 
-		this.currentDate = new Date();
+		this.date = new Date();
 
 		if(args && args.format){
 			this.format = args.format;
@@ -52,23 +52,19 @@ define([
 	};
 
     DatePicker.prototype.onLoaded = function(){
-        var selector = this.components.selector;
-        var d = this.currentDate; 
-        if(this.format)
-            d = format('{0:'+this.format+'}',this.currentDate);
-        selector.set(d);
+        this.setDate(this.date);
     };
 
     //sets dates and will not trigger events
 	DatePicker.prototype.setDate = function (date) {
 	    if (!date) return;
-
+        this.date = date;
 		if (this.format) {
 	    	date = format('{0:' + this.format + '}', date);
 	    } else {
 			date = date.toString();
 		}
-		this.date = date;
+		
 		this.components.selector.set(date);
 	};
 
