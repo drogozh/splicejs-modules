@@ -2,12 +2,12 @@
 define([
 	
     'require',
-    '{splice.modules}/inheritance',
-    '{splice.modules}/component',
-    '{splice.modules}/event',
-    '{splice.modules}/view',
-    '{splice.controls}/themeprovider',
-    'preload|{splice.modules}/loader.css',
+    '../inheritance',
+    '../component',
+    '../event',
+    '../view',
+    'themeprovider',
+    'preload|../loader.css',
     '!buttons.css'
 
 ],function(require,inheritance,component,event,dom,styleProvider){

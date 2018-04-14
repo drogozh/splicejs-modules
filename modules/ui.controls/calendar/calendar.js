@@ -1,12 +1,12 @@
 define([
     'require', 'context', 'loader',
-    '{splice.modules}/inheritance',
-    '{splice.modules}/component',
-    '{splice.modules}/event',
-	'{splice.modules}/view',
+    'inheritance',
+    'component',
+    'event',
+	'view',
     '!calendar.css',
 	'!theme/default/theme.css',
-    'preload|{splice.modules}/loader.css'
+    'preload|loader.css'
 ],function(require,context,loader,inheritance,component,event,element){
 	"use strict"
 

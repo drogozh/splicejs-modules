@@ -1,13 +1,13 @@
 define([	
 	'require',
-	'{splice.modules}/inheritance',
-	'{splice.modules}/component',
-	'{splice.modules}/event',
-	'{splice.modules}/view',
-	'{splice.modules}/component.interaction',
-    '{splice.modules}/util',
-    '{splice.modules}/async',
-	'preload|{splice.modules}/loader.css',
+	'../inheritance',
+	'../component',
+	'../event',
+	'../view',
+	'../component.interaction',
+    '../util',
+    '../async',
+	'preload|../loader.css',
     '!gridlayout.css'
 
 ],function(require,inheritance,component,event,dom,interaction,utils,_async){

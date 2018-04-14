@@ -1,7 +1,7 @@
 define([	
     'require',
-    '{splice.modules}/event',
-    '{splice.modules}/loader.css'
+    '../event',
+    '../loader.css'
 ],function(require,event,loader){
 
     function ThemeProvider(){

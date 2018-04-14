@@ -1,10 +1,10 @@
 define([
 	'require',
-	'{splice.modules}/inheritance',
-	'{splice.modules}/component',
-	'{splice.modules}/event',
-	'{splice.modules}/component.interaction',
-	'preload|{splice.modules}/loader.css',
+	'../inheritance',
+	'../component',
+	'../event',
+	'../component.interaction',
+	'preload|../loader.css',
 	'!popup.css'
 ],function(require,inheritance,component,event,interaction){
     "use strict";

@@ -1,11 +1,11 @@
 define([
 
 	'require',
-	'{splice.modules}/inheritance',
-	'{splice.modules}/component',
-	'{splice.modules}/event',
-	'{splice.modules}/view',
-    '{splice.modules}/component.interaction',
+	'../inheritance',
+	'../component',
+	'../event',
+	'../view',
+    '../component.interaction',
     '!dropdown.css',
 ],
 function(require,inheritance,component,event,view,interaction){

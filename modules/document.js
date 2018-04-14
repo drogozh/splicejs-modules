@@ -1,7 +1,7 @@
 /* global sjs */
 define(
 [
-	'{splice.modules}/syntax.js'
+	'syntax.js'
 ],
 function(syntax){
     "use strict";

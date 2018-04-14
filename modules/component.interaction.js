@@ -1,6 +1,6 @@
 define([	
-    '{splice.modules}/inheritance',
-    '{splice.modules}/event'
+    'inheritance',
+    'event'
 ],function(inheritance, event){
 
 var Class = inheritance.Class

@@ -1,8 +1,8 @@
 /* global sjs */
 define([
-    '{splice.modules}/util',
-	'{splice.modules}/inheritance',
-    '{splice.modules}/async'
+    'util',
+	'inheritance',
+    'async'
 ],
 function(util,inheritance){
     "use strict";

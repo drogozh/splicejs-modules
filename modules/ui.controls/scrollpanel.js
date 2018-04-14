@@ -1,13 +1,13 @@
 define([
 
 	'require',
-	'{splice.modules}/inheritance',
-	'{splice.modules}/component',
-	'{splice.modules}/event',
-	'{splice.modules}/view',
-    '{splice.modules}/async',
-	'{splice.modules}/component.interaction',
-	'preload|{splice.modules}/loader.css',
+	'../inheritance',
+	'../component',
+	'../event',
+	'../view',
+    '../async',
+	'../component.interaction',
+	'preload|../loader.css',
 	'!scrollpanel.css'
 //todo:
 /*

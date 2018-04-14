@@ -1,12 +1,12 @@
 define([
 	'require',
     'loader',
-	'{splice.modules}/inheritance',
-	'{splice.modules}/component',
-	'{splice.modules}/event',
-	'{splice.modules}/view',
-    '{splice.modules}/async',
-    '{splice.modules}/dataitem'
+	'../inheritance',
+	'../component',
+	'../event',
+	'../view',
+    '../async',
+    '../dataitem'
 ],function(require,loader,inheritance,component,event,Element,_async,di){
 
 	var Class = inheritance.Class

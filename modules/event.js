@@ -1,9 +1,9 @@
 //todo: throw error on repeat attempts to subscribe to a unicast event
 define(
 [
-  '{splice.modules}/inheritance',
-  '{splice.modules}/async',
-  '{splice.modules}/util'
+  'inheritance',
+  'async',
+  'util'
 ],
 function(inheritance,sync,util){
     "use strict";

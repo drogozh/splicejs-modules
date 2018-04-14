@@ -1,16 +1,16 @@
 define([
     
 	'require',
-    '{splice.modules}/inheritance',
-    '{splice.modules}/component',
-    '{splice.modules}/event',
-    '{splice.modules}/view',
-	'{splice.modules}/text',
+    '../inheritance',
+    '../component',
+    '../event',
+    '../view',
+	'../text',
 	{
 		Calendar:'{splice.controls}/calendar/calendar',
 		Selectors:'dropdown'
 	},
-    'preload|{splice.modules}/loader.css'
+    'preload|../loader.css'
 
 ],function(require,inheritance,component,event,view,text,controls){
 	"use strict";

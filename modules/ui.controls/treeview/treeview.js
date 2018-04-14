@@ -1,14 +1,14 @@
 define([
     'require',
-    '{splice.modules}/inheritance',
-    '{splice.modules}/component',
+    'inheritance',
+    'component',
     {
-        ScrollPanel:'{splice.controls}/scrollpanel'
+        ScrollPanel:'scrollpanel'
     },
-    '{splice.modules}/async',
-    '{splice.modules}/event',
-    '{splice.modules}/view',
-    '{splice.controls}/themeprovider',
+    'async',
+    'event',
+    'view',
+    '/themeprovider',
     '!treeview.css',
 ],function(require,inheritance,component,controls,_async,event,Element){
 	

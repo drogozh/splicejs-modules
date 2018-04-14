@@ -1,16 +1,16 @@
 define(
 [
-	'preload|{splice.modules}/splice.component.module.extensions.js',
+	'preload|splice.component.module.extensions.js',
 	'require',
-	{ 	Utils 	 	: '{splice.modules}/splice.util.js',
-		Inheritance : '{splice.modules}/splice.inheritance.js',
-		Networking  : '{splice.modules}/splice.network.js',
-		Document    : '{splice.modules}/splice.document.js',
-		Syntax      : '{splice.modules}/splice.syntax.js',
-		Events      : '{splice.modules}/splice.event.js',
-		Views       : '{splice.modules}/splice.view.js',
-		Data        : '{splice.modules}/splice.dataitem.js',
-		Async       : '{splice.modules}/splice.async.js'},
+	{ 	Utils 	 	: 'splice.util.js',
+		Inheritance : 'splice.inheritance.js',
+		Networking  : 'splice.network.js',
+		Document    : 'splice.document.js',
+		Syntax      : 'splice.syntax.js',
+		Events      : 'splice.event.js',
+		Views       : 'splice.view.js',
+		Data        : 'splice.dataitem.js',
+		Async       : 'splice.async.js'},
 ],
 function(ext,require,imports){
 "use strict";

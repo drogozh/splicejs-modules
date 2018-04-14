@@ -1,6 +1,6 @@
 define([
     'loader',
-    '{splice.modules}/network.js',
+    'network.js',
 ],function(loader, network){
 
     var http = network.http
