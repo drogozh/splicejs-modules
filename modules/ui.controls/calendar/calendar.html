@@ -1,16 +1,17 @@
 <template sjs-name="Calendar">
-<div class="-splicejs-calendar" sjs-element="root">
+<div class="sjs-calendar" sjs-element="root">
 	<table class="grid" sjs-element="grid">
 		<tr class="controls">
-		<td colspan="7">
-		<div style="position:relative; width:100%;">
-			<div class="prev" sjs-element="previous"></div>
-			<div class="cl-current-date">
-				<div sjs-element="currentDate" sjs-content="currentDate">Month</div>
-			</div>
-			<div class="next" sjs-element="next"></div>
-		</div>
-		</td></tr>
+			<td colspan="7">
+				<div style="position:relative; width:100%;">
+					<div class="prev" sjs-element="previous"></div>
+					<div class="cl-current-date">
+						<div sjs-element="currentDate" sjs-content="currentDate">Month</div>
+					</div>
+					<div class="next" sjs-element="next"></div>
+				</div>
+			</td>
+		</tr>
 		<tr class="days">
 			<td>S</td>
 			<td>M</td>
@@ -20,12 +21,12 @@
 			<td>F</td>
 			<td>S</td>
 		</tr>
-		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-		<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+		<tr class="week"><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+		<tr class="week"><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+		<tr class="week"><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+		<tr class="week"><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+		<tr class="week"><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+		<tr class="week"><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
 	</table>
 </div>
 </template>

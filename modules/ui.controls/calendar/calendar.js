@@ -50,8 +50,7 @@ define([
 
 		var year 	= dt.getFullYear()
 		, 	month 	= dt.getMonth()
-		,		day 	= dt.getDate()
-
+		,	day 	= dt.getDate()
 		;
 
 		var monthFirst = new Date(year, month, 1, 0, 0, 0, 0);
@@ -195,7 +194,6 @@ define([
 			}
 	};
 	
-
     var scope = {};
 	
 	var	Class = inheritance.Class
@@ -204,7 +202,8 @@ define([
 	var Calendar = Class(function CalendarController(){
 	
 		event.attach(this,{
-			onDateSelected : event.MulticastEvent
+			onDateSelected: event.MulticastEvent,
+			onMonthChanged: event.UnicastEvent
 		});
 
 		var dt = new Date();
@@ -217,8 +216,17 @@ define([
 
 	}).extend(component.ComponentBase);
 
+	Calendar.prototype.onInit = function(args){
+		this.hideHeader = args.hideHeader;
+	};
+
 	Calendar.prototype.onLoaded = function(){
-		
+		if(this.hideHeader === true) {
+			this.elements.currentDate.hide();
+			this.elements.next.hide();
+			this.elements.previous.hide();
+		}
+
 		event.attach(this.getElement('grid'),{
 			onmousedown : element.DomMulticastStopEvent
 		}).onmousedown.subscribe(function(e){
@@ -241,21 +249,29 @@ define([
 		this.update();
 	};
 
-
 	Calendar.prototype.previousMonth = function(){
 		this.month --;
 		this.update();
+		this.onMonthChanged(this.getCurrentMonth());
 	};
 
 	Calendar.prototype.nextMonth = function(){
 		this.month++;
 		this.update();
+		this.onMonthChanged(this.getCurrentMonth());
 	};
 
 	Calendar.prototype.update = function(){
 		renderMonth.call(this, new Date(this.year, this.month, this.day));
 	};
 
-    return factory.define('Calendar:calendar.html',Calendar);
+	Calendar.prototype.getCurrentDate = function(){
+		return this.selectedDate;
+	};
 
+	Calendar.prototype.getCurrentMonth = function(){
+		return new Date(this.year, this.month, this.day);
+	};
+
+    return factory.define('Calendar:calendar.html', Calendar);
 });
