@@ -147,6 +147,8 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             if(type.constructor ==  controller.prototype.constructor)
             if(type._templateName_ == templateName ) return true;
         }
+        component.__sjs_is_comp__ = true;
+
         return component;
     }
 
@@ -1152,13 +1154,23 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
      *  @param type - type to instantiate, is a fully qualified name within provided scope
      *  @param args - constructor arguments
     */
-    function proxy(scope,pArgs){
+    function _proxy(scope,pArgs, isInclude){
         var prx =  function proxy(){
-            var _type = new DataItem(scope).path(pArgs.type).getValue();
-            if(_type == null) throw 'type not found [' + pArgs.type +']';
-            var instance = Object.create(_type.prototype);
+            var type = new DataItem(scope).path(pArgs.type).getValue();
+            if(type == null) throw 'type not found [' + pArgs.type +']';
+
+            if(!type.__sjs_is_comp__ == true && 
+                (type.Component != null && type.Component.__sjs_is_comp__ === true)){
+                    type = type.Component;
+            }
+            
+            if(!type.__sjs_is_comp__) {
+                throw '['+ pArgs.type +'] is not a component';
+            }
+
+            var instance = Object.create(type.prototype);
            
-            return _type.apply(instance,arguments) || instance;
+            return type.apply(instance,arguments) || instance;
         }
 
         prx.isProxy = true;
@@ -1172,11 +1184,11 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
      */
     function _runProxy(parent,json){
         var	fn = new Function(
-            "var proxy = arguments[0][0]; "      +
+            "var _proxy = arguments[0][0]; "      +
             "var scope = this;"+
             "var binding = arguments[0][1];" +
             "var window = null; var document = null; return " + json)
-            .call(parent.scope,[proxy,binding]);
+            .call(parent.scope,[_proxy,binding]);
 
         var compArgs = fn.proxyArgs.args;
         
@@ -1244,13 +1256,13 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
   		//empty configuration of the include tag
   		var idx = node.innerHTML.indexOf('{');
   		if( idx < 0){
-  			json = 'proxy(scope,{'+ attributes +'})';
+  			json = '_proxy(scope,{'+ attributes +'})';
   		}
 
   		else {
   			if(attributes) attributes = attributes + ',';
 
-  			json = 'proxy(scope,{' + attributes +
+  			json = '_proxy(scope,{' + attributes +
   			'args: {' +node.innerHTML.substring(idx+1)
   			+'})'
   		}
@@ -1260,7 +1272,6 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
   		return json;
   	}
-
     
     /**
      * 
@@ -1279,7 +1290,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
   		if(parent.tagName == 'SJS-ELEMENT')
   			json = 'null, type:\'' + _type + '\'';
   		else
-  			json = 'proxy(scope,{type:\''+ _type + '\''+ jsonAttr +'})';
+  			json = '_proxy(scope,{type:\''+ _type + '\''+ jsonAttr +'})';
 
   		if(replace === true)
   			node.parentNode.replaceChild(document.createTextNode(json),node);
@@ -1420,7 +1431,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         ComponentFactory:   ComponentFactory,
         ComponentBase:      ComponentBase,
         DocumentApplication: DocumentApplication,
-        proxy:proxy,
+        proxy:_proxy,
         toComponent:toComponent,
         locate:{
             visual: searchVisualTree,
