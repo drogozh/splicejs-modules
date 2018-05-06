@@ -754,6 +754,10 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     }
 
    function _getValue(path, value) {
+        if(value instanceof DataItem) {
+            return value.path(path);
+        }
+
         var parts = path.split('.');
         for (var i = 0; i < parts.length; i++) {
             value = value[parts[i]];
@@ -768,12 +772,25 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         }
         //its a keys content
         else if( content.constructor === Object.prototype.constructor ||
-                 content.constructor === Array.prototype.constructor){
+                content.constructor === Array.prototype.constructor || 
+                content instanceof DataItem ){
             var keys = Object.keys(this.content);
             for(var i=0; i<keys.length; i++){
                 var key = keys[i];
+                // do not allow default content if object is composed
+                if(key == 'default' && this._includes.child0 != null) {
+                    continue;
+                } 
                 var value = _getValue(key, content);
+                var target = this.content[key];
+                
                 if(value == null) continue;
+
+                if(target instanceof ComponentBase){
+                    target.applyContent(value);
+                    continue;
+                }
+
                 this.set(value,key);
             }        
         }         
