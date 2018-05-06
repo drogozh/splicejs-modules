@@ -6,15 +6,17 @@ define([
     '../component',
     '../event',
     '../view',
+    '../dataitem',
     'themeprovider',
     'preload|../loader.css',
     '!buttons.css'
 
-],function(require,inheritance,component,event,dom,styleProvider){
+],function(require,inheritance,component,event,dom,data,styleProvider){
 
 
 var Class = inheritance.Class
-,   ComponentBase = component.ComponentBase;
+,   ComponentBase = component.ComponentBase
+,   DataItem = data.DataItem;
 
 //component factory
 var factory = component.ComponentFactory(require,{
@@ -57,6 +59,15 @@ Button.prototype.setCaption = function(caption){
     this.caption = caption
     this.set(caption); 
 }
+
+Button.prototype.show = function(isShow){
+    if(isShow === true) {
+        this.elements.root.show();
+    } else {
+        this.elements.root.hide();
+    }
+}
+
 
 //load new style sheet for button
 styleProvider.onStyle.subscribe(function(name){
@@ -258,7 +269,9 @@ var TextField = Class(function TextFieldController(args){
 
 
 function _textFieldOnKey(args){
-    this.onDataOut(this.getElement('root').node.value);
+    var newValue = this.getElement('root').node.value;
+    this._data.setValue(newValue);
+    this.onDataOut(newValue);
 };
 
 TextField.prototype.onInit = function(args){
@@ -289,9 +302,20 @@ TextField.prototype.onLoaded = function(args){
 }
 
 TextField.prototype.dataIn = function(item){
-	if(!item) return;
-    this.elements.root.htmlElement.value = item.toString();
-	this.elements.root.attr({value:item.toString()});
+    if(!item) return;
+    if(item instanceof DataItem) {
+        this._data = item;
+    } else {    
+        this._data = new DataItem(item);
+    }
+    var value = this._data.getValue();
+
+    this.elements.root.htmlElement.value = value;
+	this.elements.root.attr({value:value});
+};
+
+TextField.prototype.applyContent = function(content){
+    this.dataIn(content);
 };
 
 TextField.prototype.dataOut = function(){

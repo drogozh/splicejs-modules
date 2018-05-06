@@ -467,6 +467,10 @@ Element.prototype.hide = function(){
 };
 
 Element.prototype.show = function(type){
+    if(this.node.nodeName == 'TR') {
+        this.node.style.display = 'table-row';
+        return;
+    }
     this.node.style.display = type || 'inline-block';
 };
 
