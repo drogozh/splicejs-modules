@@ -1,3 +1,4 @@
+define(function(){
 function Collection(data, filter, selector) {
     this._data = data;
     this._filter = filter;
@@ -183,59 +184,63 @@ function collection(data){
 
 //var x = collection([1,2,3,4,5,6]).where(item => item == 4 || item == 5).where(item=>item %2 == 0 ).toArray();
 
-var all = collection(10);
-console.log(all.toArray());
+// var all = collection(10);
+// console.log(all.toArray());
 
-var even = all.where(item=>item %2 == 0 );
-console.log(even.toArray());
+// var even = all.where(item=>item %2 == 0 );
+// console.log(even.toArray());
 
-var odd = even.select(item => item + 1);
-console.log(odd.toArray());
+// var odd = even.select(item => item + 1);
+// console.log(odd.toArray());
 
-var even2 = odd.select(item => item * 2);
-console.log(even2.toArray());
+// var even2 = odd.select(item => item * 2);
+// console.log(even2.toArray());
 
-console.log(collection(10).where(item=>item %2 == 0 ).select(item => item + 1).select(item => item * 2).toArray());
+// console.log(collection(10).where(item=>item %2 == 0 ).select(item => item + 1).select(item => item * 2).toArray());
 
-var y = collection(10)
-    .groupBy(x => x % 2)
-    .select((item,key) => key)
-    .toArray();
-console.log(y);
+// var y = collection(10)
+//     .groupBy(x => x % 2)
+//     .select((item,key) => key)
+//     .toArray();
+// console.log(y);
 
-var y2 = collection(10)
-    .groupBy(x => x % 2)
-    .select(x => x.value)
-    .toArray();
+// var y2 = collection(10)
+//     .groupBy(x => x % 2)
+//     .select(x => x.value)
+//     .toArray();
 
-var z = collection(10)
-    .groupBy(x => x % 2)
-    .selectMany((item,key) => item.value)
-    .toArray();
+// var z = collection(10)
+//     .groupBy(x => x % 2)
+//     .selectMany((item,key) => item.value)
+//     .toArray();
 
-    console.log(y2);
-    console.log(z);
+//     console.log(y2);
+//     console.log(z);
 
-var max = collection(10)
-    .groupBy(x => x % 2)
-    .selectMany((item,key) => item.value)
-    .max();
+// var max = collection(10)
+//     .groupBy(x => x % 2)
+//     .selectMany((item,key) => item.value)
+//     .max();
 
-console.log("max:" + max);
+// console.log("max:" + max);
 
-var min = collection(10)
-    .groupBy(x => x % 2)
-    .selectMany((item,key) => item.value)
-    .min();
+// var min = collection(10)
+//     .groupBy(x => x % 2)
+//     .selectMany((item,key) => item.value)
+//     .min();
 
-console.log("min:" + min);
+// console.log("min:" + min);
 
 
-var s = collection('this is a test')
-        .where(x => x !== ' ')
-        .toArray();
+// var s = collection('this is a test')
+//         .where(x => x !== ' ')
+//         .toArray();
 
-console.log(s);
+// console.log(s);
 
-var m = collection([{id:12,name:'test12'}, {id:2,name:'test2'}]).toMap(x=>x.id).toArray();
-console.log(m);
+// var m = collection([{id:12,name:'test12'}, {id:2,name:'test2'}]).toMap(x=>x.id).toArray();
+// console.log(m);
+
+return collection;
+
+});
