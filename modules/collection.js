@@ -113,9 +113,9 @@ Collection.prototype.selectMany = function(func){
 
 Collection.prototype.forEach = function(fn){
     if(typeof(this._filter) == 'function') {
-        return _forEach(this._data,(function(item){
-            if(this._filter(item) == true){
-                fn(item);
+        return _forEach(this._data,(function(item,key){
+            if(this._filter(item,key) == true){
+                fn(item,key);
             }
         }).bind(this));
     }
