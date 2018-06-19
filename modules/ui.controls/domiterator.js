@@ -6,8 +6,9 @@ define([
 	'../event',
 	'../view',
     '../async',
-    '../dataitem'
-],function(require,loader,inheritance,component,event,Element,_async,di){
+    '../dataitem',
+    '../collection'
+],function(require,loader,inheritance,component,event,Element,_async,di,collection){
 
 	var Class = inheritance.Class
     ,   ComponentBase = component.ComponentBase
@@ -113,9 +114,20 @@ define([
     function _onItemClicked(args){
         var item = component.locate.visual(args.source,this.contentType);
         var source = component.locate.visual(args.source);
+        
+        // find index
+        var idx = (function(){
+            for(var i=0; i < this.itemBuffer.length; i++){
+                if(this.itemBuffer[i] == item) {
+                    return i;
+                }
+            }   
+            return null;
+        }).bind(this)();
+
         // no item selected
         if(!item)  return;
-        this.onItemSelected(item,source,args.source);
+        this.onItemSelected(item,source,args.source,idx);
     }
 
     // passthrough data if converter is not defined or convert
@@ -123,6 +135,8 @@ define([
         if(!this.converter) return data;
         return this.converter(data);
     }
+
+    DomIterator.__sjs_is_comp__ = true;
 
     return DomIterator;
 });
