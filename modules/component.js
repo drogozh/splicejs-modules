@@ -1329,7 +1329,9 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             comp.resolve(parent != null ? parent.scope : null);
             comp.loaded({default:template},scope,args);
             return comp;
-        };  
+        };
+        
+        scope[_type].__sjs_is_comp__ = true; 
 
   		return json
   	}
