@@ -278,7 +278,7 @@ function _textFieldOnKey(args){
 
 TextField.prototype.onInit = function(args){
     this.trapMouseInput = args.captureMouse;
-    this.isRealtime  = args.realTime;
+    this.isRealtime  = args.isRealtime;
 }
 
 TextField.prototype.onLoaded = function(args){
@@ -325,6 +325,11 @@ TextField.prototype.dataOut = function(){
         value:this.elements.root.htmlElement.value
     });
     return this.elements.root.attrGet('value');
+}
+
+TextField.prototype.getValue = function(){
+    if(!this._data) return null;
+    return this._data.getValue();
 }
 
 TextField.prototype.onDataIn = function(item){
