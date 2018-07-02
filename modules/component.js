@@ -61,41 +61,6 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     ,   mixin = utils.mixin
     ,   Animation = effects.Animation
     ,   Binding = _binding;
-
-    /**
-     *  Listens for template loader
-     */
-    function Listener(){
-        events.attach(this,{'onloaded':events.MulticastQueueEvent});
-    }
-
-    /**
-     * @param scope - scope object passed to a component factory
-     */
-    Listener.prototype.loaded = function(collection,scope){	
-        //compile templates
-        this.compiledTemplates = {};
-        var keys = Object.keys(collection);
-
-  		for(var i = 0; i < keys.length; i++) {
-            this.compiledTemplates[keys[i]] = this.compiledTemplates[keys[i]] || {};
-            for(var j = 0; j < collection[keys[i]].length; j++){
-                var tSource = collection[keys[i]][j];
-                var key = tSource.key || 'default';
-                this.compiledTemplates[keys[i]][key] = new Template(tSource.node.cloneNode(true),keys[i],tSource.key).compile(scope);
-            }
-  		}
-        this.isLoaded = true;
-        this.onloaded(this.compiledTemplates);
-    }
-
-    Listener.prototype.ready = function(fn){
-        if(this.isLoaded) {
-            fn(this.compiledTemplates)
-            return;
-        } 
-        this.onloaded.subscribe(fn);
-    }
     
     function ComponentFactory(require,scope){
         if(!(this instanceof ComponentFactory)) {
@@ -107,6 +72,26 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         this.compiledTemplates = {};
     }
 
+    function _compileTemplates(fileName, scope){
+        var htmlSpec =  this.require('loader').list()[fileName];
+        if(!htmlSpec) throw 'Specify dependency ' + fileName; 
+        if(htmlSpec.__sjs_compiled_exports != null) return;
+        htmlSpec.__sjs__compiled_exports = {};
+        if(htmlSpec.exports == null) throw 'Specify dependency ' + fileName; 
+        var names = Object.keys(htmlSpec.exports);
+        for(var i in names){
+            var compiledTemplates = htmlSpec.__sjs__compiled_exports[names[i]] = {};
+            var collection = htmlSpec.exports[names[i]];
+            
+            for(var j = 0; j < collection.length; j++){
+                var template = collection[j];
+                var key = template.key || 'default';
+                compiledTemplates[key] = new Template(template.node.cloneNode(true),names[i],key).compile(scope);
+            }
+        }
+        return htmlSpec.__sjs__compiled_exports;
+    }
+
     ComponentFactory.prototype.define = function(templateLocation, controller, defaultArgs){
         var templateName =  templateLocation.split(':')[0];
         var templateFile =  templateLocation.split(':')[1];
@@ -114,15 +99,9 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         // set default controller
         controller = controller || ComponentBase;
 
-        // set listener
-        var listener = this.listeners[templateFile];
-        if(!listener){
-            listener = this.listeners[templateFile] = new Listener();
-            // load template
-            this.require('!'+templateFile, (function(collection){
-               listener.loaded(collection, this.scope);
-            }).bind(this));
-        }
+        var __templates = _compileTemplates.call(this,
+            this.require('context').resolve('!'+templateFile),
+            this.scope)[templateName];
 
         var scope = this.scope;
         // component constructor
@@ -132,13 +111,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             comp._templateName_ = templateName; 
             comp.init(args);
             comp.resolve();
-           
-            listener.ready((function(t){
-                // reference to  componentConstructor function
-                comp.constructor._templates_ = t[templateName];
-                this.loaded(t[templateName],scope,args)
-            }).bind(comp));
-
+            comp.loaded(__templates,scope,args);
             return comp;
         };
         

@@ -9,7 +9,9 @@ define([
     '../dataitem',
     'themeprovider',
     'preload|../loader.css',
-    '!buttons.css'
+    'preload|../loader.template',
+    '!buttons.css',
+    '!buttons.html'
 
 ],function(require,inheritance,component,event,dom,data,styleProvider){
 
