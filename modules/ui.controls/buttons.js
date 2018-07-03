@@ -279,6 +279,7 @@ function _textFieldOnKey(args){
 TextField.prototype.onInit = function(args){
     this.trapMouseInput = args.captureMouse;
     this.isRealtime  = args.isRealtime;
+    this.isEmail = args.isEmail;
 }
 
 TextField.prototype.onLoaded = function(args){
@@ -295,12 +296,18 @@ TextField.prototype.onLoaded = function(args){
 		});
 	}
 
-	if(this.isRealtime){
+	if(this.isRealtime == true){
 		changeEvents.onkeyup.subscribe(_textFieldOnKey, this);
 	}
 	else {
 		changeEvents.onchange.subscribe(_textFieldOnKey, this);
-	}
+    }
+    
+    if(this.isEmail === true) {
+        this.elements.root.node.setAttribute('type','email');
+        this.elements.root.node.setAttribute('autocorrect','off');
+        this.elements.root.node.setAttribute('autocapitalize','none');
+    }
 }
 
 TextField.prototype.dataIn = function(item){
@@ -339,10 +346,15 @@ TextField.prototype.onDataIn = function(item){
 
 TextField.prototype.clear = function(){
     this.getElement('root').node.value = '';
+    this._data = new DataItem();
 };
 
 TextField.prototype.focus = function(){
 	this.getElement('root').node.focus();
+};
+
+TextField.prototype.blur = function(){
+    this.getElement('root').node.blur();
 };
 
 
