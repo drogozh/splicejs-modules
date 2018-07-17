@@ -6,7 +6,8 @@ define([
 	'../event',
 	'../view',
     '../component.interaction',
-    '!dropdown.css',
+	'!dropdown.css',
+	'!dropdown.html'
 ],
 function(require,inheritance,component,event,view,interaction){
 	"use strict";
@@ -40,8 +41,6 @@ function(require,inheritance,component,event,view,interaction){
     scope.DropDownContainer = 
     factory.define('DropDownContainer:dropdown.html',DropDownContainer);
 
-
-
     /**
      *  
      *      Resizeable drop-down container
@@ -52,25 +51,23 @@ function(require,inheritance,component,event,view,interaction){
     scope.DropDownContainerResizable = 
     factory.define('DropDownContainerResizable:dropdown.html',DropDownContainerResizable);
 
-
-
 	/**
      *      DropDown view model
      * 
      */
 	var DropDown = Class(function DropDown(parent,args){
-
 		event.attach(this,{
 			onDropDown : event.MulticastEvent
 		});
+	}).extend(component.ComponentBase);
 
+
+	DropDown.prototype.onInit = function(args){
 		this.dropDownItem = args.dropDownItem;
 		if(!this.isIgnoreSelector)	this.isIgnoreSelector = false;
 
 		this.dropDownContainerSize = {left:0,top:0};
-
-	}).extend(component.ComponentBase);
-
+	}
 
 	DropDown.prototype.onLoaded = function(){
 		/*

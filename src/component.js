@@ -219,7 +219,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
         // innvoke init callback(event)
         // with sanitized arguments
-        this.onInit(this._args.other);
+        this.onInit(this._args.other || {});
     }
 
     ComponentBase.prototype.resolve = function(){

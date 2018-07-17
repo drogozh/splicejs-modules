@@ -29,7 +29,13 @@ define([
         // setup onload handler
         this.transport.onload = (function(){
             if(this._requestTimeOut && this._requestTimeOut.isTimeOut) return;
-            _handleStateChange.call(this,this._observer,function(r){return r;});
+            _handleStateChange.call(this,this._observer,function(r){
+                var contentType = this.transport.getResponseHeader('content-type');
+                if(contentType.indexOf('application/json') > -1) {
+                    return JSON.parse(r.text);
+                }
+                return r;
+            });
         }).bind(this);
             
         
@@ -149,7 +155,7 @@ define([
         switch(this.transport.status){
             case 200:
                 if(typeof observer.ok === 'function'){
-                    observer.ok(transform({
+                    observer.ok(transform.call(this,{
                         text:this.transport.responseText,
                         xml:this.transport.responseXML
                     }));

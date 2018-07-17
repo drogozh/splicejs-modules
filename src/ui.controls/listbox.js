@@ -1,13 +1,13 @@
 define([
 	'require',
-	'inheritance',
-	'component',
-	'event',
-	'view',
-	'component.interaction',
-    'util',
-    'async',
-	'preload|loader.css',
+	'../inheritance',
+	'../component',
+	'../event',
+	'../view',
+	'../component.interaction',
+    '../util',
+    '../async',
+	'preload|../loader.css',
 	'!listbox.css'
 ],function(require,inheritance,component,event,view,interaction,utils,async){
 	"use strict";

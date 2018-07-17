@@ -1,13 +1,13 @@
 define([
-    'require', 'context', 'loader',
-    'inheritance',
-    'component',
-    'event',
-	'view',
-    '!calendar.css',
-	'!theme/default/theme.css',
-    'preload|loader.css'
-],function(require,context,loader,inheritance,component,event,element){
+    'require',
+    '../inheritance',
+    '../component',
+    '../event',
+	'../view',
+	'!calendar.css',
+	'!calendar.html',
+    'preload|../loader.css'
+],function(require,inheritance,component,event,element){
 	"use strict"
 
 

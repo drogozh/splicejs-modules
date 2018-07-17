@@ -1,5 +1,4 @@
 define([
-    
 	'require',
     '../inheritance',
     '../component',
@@ -7,11 +6,10 @@ define([
     '../view',
 	'../text',
 	{
-		Calendar:'{splice.controls}/calendar/calendar',
+		Calendar:'calendar',
 		Selectors:'dropdown'
 	},
-    'preload|../loader.css'
-
+	'!datepicker.html'
 ],function(require,inheritance,component,event,view,text,controls){
 	"use strict";
 

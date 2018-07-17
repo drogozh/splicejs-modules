@@ -1,5 +1,9 @@
 {
     "name":"splicejs.modules",
     "version": "1.0.0",
-    "files":["modules/*"]   
+    "files":["src/*"],
+    "devDependencies": {
+        "splicejs":"file:../SpliceJS",
+        "node-http-server":"file:../node-http-server"
+    }   
 }

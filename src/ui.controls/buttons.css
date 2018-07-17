@@ -1,6 +1,7 @@
 .-sjs-button {
     display: inline-block;
-    background-color: #1b88b8;
+	background-color: #1b88b8;
+	color:#fefefe;
 	border-radius:3px;
     padding: 0.3em 1em;
 	cursor: pointer;

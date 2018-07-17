@@ -1,9 +1,81 @@
 define(function(){
-function Collection(data, filter, selector) {
-    this._data = data;
-    this._filter = filter;
-    this._selector = selector;
-}
+
+    /**
+     * 
+     * @param {Number} number of sequential elements in the collection 
+     */
+    function NumericIterator(num){
+        this._source = num;
+        this._i = -1;
+    }
+
+    NumericIterator.prototype.next = function(){
+        if(this._i == (this._source-1)) return null;
+        return ++this._i;
+    }
+
+    NumericIterator.prototype.reset = function(){
+        this._i = -1;
+    }
+
+    NumericIterator.prototype.current = function(){
+        if(this._i < 0) return null; 
+        return this._i;
+    }
+
+
+    /**
+     * Iterates over Array object
+     * @param {Array} array 
+     */
+    function ArrayIterator(array){
+        this._i = -1;
+        this._source = array;
+    }
+
+    ArrayIterator.prototype.next = function(){
+        return this._source[++this._i];
+    };
+
+    ArrayIterator.prototype.reset = function(){
+        this._i = -1;
+    };
+
+    ArrayIterator.prototype.current = function(){
+        this._source[this._i];
+    };
+
+
+    /**
+     * Iterates over object's owned properties
+     * @param {Object} obj 
+     */
+    function ObjectIterator(obj){
+        this._source = obj;
+        this._keys = Object.keys(this._source);
+        this._i = -1;    
+    }
+
+    ObjectIterator.prototype.next = function(){
+        return this._source[this._keys[++this._i]];
+    };
+
+    ObjectIterator.prototype.current = function(){
+        return this._source[this._keys[this._i]];
+    };
+
+    ObjectIterator.prototype.reset = function(){
+        this._i = -1;
+        return this;
+    };
+
+
+
+    function Collection(data, filter, selector) {
+        this._data = data;
+        this._filter = filter;
+        this._selector = selector;
+    }
 
 Collection.prototype.toArray = function(){
     var result = [];
@@ -129,51 +201,51 @@ Collection.prototype.forEach = function(fn){
     return _forEach(this._data,fn);
 }
 
-/**
- * 
- * @param {*} data 
- * @param {function} fn 
- */
-function _forEach(data,fn) {
+    /**
+     * 
+     * @param {*} data 
+     * @param {function} fn 
+     */
+    function _forEach(data,fn) {
 
-    // iterate Collection object
-    if(data instanceof Collection){
-        data.forEach(fn);
-        return;
-    }
-
-    // iterate over array
-    if(data instanceof Array) {
-        for(var i=0; i < data.length; i++){
-            fn(data[i], i);
+        // iterate Collection object
+        if(data instanceof Collection){
+            data.forEach(fn);
+            return;
         }
-        return;
-    }
 
-    // iterate for a 'number' of consecutive digits
-    if(typeof(data) == 'number'){
-        for(var i=0; i < data; i++){
-            fn(i,i);
+        // iterate over array
+        if(data instanceof Array) {
+            for(var i=0; i < data.length; i++){
+                fn(data[i], i);
+            }
+            return;
         }
-        return;
-    }
 
-    // iterate of object
-    if(typeof(data) == 'object'){
-        var keys = Object.keys(data);
-        for(var i=0; i< keys.length; i++){
-            fn(data[keys[i]],keys[i]);
+        // iterate for a 'number' of consecutive digits
+        if(typeof(data) == 'number'){
+            for(var i=0; i < data; i++){
+                fn(i,i);
+            }
+            return;
         }
-        return;
-    }
 
-    // iterate over string characters
-    if(typeof(data) == 'string'){
-        for(var i=0; i< data.length; i++){
-            fn(data[i],i);
+        // iterate of object
+        if(typeof(data) == 'object'){
+            var keys = Object.keys(data);
+            for(var i=0; i< keys.length; i++){
+                fn(data[keys[i]],keys[i]);
+            }
+            return;
+        }
+
+        // iterate over string characters
+        if(typeof(data) == 'string'){
+            for(var i=0; i< data.length; i++){
+                fn(data[i],i);
+            }
         }
     }
-}
 
 
 function collection(data){
