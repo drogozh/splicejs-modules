@@ -20,6 +20,11 @@ define([
         scope.ComponentTests = inheritance.Class(function ComponentTests() {
     }).extend(component.ComponentBase);
 
+    ComponentTests.prototype.onLoaded = function(){
+        this.components.pickList.dataIn([1,2,3]);
+    };
+
+
     return factory.define('ComponentTests:componenttests.html',ComponentTests);
 
 });

@@ -57,7 +57,8 @@ function(require,inheritance,component,event,view,interaction){
      */
 	var DropDown = Class(function DropDown(parent,args){
 		event.attach(this,{
-			onDropDown : event.MulticastEvent
+			onDropDown : event.MulticastEvent,
+			onInitialDrop: event.UnicastEvent
 		});
 	}).extend(component.ComponentBase);
 
@@ -82,7 +83,9 @@ function(require,inheritance,component,event,view,interaction){
 		},this);
 
 		//create instance of dropdown container
-        this.dropDownContainer = new scope.DropDownContainer(this);
+		this.dropDownContainer = new scope.DropDownContainer(this);
+		
+		this._isInitialDrop = true;
 	}
 
 
@@ -137,9 +140,12 @@ function(require,inheritance,component,event,view,interaction){
             .appendClass('-sjs-dropdown-open');
 
 
-		//append drop down to the document root
+		// append drop down to the document root
 		// add content to the content element
-		this.dropDownContainer.set(this.dropDownItem);
+		if(this._isInitialDrop) {
+			this.dropDownItem = this.dropDownContainer.set(this.dropDownItem);
+		}
+
         this.dropDownContainer.display();
 
 
@@ -170,6 +176,11 @@ function(require,inheritance,component,event,view,interaction){
 
         //set current drop down
         dropDownMonitor.current = this;
+
+		if(this._isInitialDrop === true){
+			this._isInitialDrop = false;
+			this.onInitialDrop(this.dropDownItem);
+		}
 
         //call event to notify listeners
 		this.onDropDown();

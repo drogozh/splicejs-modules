@@ -16,8 +16,13 @@ define([
 
 	var factory = component.ComponentFactory(require,{});
 	
-	var ListBox = inheritance.Class(function Button(parent,args){
+	var ListBox = inheritance.Class(function ListBox(parent,args){
 	}).extend(component.ComponentBase);
+
+
+	ListBox.prototype.dataIn = function(data){
+		console.log(data);
+	};
 
 	return factory.define('ListBox:listbox.html', ListBox);
 
