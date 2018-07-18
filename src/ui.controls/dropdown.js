@@ -197,7 +197,6 @@ function(require,inheritance,component,event,view,interaction){
         this.isOpen = false;
     }
 
-    return {
-        DropDown : factory.define('DropDownSelector:dropdown.html',DropDown)
-    }   
+    return factory.define('DropDownSelector:dropdown.html',DropDown)
+    
 });

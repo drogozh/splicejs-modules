@@ -1,8 +1,9 @@
-<template>
+<template sjs-name="PickList">
     <div>
         <include sjs-type="DropDown">
             {
-                itemTemplate:
+                dropDownItem:
+                <include sjs-type="ListBox"></include>
             }
         </include>
     </div>

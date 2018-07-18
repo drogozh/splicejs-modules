@@ -1,15 +1,17 @@
 define([
     'require',
+    'splicejs.modules/inheritance',
+    'splicejs.modules/component',
     {
         PickList : 'splicejs.modules/ui.controls/picklist'
     },
     '!componenttests.html',
     'preload|splicejs.modules/loader.css',
     'preload|splicejs.modules/loader.template'
-],function(require, components){
+],function(require, inheritance, component, controls){
 
     var scope = {
-        PickList: components.PickList
+        PickList: controls.PickList
     };
 
     var factory = component.ComponentFactory(require, scope);
