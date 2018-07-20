@@ -7,6 +7,7 @@ define([
     'animation',
     'view',
     'binding',
+    'collections',
     'preload|loader.template'
 ],
 //todo: Component mode supports data-driven component selection
@@ -40,7 +41,7 @@ define([
 
 //todo:
 // implement light template allocation, where child component proxies are not invoked
-function(inheritance,events,doc,data,utils,effects,Element,_binding){
+function(inheritance,events,doc,data,utils,effects,Element,_binding,collections){
     "use strict";
 
     var TAG_INCLUDE = 'INCLUDE'
@@ -60,7 +61,8 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     ,   Class = inheritance.Class
     ,   mixin = utils.mixin
     ,   Animation = effects.Animation
-    ,   Binding = _binding;
+    ,   Binding = _binding
+    ,   collection = collections.collection;
     
     function ComponentFactory(require,scope){
         if(!(this instanceof ComponentFactory)) {
@@ -109,8 +111,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             var comp = new controller(parent,args);
             comp.parent = parent;
             comp._templateName_ = templateName; 
-            comp.init(args);
-            comp.resolve();
+            comp.init(comp.resolve(args));
             comp.loaded(__templates,scope,args);
             return comp;
         };
@@ -189,8 +190,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
 
 
     ComponentBase.prototype.init = function(args){
-        this._state_ = {};
-        this._action_queue_ = []; 
+        this._state_ = {}; 
         
         // default reflow mode is css
         this._reflow_mode_ = 'css';
@@ -217,18 +217,24 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             }
         }).bind(this));
 
-        // innvoke init callback(event)
-        // with sanitized arguments
         this.onInit(this._args.other || {});
     }
 
-    ComponentBase.prototype.resolve = function(){
-        if(!this._args.bindings ||this._args.bindings.length < 1) return;
-        var scope = this.parent.scope;
-        foreach(this._args.bindings,(function(value,prop){
-            Binding.resolveBinding(value,this,scope);
-        }).bind(this));
-        this.onResolve();
+    ComponentBase.prototype.resolve = function(args){
+        if(!args) return {};
+        var _this = this; 
+        var _scope = this.parent.scope;
+        var _args = collection(args).select(function(arg,key){
+            if(arg instanceof Binding){
+                return [key,Binding.resolveBinding(arg, _this, _scope)];
+            }
+            else return [key,arg];
+        }).toMap(function(item, key){
+            return item[0]; 
+        }, function(item,key){
+            return item[1];
+        }).toObject();
+        return _args;        
     }
 
     ComponentBase.prototype.loaded = function(templates,scope){
@@ -254,7 +260,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             
         // root node of the component's DOM
         this.node = templateInstance.node;
-        this.node._obj_ = this;
+        this.node.__sjs_vm = this;
        
         //child collection
         //todo: this property should be turned into 'private' 
@@ -330,12 +336,6 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
             stl[keys[i]] = args[keys[i]];
         }
     }
-
-
-    function _subscribeToQueue(queueName, callback){
-
-    }
-
 
     //   all includes must be derived from ComponentBase
     //   check for any content overrides
@@ -670,11 +670,12 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
     // onset is only called on loaded components
     ComponentBase.prototype.set = function(child, key, meta){
         //queue replacement if component is not loaded yet
-        if(!this.isLoaded ) {
-            this.toReplace = this.toReplace || [];
-            this.toReplace.push({child:child, location:key, meta:meta});
-            return child;
-        }
+        // if(!this.isLoaded ) {
+        //     this.toReplace = this.toReplace || [];
+        //     this.toReplace.push({child:child, location:key, meta:meta});
+        //     return child;
+        // }
+
         //nothing to do here, if placement is not set
         key = key || 'default';
         
@@ -713,10 +714,10 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         child.parent = this;
 
 
-        if(this._state_.display) { 
+        //if(this._state_.display) { 
             child.display(this,key,'set');
-            this.onChildDisplay(child);
-        }
+         //   this.onChildDisplay(child);
+        //}
 
         // set metadata on component' node
         if(meta){
@@ -1382,13 +1383,13 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding){
         }
 
         while(source){
-            if(source._obj_ != null && target == null ){
-                return source._obj_;
+            if(source.__sjs_vm != null && target == null ){
+                return source.__sjs_vm;
             }
 
             if(target != null)
-            if(source._obj_ instanceof target) {
-                return source._obj_;
+            if(source.__sjs_vm instanceof target) {
+                return source.__sjs_vm;
             }
             source = source.parentNode;
         }

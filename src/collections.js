@@ -116,19 +116,26 @@ Collection.prototype.groupBy = function(func){
     return groupedCollection;
 };
 
-Collection.prototype.toMap = function(func){
+Collection.prototype.toMap = function(funcKey,funcItem){
     var mappedCollection = new Collection(this);
-    mappedCollection.forEach = function(fn){
-        var map = {};
-        Collection.prototype.forEach.call(this, function(item){
-            var key = func(item);
-            map[key] = item;
-        });
+    if(!funcItem) funcItem = function(item){return item;}
 
+    var map = {};
+    this.forEach(function(item,key){
+        var key = funcKey(item, key);
+        map[key] = funcItem(item, key);
+    });
+
+    mappedCollection.forEach = function(fn){
         _forEach(map,function(item,i){
             fn(item,i);
         });
     };
+
+    mappedCollection.toObject = function(){
+        return map;
+    };
+
     return mappedCollection;
 };
 
@@ -313,6 +320,8 @@ function collection(data){
 // var m = collection([{id:12,name:'test12'}, {id:2,name:'test2'}]).toMap(x=>x.id).toArray();
 // console.log(m);
 
-return collection;
+    return {
+        collection : collection
+    }
 
 });
