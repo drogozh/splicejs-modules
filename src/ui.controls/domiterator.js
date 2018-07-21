@@ -7,8 +7,8 @@ define([
 	'../view',
     '../async',
     '../dataitem',
-    '../collection'
-],function(require,loader,inheritance,component,event,Element,_async,di,collection){
+    '../collections'
+],function(require,loader,inheritance,component,event,Element,_async,di,collections){
 
 	var Class = inheritance.Class
     ,   ComponentBase = component.ComponentBase
@@ -16,6 +16,8 @@ define([
     ,   scope = {};
 
     var touchSupport = loader.getVar('{touchsupport}');
+
+    var collection = collections.collection;
 
     var DomIterator = Class(function DomIterator(parent,args){
         this.parent = parent;
@@ -28,7 +30,7 @@ define([
             onDataUpdated: event.MulticastEvent
         });
         
-        this.resolve();
+        this.resolve(args);
         
         var rootElement = 'span';
         if(args && args.rootElement) {
@@ -50,10 +52,8 @@ define([
         // setup on click handler
         // handler is invoked with data as argument
         // at this point onItemSelected may stil be a binding
-        if(args.onItemSelected){
-           event.attach(this.node,Element.UnicastClickEvent)
-                .subscribe(_onItemClicked,this);
-        }
+        event.attach(this.node,Element.UnicastClickEvent)
+            .subscribe(_onItemClicked,this);
 
         if(!args.range) return;
 

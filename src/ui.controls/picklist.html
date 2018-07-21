@@ -2,8 +2,14 @@
     <div>
         <include sjs-type="DropDown" sjs-name="dropDown">
             {
+                itemTemplate:binding('selectorItemTemplate').name('PickList'),
+                defaultValue:binding('selectorDefaultValue').name('PickList'),
                 dropDownItem:
-                <include sjs-type="ListBox"></include>
+                <include sjs-type="ListBox">
+                    {
+                        itemTemplate: binding('itemTemplate').name('PickList')
+                    }
+                </include>
             }
         </include>
     </div>

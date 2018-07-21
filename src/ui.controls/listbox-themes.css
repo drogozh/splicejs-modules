@@ -1,0 +1,10 @@
+.sjs-theme--dark
+.sjs-listbox {
+    background-color: #323232;
+    color: #fefefe;
+}
+
+.sjs-theme--dark
+.sjs-listbox-item:hover {
+	background-color: #222222;
+}

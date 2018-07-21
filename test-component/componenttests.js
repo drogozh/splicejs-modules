@@ -21,7 +21,7 @@ define([
     }).extend(component.ComponentBase);
 
     ComponentTests.prototype.onLoaded = function(){
-        this.components.pickList.dataIn([1,2,3]);
+        this.components.pickList.dataIn([{name:1},2,3]);
     };
 
 

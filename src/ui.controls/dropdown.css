@@ -1,13 +1,13 @@
+@import 'dropdown-themes.css';
 /*
 	Drop Down Selector
 */
-
-.-splicejs-dropdown-selector {
+.sjs-dropdown-selector {
 	display:inline-block;
 	padding-top:0.3em;
 }
 
-.-splicejs-dropdown-selector .selector {
+.sjs-dropdown-selector .selector {
   position: relative;
   display: inline-block;
   border: 1px solid #424242;
@@ -21,11 +21,11 @@
   background: url('resources/splicejs.dropdown.selector/black/dropdownarrow.png') #767b86 no-repeat right 0px center;
 }
 
-.-splicejs-dropdown-selector .selector:hover {
+.sjs-dropdown-selector .selector:hover {
 	background-color:#8d94a2;
 }
 
-.-splicejs-dropdown-container {
+.sjs-dropdown-container {
     position: absolute;
 	display: none;
     z-index:1000;
@@ -34,7 +34,7 @@
     box-shadow: 0px 12px 22px 0px rgba(0,0,0,0.41);
 }
 
-.selector.-sjs-dropdown-open {
+.selector.sjs-dropdown-open {
     background-color:#323232;
     -webkit-box-shadow: 0px 12px 22px 0px rgba(0,0,0,0.41);
     -moz-box-shadow: 0px 12px 22px 0px rgba(0,0,0,0.41);
@@ -42,6 +42,6 @@
     color:#fefefe;
     border:1px solid #323232;
 }
-.selector.-sjs-dropdown-open:hover {
+.selector.sjs-dropdown-open:hover {
     background-color:#323232;
 }

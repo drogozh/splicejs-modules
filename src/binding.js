@@ -94,45 +94,43 @@ function(data){
         definition: source is a property reference residing in the controller class
       */
 
-
-
       //1. if source is event, subscribe to it
       if(sourceValue && sourceValue.__sjs_event__ === true &&
         typeof(targetValue) == 'function' && !targetValue.__sjs_event__ ){
         sourceValue.subscribe(targetValue,instance);
-        return;
+        return sourceValue;
       }
 
       //1.5 source value is a dataItem
       if(sourceValue instanceof DataItem && 
             typeof(targetValue) == 'function'){
         sourceValue.subscribe(targetValue,instance);
-        return;          
+        return sourceValue;          
       }
 
       //2. if target is event subscribe to it
       if(targetValue && targetValue.__sjs_event__ === true &&
         typeof(sourceValue) == 'function'){
         targetValue.subscribe(sourceValue,sourceInstance);
-        return;
+        return sourceValue;
       }
 
       //2.5 
       if(targetValue && targetValue.__sjs_event__ &&
          sourceValue && sourceValue.__sjs_event__ ){
         targetValue.subscribe(sourceValue,sourceInstance);
-        return;
+        return sourceValue;
       }
 
       //3.
       if(typeof(targetValue) == 'function' && typeof(sourceValue) != 'function'){
         source.subscribe(targetValue,instance);
-        return;
+        return sourceValue;
       }
 
       //4. value to value binding
       target.setValue(sourceValue);
-
+      return sourceValue;
   	}
 
 

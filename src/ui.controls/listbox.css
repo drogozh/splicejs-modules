@@ -1,17 +1,15 @@
-.-sjs-list-box {
-	position:absolute;
-	top:0px; bottom:0px; left:0px; right:0px;
-}
+@import 'listbox-themes.css';
 
-.-sjs-list-box-base {
+.sjs-listbox {
 	position:relative;
 }
 
-.-sjs-listbox-item {
+.sjs-listbox-item {
 	padding:5px;
 	cursor:default;
+	min-width: 3em;
+	padding:0.5em;
+	padding-left:1em;
+	padding-right:1em;
 }
 
-.-sjs-listbox-item:hover {
-	background-color: #333333;
-}

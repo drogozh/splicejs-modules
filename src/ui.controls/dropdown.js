@@ -65,6 +65,10 @@ function(require,inheritance,component,event,view,interaction){
 
 	DropDown.prototype.onInit = function(args){
 		this.dropDownItem = args.dropDownItem;
+		this.itemTemplate = args.itemTemplate;
+
+		this.defaultValue = args.defaultValue || 'Select Item';
+
 		if(!this.isIgnoreSelector)	this.isIgnoreSelector = false;
 
 		this.dropDownContainerSize = {left:0,top:0};
@@ -82,23 +86,34 @@ function(require,inheritance,component,event,view,interaction){
 			this.dropDown();
 		},this);
 
+		if(this.itemTemplate != null) {
+			this._itemTemplateInstance = this.set(new this.itemTemplate(this));
+		}
+
+		this.applyContent(this.defaultValue);
+
 		//create instance of dropdown container
 		this.dropDownContainer = new scope.DropDownContainer(this);
 		
 		this._isInitialDrop = true;
 	}
 
+	DropDown.prototype.applyContent = function(content){
+		if(this._itemTemplateInstance != null) {
+			this._itemTemplateInstance.applyContent(content);
+			return;
+		}
+		component.ComponentBase.prototype.applyContent.call(this,content);
+	}
 
 	DropDown.prototype.close = function () {
 	    _hide();
 	};
 
-
 	function _hide() {
 	    dropDownContainer.remove();
-        selectorElement.removeClass('-sjs-dropdown-open');
+        selectorElement.removeClass('sjs-dropdown-open');
 	};
-
 
 	DropDown.prototype.clientSize = function(client){
 
@@ -137,7 +152,7 @@ function(require,inheritance,component,event,view,interaction){
 		//decorate dropdown selector
         this.elements
             .selector
-            .appendClass('-sjs-dropdown-open');
+            .appendClass('sjs-dropdown-open');
 
 
 		// append drop down to the document root
@@ -197,7 +212,7 @@ function(require,inheritance,component,event,view,interaction){
 		//decorate dropdown selector
         this.elements
             .selector
-            .removeClass('-sjs-dropdown-open');
+            .removeClass('sjs-dropdown-open');
 
         //unsubscribe from the off-focus event
         dropDownMonitor

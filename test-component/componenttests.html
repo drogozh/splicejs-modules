@@ -1,5 +1,13 @@
 <template sjs-name="ComponentTests">
     <div>
-        <include sjs-type="PickList" sjs-name="pickList"></include>
+        <include sjs-type="PickList" sjs-name="pickList">
+            {
+                selectorItemTemplate:
+                <div><span sjs-content="name"></span></div>,
+                selectorDefaultValue:{name:'test'},
+                itemTemplate:
+                <div><span sjs-content="name"></span></div>
+            }
+        </include>
     </div>
 </template>

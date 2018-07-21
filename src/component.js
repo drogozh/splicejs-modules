@@ -226,6 +226,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         var _scope = this.parent.scope;
         var _args = collection(args).select(function(arg,key){
             if(arg instanceof Binding){
+                arg.targetProperty = key;
                 return [key,Binding.resolveBinding(arg, _this, _scope)];
             }
             else return [key,arg];
@@ -679,14 +680,16 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         //nothing to do here, if placement is not set
         key = key || 'default';
         
-        // we could be dealing with an object that is yet to be loaded
-        // content collection is a collection of containers that may accept
-        // content
-        var content = this.content != null ? this.content[key] : null;
+        var currentChild = this.children != null ? this.children[key] : null;
         
-        //push forward
-        if(content instanceof ComponentBase){
-            return content.set(child);
+        // todo: review why child map contains a list
+        if(currentChild) {
+            currentChild = currentChild[0][0];
+        }
+
+        // forward content
+        if(currentChild instanceof ComponentBase){
+            return currentChild.set(child);
         }
 
         //convert child
