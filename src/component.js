@@ -667,9 +667,13 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
     }
 
     
+    ComponentBase.prototype.replace = function(child,key){
+        this.set(child,key,true);
+    }
+
     // Replaces content at provided location
     // onset is only called on loaded components
-    ComponentBase.prototype.set = function(child, key, meta){
+    ComponentBase.prototype.set = function(child, key, forceReplace){
         //queue replacement if component is not loaded yet
         // if(!this.isLoaded ) {
         //     this.toReplace = this.toReplace || [];
@@ -688,7 +692,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         }
 
         // forward content
-        if(currentChild instanceof ComponentBase){
+        if(currentChild instanceof ComponentBase && !forceReplace){
             return currentChild.set(child);
         }
 
@@ -721,11 +725,6 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
             child.display(this,key,'set');
          //   this.onChildDisplay(child);
         //}
-
-        // set metadata on component' node
-        if(meta){
-            this.node._meta_ = meta;
-        }
 
         return child;
     }

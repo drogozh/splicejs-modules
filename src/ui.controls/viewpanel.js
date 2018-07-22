@@ -33,13 +33,13 @@ define([
             .toArray();
 
         if(views[0]){
-            this.set(views[0]);
+            this.replace(views[0]);
         }
     };
 
     ViewPanel.prototype.switchView = function(viewName){
         var view = this._views[viewName];
-        this.set(view);
+        this.replace(view);
     };
 
     ViewPanel.Component = factory.define('ViewPanel:viewpanel.html',ViewPanel);
