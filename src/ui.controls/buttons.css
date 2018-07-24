@@ -33,11 +33,12 @@
     display:inline-block;
 } 
 
-.-sjs-textfield {
-	font-size: 13px;
-  padding: 5px;
+.sjs-textfield {
+	font-size: 1em;
+  	padding: 0.5em;
  	border: 1px solid #cecece;
- 	border-radius: 3px;
+	 border-radius: 3px;
+	 
 }
 
 .-sjs-checkbox {

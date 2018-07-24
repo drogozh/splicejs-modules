@@ -1,0 +1,39 @@
+/*
+	Drop Down Selector
+*/
+.sjs-theme--light
+.sjs-dropdown-selector .selector {
+    background: url(resources/dropdownarrow-light.png) #e8e8e8 no-repeat right 0px center;
+    border-color: #ececec;
+    color: #222222;
+    border-radius: 3px; 
+}
+
+.sjs-theme--light
+.sjs-dropdown-selector .selector:hover {
+    background-color:#cecece;
+}
+
+.sjs-theme--light
+.selector.sjs-dropdown-open {
+    background-color:#323232;
+    -webkit-box-shadow: 0px 12px 22px 0px rgba(0,0,0,0.41);
+    -moz-box-shadow: 0px 12px 22px 0px rgba(0,0,0,0.41);
+    box-shadow: 0px 12px 22px 0px rgba(0,0,0,0.41);
+    color:#fefefe;
+    border:1px solid #323232;
+}
+
+.sjs-theme--light
+.selector.sjs-dropdown-open:hover {
+    background-color:#323232;
+} 
+
+
+.sjs-theme--light
+.sjs-dropdown-container {
+    -webkit-box-shadow: 0px 12px 22px 0px rgba(0,0,0,0.41);
+    -moz-box-shadow: 0px 12px 22px 0px rgba(0,0,0,0.41);
+    box-shadow: 0px 12px 22px 0px rgba(0,0,0,0.41);
+}
+

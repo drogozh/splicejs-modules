@@ -21,16 +21,16 @@ define([
 
     var DomIterator = Class(function DomIterator(parent,args){
         this.parent = parent;
-        this.init(args);
-        
+
         // important! attach event before binding resolution takes place
         event.attach(this,{
             onItemSelected : event.MulticastEvent,
             onItem : event.UnicastEvent,
             onDataUpdated: event.MulticastEvent
         });
-        
-        this.resolve(args);
+
+        args = this.resolve(args);
+        this.init(args);
         
         var rootElement = 'span';
         if(args && args.rootElement) {

@@ -132,137 +132,29 @@ CheckBox.prototype.check = function(){
     this.onChanged(this);
 }
 
-// var Button = Class(function ButtonController(args){
-// 	this.base(args);
-// 	Events.attach(this,{
-// 		onClick : MulticastEvent
-// 	});
-// }).extend(UIControl);
+/**
+ * 
+ */
+var RadioButton = Class(function RadioButton(args){
+    event.attach(this,{
+        onDataOut:event.MulticastEvent
+    });
+}).extend(component.ComponentBase);
 
+RadioButton.prototype.onInit = function(args){
+    this._groupName = args.groupName;
+};
 
-// Button.prototype.initialize = function(){
+RadioButton.prototype.onLoaded = function(){
+    if(this._groupName == null) return;
+    this.elements.root.node.setAttribute('name',this._groupName);
+};
 
-// 	Events.attach(this.views.root,{
-// 		onclick		: Views.DomMulticastStopEvent,
-// 		onmousedown	: Views.DomMulticastStopEvent
-// 	});
+RadioButton.Component = factory.define("RadioButton:buttons.html",RadioButton);
 
-// 	this.views.root.onclick.subscribe(function(){
-// 		if(this.isDisabled == true) return;
-// 		this.onClick(this.dataItem);
-// 	},this);
-
-// 	if(this.isDisabled) this.disable();
-// };
-
-
-// Button.prototype.setLabel = function(label){
-// 	this.elements.root.value = label;
-// };
-
-// Button.prototype.enable = function(){
-// 	this.elements.root.className = '-splicejs-button';
-// 	this.isDisabled = false;
-// 	this.onDomChanged();
-// };
-
-// Button.prototype.disable = function(){
-// 	this.elements.root.className = '-splicejs-button-disabled';
-// 	this.isDisabled = true;
-// 	this.onDomChanged();
-// };
-
-// Button.prototype.onDataIn = function(item){
-// 	if(!this.staticContent)
-// 	this.content(item.getValue()).replace();
-// };
-
-// Button.prototype.onDataItemChanged = function(){
-// 	this.content(this.dataItem.getValue()).replace();
-// };
-
-// var CheckBox = Class(function CheckBoxController(args){
-// 	this.base(args);
-// 	this.isChecked = false;
-
-// 	Events.attach(this,{
-// 		onChecked	:	MulticastEvent
-// 	});
-
-// }).extend(UIControl);
-
-// CheckBox.prototype.initialize = function(){
-// 	Events.attach(this.views.root,{
-// 		onclick 	:	Views.DomMulticastStopEvent,
-//   		onmousedown : 	Views.DomMulticastStopEvent
-// 	}).onclick.subscribe(function(){
-// 		this.isChecked = !this.isChecked;
-
-// 		if(this.dataItem) {
-// 			this.dataItem.setValue(this.isChecked);
-// 		}
-
-// 		this.check(this.isChecked);
-// 		this.onChecked(this.dataItem);
-// 	},this);
-// }
-
-// CheckBox.prototype.onDataIn = function(dataItem){
-// 	this.isChecked = dataItem.getValue() === true ? true : false;
-// 	this.check(this.isChecked);
-// };
-
-// CheckBox.prototype.check = function(isChecked){
-// 	this.isChecked = isChecked;
-// 	if(isChecked === true) {
-// 		this.views.root.cssc('checked').add();
-// 	} else {
-// 		this.views.root.cssc('checked').remove();
-// 	}
-// };
-
-// CheckBox.prototype.clear = function(){
-// 	this.views.root.cssc('checked').remove();
-// };
-
-
-
-// var RadioButton = Class(function RadioButtonController(args){
-// 	this.base(arguments);
-
-// 	var self = this;
-// 	this.elements.root.onclick = function(){
-
-// 		if(self.elements.root.checked) {
-// 			if(self.dataPath)
-// 			self.dataItem[self.dataPath] = true
-// 		} else {
-// 			if(self.dataPath)
-// 			self.dataItem[self.dataPath] = false;
-// 		}
-// 		self.dataOut(self.dataItem);
-// 	}
-
-// }).extend(UIControl);
-
-
-// RadioButton.prototype.dataIn = function(dataItem){
-// 	UIControl.prototype.dataIn.call(this,dataItem);
-
-// 	if(!this.dataPath) {
-// 		this.elements.root.checked = false;
-// 		return;
-// 	}
-
-// 	if(this.dataItem[this.dataPath] === true) {
-// 		this.elements.root.checked = true;
-// 	}
-// 	else {
-// 		this.elements.root.checked = false;
-// 	}
-// };
-
-
+/**
+ * 
+ */
 var TextField = Class(function TextFieldController(args){
     event.attach(this,{
         onDataOut:event.MulticastEvent
@@ -296,12 +188,12 @@ TextField.prototype.onLoaded = function(args){
 		});
 	}
 
-	if(this.isRealtime == true){
-		changeEvents.onkeyup.subscribe(_textFieldOnKey, this);
-	}
-	else {
-		changeEvents.onchange.subscribe(_textFieldOnKey, this);
-    }
+	// if(this.isRealtime == true){
+	// 	changeEvents.onkeyup.subscribe(_textFieldOnKey, this);
+	// }
+	// else {
+	// 	changeEvents.onchange.subscribe(_textFieldOnKey, this);
+    // }
     
     if(this.isEmail === true) {
         this.elements.root.node.setAttribute('type','email');
@@ -335,8 +227,7 @@ TextField.prototype.dataOut = function(){
 }
 
 TextField.prototype.getValue = function(){
-    if(!this._data) return null;
-    return this._data.getValue();
+    return this.elements.root.node.value;
 }
 
 TextField.prototype.onDataIn = function(item){
@@ -373,6 +264,7 @@ TextField.prototype.blur = function(){
 
 return {
     Button		: factory.define('Button:buttons.html',Button,{animated:true}),
+    RadioButton : RadioButton,
     Label		: factory.define('Label:buttons.html',Label),
     CheckBox	: factory.define('CheckBox:buttons.html',CheckBox),
     TextField   : factory.define('TextField:buttons.html',TextField)

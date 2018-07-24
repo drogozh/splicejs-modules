@@ -1,4 +1,5 @@
-@import 'listbox-themes.css';
+@import 'listbox-light.css';
+@import 'listbox-dark.css';
 
 .sjs-listbox {
 	position:relative;

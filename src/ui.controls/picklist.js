@@ -44,6 +44,15 @@ define([
 		});
 	};
 
+	/**
+	 * Applies supplied object as selector content
+	 * Content is not validated against the list items
+	 * @param {any} item 
+	 */
+	PickList.prototype.setSelectedItem = function(item){
+		this.components.dropDown.applyContent(item);
+	};
+
 	PickList.prototype.dataIn = function(data){
 		this._data = data;
 		if(this.listBox != null) {

@@ -1,0 +1,10 @@
+/*
+	Drop Down Selector
+*/
+.sjs-theme--dark
+.sjs-dropdown-selector .selector {
+    color:#fefefe;
+    background: url('resources/dropdownarrow-dark.png') #767b86 no-repeat right 0px center;
+    
+}
+
