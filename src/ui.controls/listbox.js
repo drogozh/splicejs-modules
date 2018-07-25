@@ -52,10 +52,13 @@ define([
 	};
 
 	ListBox.prototype.dataIn = function(data){
+		this.elements.root.node.innerHTML = '';
+		
 		this._data = data;
+		if(!data) return;
 		var _this = this;
 		var fragment = document.createDocumentFragment();
-		
+
 		var createItem = function(item){
 			return item;
 		};

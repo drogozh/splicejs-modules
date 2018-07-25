@@ -48,6 +48,7 @@ define([
         // todo: find a way to extact template type
         this.domContent = args.template;
         
+        this.formatter = args.formatter;
 
         // setup on click handler
         // handler is invoked with data as argument
@@ -81,6 +82,16 @@ define([
 
     // argument must be a collection or an object
     DomIterator.prototype.dataIn = function dataIn(data){
+        var _this = this;
+        var foo = function(item){
+            return item;
+        }
+        if(this.formatter != null) {
+            foo = function(item){
+                return _this.formatter(item);        
+            }
+        }
+
         var keys = Object.keys(data);
 
         // update existing or add new
@@ -93,7 +104,7 @@ define([
             }
 
             // record item type, ideally this should be done once
-            cmp.applyContent(_convert.call(this,data[keys[i]]));
+            cmp.applyContent(foo(data[keys[i]]));
             this.onItem(cmp);
         }
 
@@ -128,12 +139,6 @@ define([
         // no item selected
         if(!item)  return;
         this.onItemSelected(item,source,args.source,idx);
-    }
-
-    // passthrough data if converter is not defined or convert
-    function _convert(data) {
-        if(!this.converter) return data;
-        return this.converter(data);
     }
 
     DomIterator.__sjs_is_comp__ = true;

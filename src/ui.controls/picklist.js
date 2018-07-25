@@ -40,6 +40,7 @@ define([
 			_this.listBox.onItemSelected.subscribe(function(item){
 				_this.components.dropDown.applyContent(item);
 				_this.onItemSelected(item);
+				_this._selectedItem = item;
 			});
 		});
 	};
@@ -51,6 +52,11 @@ define([
 	 */
 	PickList.prototype.setSelectedItem = function(item){
 		this.components.dropDown.applyContent(item);
+		this._selectedItem = item;
+	};
+
+	PickList.prototype.getSelectedItem = function(){
+		return this._selectedItem;
 	};
 
 	PickList.prototype.dataIn = function(data){
