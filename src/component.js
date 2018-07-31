@@ -557,6 +557,9 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         return child;
     }
 
+    ComponentBase.prototype.clear = function(){
+
+    };
     
     ComponentBase.prototype.activateTemplate = function(key){
         if(this._active_template_ == key) return;
@@ -744,7 +747,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
 
     ComponentBase.prototype.applyContent = function(content){
         if(typeof content === 'string' || typeof content === 'number') {
-            this.set(content.toString());
+            this.replace(content.toString());
         }
         //its a keys content
         else if( content.constructor === Object.prototype.constructor ||
@@ -767,13 +770,12 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
                     continue;
                 }
 
-                this.set(value,key);
+                this.replace(value,key);
             }        
         }         
         else {
-            this.set(content);
+            this.replace(content);
         }
-        this.onApplyContent(content); 
         return this;
     }
 

@@ -93,6 +93,12 @@ define([
 
     function _prepareData(request){
         if(!request.data) return;
+        
+        // this is a formData just return
+        if(request.data instanceof FormData) {
+            return request.data;
+        }
+
         switch(request.type) {
             case REQUEST_TYPES.FORM:
             case REQUEST_TYPES.TEXT:            
