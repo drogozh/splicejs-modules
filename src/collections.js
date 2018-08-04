@@ -163,6 +163,16 @@ Collection.prototype.max = function(func){
     return max.value;
 };
 
+// todo: refactor to use iterators, this will enumerate the entire collectino
+Collection.prototype.first = function(){
+    var first = null;    
+    this.forEach(function(item){
+        if(first != null) return;
+        first = item;
+    });
+    return first;
+};
+
 Collection.prototype.min = function(func){
     var min = {value : null };
     var count = 0;

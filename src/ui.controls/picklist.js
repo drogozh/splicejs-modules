@@ -45,6 +45,10 @@ define([
 		});
 	};
 
+	PickList.prototype.applyContent = function(content){
+		this.setSelectedItem(content);
+	};
+
 	/**
 	 * Applies supplied object as selector content
 	 * Content is not validated against the list items
