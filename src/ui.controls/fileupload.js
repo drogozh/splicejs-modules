@@ -16,6 +16,7 @@ define([
     var collection = collections.collection;
 
     var FileUpload = inheritance.Class(function FileUpload(){
+        this._extraFormData = {};
     }).extend(component.ComponentBase);
 
     FileUpload.prototype.onInit = function(args){
@@ -23,7 +24,10 @@ define([
     };
 
     FileUpload.prototype.onLoaded = function(){
-        
+    };
+
+    FileUpload.prototype.append = function(name, value){
+        this._extraFormData[name] = value;
     };
 
     FileUpload.prototype.upload = function(){
@@ -33,6 +37,11 @@ define([
         collection(files).forEach(function(file){
             formData.append('files',file,file.name)
         });
+
+        collection(this._extraFormData).forEach(function(value,key){
+            formData.append(key, value);
+        });
+
         var _this = this;
         return new Promise(function(resolve, reject){
             network.http.post({
