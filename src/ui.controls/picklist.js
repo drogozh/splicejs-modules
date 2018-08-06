@@ -7,9 +7,10 @@ define([
 		ListBox: 'listbox',
 		DropDown: 'dropdown'
 	},
+	'../dataitem',
 	'!picklist.css',
 	'!picklist.html'
-],function(require, inheritance, component, events, controls){
+],function(require, inheritance, component, events, controls, dataApi){
     "use strict";
 	var scope = {
 		ListBox: controls.ListBox,
@@ -40,7 +41,12 @@ define([
 			_this.listBox.onItemSelected.subscribe(function(item){
 				_this.components.dropDown.applyContent(item);
 				_this.onItemSelected(item);
-				_this._selectedItem = item;
+				
+				if(_this._selectedItem instanceof dataApi.DataItem) {
+					_this._selectedItem.setValue(item);
+				} else {
+					_this._selectedItem = item;
+				}
 			});
 		});
 	};
@@ -55,11 +61,18 @@ define([
 	 * @param {any} item 
 	 */
 	PickList.prototype.setSelectedItem = function(item){
-		this.components.dropDown.applyContent(item);
+		if(item instanceof dataApi.DataItem) {
+			this.components.dropDown.applyContent(item.getValue());
+		} else {
+			this.components.dropDown.applyContent(item);
+		}
 		this._selectedItem = item;
 	};
 
 	PickList.prototype.getSelectedItem = function(){
+		if(item instanceof dataApi.DataItem) {
+			return this._selectedItem.getValue();
+		}
 		return this._selectedItem;
 	};
 

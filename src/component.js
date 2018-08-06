@@ -746,6 +746,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
     }
 
     ComponentBase.prototype.applyContent = function(content){
+        if(content == null) return;
         if(typeof content === 'string' || typeof content === 'number') {
             this.replace(content.toString());
         }
