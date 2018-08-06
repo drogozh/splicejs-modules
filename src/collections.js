@@ -71,11 +71,11 @@ define(function(){
 
 
 
-    function Collection(data, filter, selector) {
-        this._data = data;
-        this._filter = filter;
-        this._selector = selector;
-    }
+function Collection(data, filter, selector) {
+    this._data = data;
+    this._filter = filter;
+    this._selector = selector;
+}
 
 Collection.prototype.toArray = function(){
     var result = [];
@@ -217,6 +217,18 @@ Collection.prototype.forEach = function(fn){
 
     return _forEach(this._data,fn);
 }
+
+Collection.prototype.forIndex = function(index){
+    if(this._data instanceof Collection){
+        return this._data.forIndex(index);
+    }
+
+    if(this._data instanceof Array){
+        return this._data[index];
+    }
+
+    throw 'Collection operation is not supported, pending implementation';
+};
 
     /**
      * 

@@ -45,7 +45,7 @@ define([
 			var itemVm = component.locate.visual(e.source,ListBoxItem);
 			if(itemVm == null) return;
 
-			var item = _this._data[itemVm.elements.root.node.__sjs_idx];
+			var item = _this._data.forIndex(itemVm.elements.root.node.__sjs_idx);
 			if(item == null) return;
 			_this.onItemSelected(item);
 		});
@@ -54,7 +54,7 @@ define([
 	ListBox.prototype.dataIn = function(data){
 		this.elements.root.node.innerHTML = '';
 		
-		this._data = data;
+		this._data = collection(data);
 		if(!data) return;
 		var _this = this;
 		var fragment = document.createDocumentFragment();
@@ -69,7 +69,7 @@ define([
 			};
 		}
 		
-		collection(data).forEach(function(item,key){
+		this._data.forEach(function(item,key){
 			var li = new ListBoxItem.Component(_this);
 			li.elements.root.node.__sjs_idx = key;
 			li.applyContent(createItem(item));
