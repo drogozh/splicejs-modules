@@ -865,6 +865,11 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
             return s;
         }
         
+        //data item
+        if(s instanceof DataItem){
+            return new ValueComponent(s.getValue());
+        }
+
         //all else is a new ValueComponent
         return new ValueComponent(s.toString());
     }

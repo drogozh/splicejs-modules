@@ -1,0 +1,10 @@
+.sjs-theme--dark
+.sjs-checkbox.checked {
+	background-image: url('resources/checkmark--dark.png');
+	background-repeat: no-repeat;
+}
+
+.sjs-theme--dark
+.sjs-checkbox:hover {
+	background-color:#424A49;
+}

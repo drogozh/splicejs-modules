@@ -70,7 +70,7 @@ define([
 	};
 
 	PickList.prototype.getSelectedItem = function(){
-		if(item instanceof dataApi.DataItem) {
+		if(this._selectedItem instanceof dataApi.DataItem) {
 			return this._selectedItem.getValue();
 		}
 		return this._selectedItem;

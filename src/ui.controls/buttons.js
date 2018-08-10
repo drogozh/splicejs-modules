@@ -86,52 +86,6 @@ var Label = Class(function Label(args){
     this.args = args || {};
 }).extend(component.ComponentBase);
 
-
-
-/**
- * CheckBox Component
- */
-var CheckBox = Class(function CheckBox(args){
-    if(args)
-        this.isChecked = args.isChecked || false;
-}).extend(component.ComponentBase);
-
-CheckBox.prototype.onInit = function(args){
-    event.attach(this,{
-        onChanged:event.MulticastEvent
-    });
-}
-
-CheckBox.prototype.onLoaded = function(){
-
-    this.check();
-    event.attach(this.elements.root,{
-        onmousedown:dom.DomMulticastStopEvent
-    }).onmousedown.subscribe((function(){
-        this.isChecked = !this.isChecked;
-        this.check();
-        this.onChanged(this.isChecked);        
-    }).bind(this));
-
-    // this.content.default.onclick = (function(e){
-    //     if(!e) e = window.event;
-    //     view.cancelEventBubble(e);
-    //     this.isChecked = !this.isChecked;
-    //     this.check();
-    //     this.onChanged(this.isChecked);
-    // }).bind(this);
-};
-
-CheckBox.prototype.check = function(){
-    //set class to reflect the state
-    if(this.isChecked == true){
-        this.elements.root.appendClass('checked');
-    } else {
-        this.elements.root.removeClass('checked');
-    }
-    this.onChanged(this);
-}
-
 /**
  * 
  */
@@ -248,27 +202,12 @@ TextField.prototype.blur = function(){
     this.getElement('root').node.blur();
 };
 
-
-// /* module scope and exports */
-// scope.add(
-// 	{ButtonController 	 : Button},
-// 	{CheckBoxController  : CheckBox},
-// 	{TextFieldController : TextField}
-// );
-
-// scope.exports(
-// 	{ButtonController 	 : Button},
-// 	{CheckBoxController  : CheckBox},
-// 	{TextFieldController : TextField}
-// );
-
 return {
     Button		: factory.define('Button:buttons.html',Button,{animated:true}),
     RadioButton : RadioButton,
     Label		: factory.define('Label:buttons.html',Label),
-    CheckBox	: factory.define('CheckBox:buttons.html',CheckBox),
     TextField   : factory.define('TextField:buttons.html',TextField)
 }
 
-//module end
+
 });

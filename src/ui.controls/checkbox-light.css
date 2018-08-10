@@ -1,0 +1,10 @@
+.sjs-theme--light
+.sjs-checkbox.checked {
+	background-image: url('resources/checkmark--light.png');
+	background-repeat: no-repeat;
+}
+
+.sjs-theme--light
+.sjs-checkbox:hover {
+	background-color:#e2e2e2;
+}

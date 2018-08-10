@@ -1,4 +1,7 @@
-.-sjs-button {
+@import 'button-light.css';
+@import 'button-dark.css';
+
+.sjs-button {
     display: inline-block;
 	background-color: #1b88b8;
 	color:#fefefe;
@@ -16,7 +19,7 @@
     -ms-user-select: none; /* IE10+ */
 }
 
-.-sjs-button-disabled {
+.sjs-button-disabled {
 	display: inline-block;
 	border: 1px solid #1b88b8;
 	background:none;
@@ -25,7 +28,7 @@
 }
 
 
-.-sjs-button:hover {
+.sjs-button:hover {
 	background-color: #1CD0FA;
 }
 
@@ -41,27 +44,7 @@
 	 
 }
 
-.-sjs-checkbox {
-		display:inline-block;
-		width: 13px;
-	  height: 13px;
-	  position: relative;
-	  border: 1px solid #cecece;
-	  left: 0px;
-	  top: 0px;
-}
-
-.-sjs-checkbox:hover {
-	background-color:#424A49;
-}
-
-.-sjs-checkbox.checked {
-	background-image: url('resources/checklistbox/black/checkmark.png');
-	background-repeat: no-repeat;
-}
 
 
-.sjs-theme-light 
-.-sjs-button {
-    color:#fefefe;
-}
+
+
