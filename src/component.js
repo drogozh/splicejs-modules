@@ -210,7 +210,9 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
                 this._args.bindings.push(item);
             } 
             else if( key == 'content'){
+                // todo: looks figure out how to refactor
                 this._args.content = item;
+                this._args.other.content = item;
             }
             else {
                 this._args.other[key] = item;

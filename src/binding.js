@@ -28,7 +28,7 @@ function(data){
      */
     function Binding(path,kind){
         this.property = path;
-        this.kind = BINDING_TYPES.PATH;
+        this.kind = kind;
         this.targetType = null;
     }
 
@@ -43,7 +43,6 @@ function(data){
         this.kind = BINDING_TYPES.NAME;
         return this;
     }  
-
 
     // todo: DO NOT allow arbitrary function assignments
     // to avoid infinite recursive call
@@ -64,7 +63,7 @@ function(data){
             case BINDING_TYPES.PARENT:
                 if(!instance.parent) throw 'Cannot resolve parent binding, [instance.parent] is null';
                 //resolve binding through dataitem
-                source = new DataItem(instance.parent).path(binding.prop);
+                source = new DataItem(instance.parent).path(binding.property);
                 sourceInstance = instance.parent;
                 break;
 
