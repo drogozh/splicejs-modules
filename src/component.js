@@ -192,6 +192,8 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
     ComponentBase.prototype.init = function(args){
         this._state_ = {}; 
         
+        this.components = {};
+
         // default reflow mode is css
         this._reflow_mode_ = 'css';
         
@@ -346,7 +348,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
     //   this is because they are a part of template composition
     function _integrateIncludes(includes){
 
-        this.components = {};
+       
         var keys = Object.keys(includes);
         for(var key in keys){
             var inc = includes[keys[key]];
@@ -359,6 +361,11 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
                 this.components[args.name] = inc.component;
             }
 
+            //process ancestors
+            if(args.ancestors){
+                _processAncestors.call(inc.component,args);
+            }
+
             if(!args.content) continue;
             this.content[args.content] = inc.component;
         }
@@ -366,7 +373,22 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         this._includes = includes;
     }
 
-
+    function _processAncestors(args){
+        var parts = args.ancestors.split(',');
+        for(var i=0; i< parts.length; i++){
+            var parent = this.parent;
+            while(parent!= null) {
+                if(parent._templateName_ == parts[i].trim()) {
+                    if(parent.components[args.name] != null) {
+                        throw 'Child name ' + args.name + ' already exists in component ' + parts[i];
+                    }
+                    parent.components[args.name] = this;
+                    break;
+                }
+                parent = parent.parent;
+            }
+        }
+    }
 
 
     // typeof the content
@@ -1327,8 +1349,8 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
     //      component's node to allow inline styling  
 
     //todo: rename sjs prefix to s
-    var reservedAttr = ['sjs-type', 'sjs-content','sjs-vm','sjs-name','sjs-css-class'];
-    var reservedAttrPropNames = ['type','content','vm','name','cssClass'];
+    var reservedAttr = ['sjs-type', 'sjs-content','sjs-vm','sjs-name','sjs-css-class','sjs-ancestors'];
+    var reservedAttrPropNames = ['type','content','vm','name','cssClass','ancestors'];
   	function _collectAttributes(node, filter){
         if(!node) return {};
 
