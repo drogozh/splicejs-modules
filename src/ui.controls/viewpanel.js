@@ -37,9 +37,25 @@ define([
         }
     };
 
-    ViewPanel.prototype.switchView = function(viewName){
-        var view = this._views[viewName];
+    ViewPanel.prototype.switchView = function(name){
+        var view = this._views[name];
         this.replace(view);
+    };
+
+    ViewPanel.prototype.addView = function(name,view){
+        if(this._views[name] != null) {
+            return this; 
+        }
+        this._views[name] = view;
+    };
+
+    ViewPanel.prototype.viewExists = function(name){
+        return this._views[name] != null;
+    };
+
+    ViewPanel.prototype.removeView = function(name){
+        this._views[name] = null;
+        return this;
     };
 
     ViewPanel.Component = factory.define('ViewPanel:viewpanel.html',ViewPanel);

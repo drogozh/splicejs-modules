@@ -121,6 +121,10 @@ define([
         this.onDataUpdated(this.itemBuffer);
     };
 
+    DomIterator.prototype.setTemplate = function(template){
+        this.domContent = template;
+    };
+
     // private calls
     function _onItemClicked(args){
         var item = component.locate.visual(args.source,this.contentType);
