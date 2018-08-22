@@ -113,9 +113,12 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
             comp._templateName_ = templateName; 
             comp.init(comp.resolve(args));
             comp.loaded(__templates,scope,args);
+            comp.__sjs_instance_serial = component.__sjs_instance_count++;
             return comp;
         };
         
+        component.__sjs_instance_count = 0;
+
         component.prototype = controller.prototype;
         component.is = function(type){
             if(type.constructor ==  controller.prototype.constructor)
@@ -379,7 +382,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
             var parent = this.parent;
             while(parent!= null) {
                 if(parent._templateName_ == parts[i].trim()) {
-                    if(parent.components[args.name] != null) {
+                    if(parent.components[args.name] != null && parent.components[args.name] != this) {
                         throw 'Child name ' + args.name + ' already exists in component ' + parts[i];
                     }
                     parent.components[args.name] = this;

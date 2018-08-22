@@ -6,7 +6,7 @@ define([
 	'../event',
 	'../view',
     '../async',
-	'../component.interaction',
+	'../interaction',
 	'preload|../loader.css',
 	'!scrollpanel.css'
 //todo:

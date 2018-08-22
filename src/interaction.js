@@ -92,6 +92,7 @@ windowsize: function () {
 /**
  *      DragAndDrop Interaction
  */
+var startPos = {mouse:null};
 var DragAndDrop =  
 {
     draggable:null,
@@ -130,14 +131,16 @@ var DragAndDrop =
         this.ondragfired = false;
         this.onstop();
     },
-
+    
     drag:function(e) {
         var mousePos = Positioning.mouse(e);
-        this.ondrag(mousePos,DragAndDrop.offset);
+        
         if(this.ondragfired === false) {
-            this.onbegin();
+            startPos.mouse = mousePos;
+            this.onbegin(mousePos);
         }
         this.ondragfired = true;
+        this.ondrag(mousePos,DragAndDrop.offset,startPos.mouse);
         document.body.style.cursor='default';
     },
 

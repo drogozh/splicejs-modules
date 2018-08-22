@@ -5,7 +5,7 @@ define([
 	'../component',
 	'../event',
 	'../view',
-    '../component.interaction',
+    '../interaction',
 	'!dropdown.css',
 	'!dropdown.html'
 ],
