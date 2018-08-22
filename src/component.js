@@ -581,8 +581,10 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         return child;
     }
 
+    /**
+     * Clear content
+     */
     ComponentBase.prototype.clear = function(){
-
     };
     
     ComponentBase.prototype.activateTemplate = function(key){
@@ -804,7 +806,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         return this;
     }
 
-        /**
+    /**
      * Returns true if component is attached to display tree
      */
     ComponentBase.prototype.isVisible = function(){

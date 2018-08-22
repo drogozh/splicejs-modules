@@ -25,12 +25,6 @@ define([
     }).extend(component.ComponentBase);
 
     TextField.Component = factory.define('TextField:textfield.html',TextField);
-    
-    function _textFieldOnKey(args){
-        var newValue = this.getElement('root').node.value;
-        this._data.setValue(newValue);
-        this.onDataOut(newValue);
-    };
 
     TextField.prototype.onInit = function(args){
         this.trapMouseInput = args.captureMouse;
@@ -69,7 +63,7 @@ define([
     TextField.prototype.dataIn = function(dataItem){
         if(!dataItem) return;
         if(!(dataItem instanceof DataItem)){
-            throw 'TextField.dataIn expects DataItem instance';
+           dataItem = new DataItem(dataItem);
         }
 
         this._data = dataItem;
@@ -110,6 +104,14 @@ define([
 
     TextField.prototype.blur = function(){
         this.getElement('root').node.blur();
+    };
+
+    function _textFieldOnKey(args){
+        var newValue = this.getElement('root').node.value;
+        if(this._data != null) {
+            this._data.setValue(newValue);
+        }
+        this.onDataOut(newValue);
     };
 
     return TextField;

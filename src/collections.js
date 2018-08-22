@@ -139,8 +139,26 @@ Collection.prototype.toMap = function(funcKey,funcItem){
     return mappedCollection;
 };
 
-Collection.prototype.orderBy = function(func){
-
+Collection.prototype.orderBy = function(func,comparator){
+    var sortedColleciton = new Collection(this);
+    var array = this.toArray();
+    sortedColleciton.forEach = function(foo){
+        if(func == null) {
+            _forEach(array.sort(),foo);
+            return;
+        }
+        if(func != null) {
+            _forEach(array.sort(function(a,b){
+                var _a = func(a);
+                var _b = func(b);
+                if(_a < _b) return -1;
+                if(_a > _b) return 1;
+                return 0; 
+            }),foo);
+            return;
+        }
+    }
+    return sortedColleciton;
 };
 
 Collection.prototype.orderByDesc = function(func){
@@ -244,12 +262,12 @@ Collection.prototype.forIndex = function(index){
         }
 
         // iterate over array
-        if(data instanceof Array) {
-            for(var i=0; i < data.length; i++){
-                fn(data[i], i);
-            }
-            return;
-        }
+        // if(data instanceof Array) {
+        //     for(var i=0; i < data.length; i++){
+        //         fn(data[i], i);
+        //     }
+        //     return;
+        // }
 
         // iterate for a 'number' of consecutive digits
         if(typeof(data) == 'number'){
@@ -259,8 +277,8 @@ Collection.prototype.forIndex = function(index){
             return;
         }
 
-        // iterate of object
-        if(typeof(data) == 'object'){
+        // iterate of object or array
+        if(typeof(data) == 'object' || data instanceof Array){
             var keys = Object.keys(data);
             for(var i=0; i< keys.length; i++){
                 fn(data[keys[i]],keys[i]);

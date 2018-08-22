@@ -17,6 +17,7 @@ define([
     var factory = component.ComponentFactory(require, scope);
 
     var ViewPanel = inheritance.Class(function ViewPanel(){
+        this._viewInstances = [];
     }).extend(component.ComponentBase);
 
     ViewPanel.prototype.onInit = function(args){
@@ -38,8 +39,17 @@ define([
     };
 
     ViewPanel.prototype.switchView = function(name){
-        var view = this._views[name];
-        this.replace(view);
+        var viewInstance = this._viewInstances[name];
+        if(viewInstance == null) {
+            if(typeof this._views[name] === 'function'){
+                viewInstance = this._viewInstances[name] = new this._views[name](this);    
+            }
+            else {
+                viewInstance = this._viewInstances[name] = this._views[name];    
+            }
+            
+        }
+        this.replace(viewInstance);
     };
 
     ViewPanel.prototype.addView = function(name,view){

@@ -80,6 +80,17 @@ define([
        this.parent.onChildChanged();
     };
 
+    DomIterator.prototype.applyContent = function(content){
+        if(!content) return;
+        this.dataIn(content);
+    };
+
+    DomIterator.prototype.clear = function(){
+        this.itemBuffer = [];
+        // todo use component API
+        this.node.innerHTML = "";
+    };
+
     // argument must be a collection or an object
     DomIterator.prototype.dataIn = function dataIn(data){
         var _this = this;
