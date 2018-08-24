@@ -126,6 +126,9 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         }
         component.__sjs_is_comp__ = true;
 
+        component.getInstanceCount = function(){
+            return component.__sjs_instance_count;
+        }
         return component;
     }
 
