@@ -178,6 +178,10 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
      * Base Component
      */
     function ComponentBase(){}
+    var _formatters = {};
+    ComponentBase.registerFormatter = function(name, formatter){
+        _formatters[name] = formatter;
+    };
 
     //interface callbacks, intended for override
     ComponentBase.prototype.onInit = 
@@ -373,7 +377,9 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
             }
 
             if(!args.content) continue;
-            this.content[args.content] = inc.component;
+            this.content[args.content] = {
+                element:inc.component
+            };
         }
 
         this._includes = includes;
@@ -455,6 +461,10 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
             //console.warn('Content target for ' + key + ' is not found, content is not rendered');
             return;
         }
+        if(target.element == null) {
+            console.log('wtf');
+        }
+        target = target.element;
 
         if(mode == 'add'){
             target.node.appendChild(child.node);
@@ -798,8 +808,16 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
                 
                 if(value == null) continue;
 
-                if(target instanceof ComponentBase){
-                    target.applyContent(value);
+                if(target.format) {
+                    var formatter = _formatters[target.format];
+                    if(formatter == null) {
+                        throw 'Formatter "' + target.format + '" is not found, register formatter with ComponentBase.registerFormatter();';
+                    }
+                    value = formatter(value);         
+                }
+
+                if(target.element instanceof ComponentBase){
+                    target.element.applyContent(value);
                     continue;
                 }
 
@@ -1154,7 +1172,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         ,	cMap = {};
 
         if(!contentNodes || contentNodes.length < 1) {
-            cMap['default'] = Element(node);
+            cMap['default'] = {element:Element(node)};
             return cMap;
         }
         
@@ -1163,7 +1181,10 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
                 node = contentNodes[i];
                 continue; 
             }
+            
             var attr = node.getAttribute('sjs-content');
+            var formatter = node.getAttribute('sjs-format');
+
             if(!attr) {
                 node = contentNodes[i];
                 continue;
@@ -1173,7 +1194,10 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
                 var key = keys[k];
                 if(cMap[key]) throw 'Duplicate content map key ' + key;
                 node.__sjscache__ = {n:0};
-                cMap[key] = Element(node);
+                cMap[key] = {
+                   element:Element(node),
+                   format: formatter
+                }
             }
             node = contentNodes[i];
         }
