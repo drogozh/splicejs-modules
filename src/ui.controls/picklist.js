@@ -67,6 +67,17 @@ define([
 			this.components.dropDown.applyContent(item);
 		}
 		this._selectedItem = item;
+		this.onItemSelected(item);
+	};
+
+	PickList.prototype.clearSelectedItem = function(){
+		this.components.dropDown.clear();
+		this._selectedItem = null;
+	};
+
+	PickList.prototype.clear = function(){
+		this.dataIn([]);
+		this.clearSelectedItem();
 	};
 
 	PickList.prototype.getSelectedItem = function(){

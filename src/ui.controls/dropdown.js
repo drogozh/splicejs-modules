@@ -90,12 +90,17 @@ function(require,inheritance,component,event,view,interaction){
 			this._itemTemplateInstance = this.set(new this.itemTemplate(this));
 		}
 
-		this.applyContent(this.defaultValue);
+		// sets default item
+		this.clear();
 
 		//create instance of dropdown container
 		this.dropDownContainer = new scope.DropDownContainer(this);
 		
 		this._isInitialDrop = true;
+	}
+
+	DropDown.prototype.clear = function(){
+		this.applyContent(this.defaultValue);
 	}
 
 	DropDown.prototype.applyContent = function(content){
