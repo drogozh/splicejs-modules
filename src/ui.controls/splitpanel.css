@@ -5,13 +5,13 @@
 
 .sjs-splitpanel__left {
     position:absolute;
-    left:0;top:0;width:50%;bottom:0;
+    left:0;top:0;right:50%;bottom:0;
     border-right:1px solid #cecece;
 }
 
 .sjs-splitpanel__right {
     position:absolute;
-    width:50%;top:0;right:0px;bottom:0;
+    left:50%;top:0;right:0px;bottom:0;
 }
 
 .sjs-splitpanel__separator {

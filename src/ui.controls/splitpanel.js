@@ -56,7 +56,7 @@ define([
                 }
                 _element.left = (position.x + p.x) + 'px';
                 _left.style.width = (position.l + p.x) + 'px';
-                _right.style.width = (position.r - p.x) + 'px';
+                _right.style.left = (position.l + p.x) + 'px';
             };
         };
     };
