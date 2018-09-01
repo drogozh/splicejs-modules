@@ -23,6 +23,7 @@ define([
     SplitPanel.prototype.onInit = function(args){
         this._leftContent = args.leftPanel;
         this._rightContent = args.rightPanel;
+        this._isHideRight = args.hideRight;
     };
 
     SplitPanel.prototype.onLoaded = function(){
@@ -31,22 +32,28 @@ define([
             right:this._rightContent
         });
 
-        // left or top
-        var _leftPanel = this.getElement('left-panel');
-        // right or bottom
-        var _rightPanel = this.getElement('right-panel');
+        if(this._isHideRight) {
+            this.hideRight.call(this);
+        }
 
-        this.getElement('separator').node.onmousedown = function(){
+        // left or top
+        this._leftPanel = this.getElement('left-panel');
+
+        // right or bottom
+        this._rightPanel = this.getElement('right-panel');
+        
+        // separator
+        this._separator = this.getElement('separator');
+
+        var _this = this;
+        
+        this._separator.node.onmousedown = function(){
 
             var _element = this.style;
-            var _left = _leftPanel.node;
-            var _right = _rightPanel.node;    
+            var _left = _this._leftPanel.node;
+            var _right = _this._rightPanel.node;    
 
-            var position = {
-                x:  this.offsetLeft,
-                l: _left.clientWidth,
-                r: _right.clientWidth
-            };
+            var position = _measure.call(_this);
 
             interaction.DragAndDrop.startDrag(this);
             interaction.DragAndDrop.ondrag = function(current,offset,start){
@@ -60,5 +67,22 @@ define([
             };
         };
     };
+
+    SplitPanel.prototype.showRight = function(){
+        this.getElement('root').removeClass('hide-right');
+    };
+
+    SplitPanel.prototype.hideRight = function(){
+        this.getElement('root').addClass('hide-right');
+    };
+
+    function _measure(){
+        return this._position = {
+            x: this._separator.node.offsetLeft,
+            l: this._leftPanel.node.clientWidth,
+            r: this._rightPanel.node.clientWidth
+        };
+    }
+
     return SplitPanel;
 });
