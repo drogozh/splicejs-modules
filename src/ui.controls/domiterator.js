@@ -47,6 +47,8 @@ define([
 
         // todo: find a way to extact template type
         this.domContent = args.template;
+
+        this.headerTemplate = args.headerTemplate;
         
         this.formatter = args.formatter;
 
@@ -89,6 +91,7 @@ define([
         this.itemBuffer = [];
         // todo use component API
         this.node.innerHTML = "";
+        this._header = null;
     };
 
     // argument must be a collection or an object
@@ -103,8 +106,12 @@ define([
             }
         }
 
-        var keys = Object.keys(data);
+        // add header
+        if(this._header == null && this.headerTemplate != null) {
+            this._header = this.add(this.headerTemplate);
+        }
 
+        var keys = Object.keys(data);
         // update existing or add new
         for(var i=0; i<keys.length; i++){
             var cmp =  this.itemBuffer[i];
