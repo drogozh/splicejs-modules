@@ -20,7 +20,8 @@ define([
 
     var TextField = inheritance.Class(function TextFieldController(args){
         event.attach(this,{
-            onDataOut:event.MulticastEvent
+            onDataOut:event.MulticastEvent,
+            onEnterKey:event.UnicastEvent
         });
     }).extend(component.ComponentBase);
 
@@ -46,12 +47,7 @@ define([
             });
         }
 
-        if(this.isRealtime == true){
-        	changeEvents.onkeyup.subscribe(_textFieldOnKey, this);
-        }
-        else {
-        	changeEvents.onchange.subscribe(_textFieldOnKey, this);
-        }
+        changeEvents.onkeyup.subscribe(_textFieldOnKey, this);
         
         if(this.isEmail === true) {
             this.elements.root.node.setAttribute('type','email');
@@ -111,7 +107,14 @@ define([
         if(this._data != null) {
             this._data.setValue(newValue);
         }
-        this.onDataOut(newValue);
+
+        if(this.isRealtime) {
+            this.onDataOut(newValue);
+        }
+        // enter key
+        if(args.domEvent.keyCode == 13) {
+            this.onEnterKey(newValue);
+        }
     };
 
     return TextField;

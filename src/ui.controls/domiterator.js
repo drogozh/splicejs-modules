@@ -141,6 +141,12 @@ define([
 
     DomIterator.prototype.setTemplate = function(template){
         this.domContent = template;
+        this.clear();
+    };
+
+    DomIterator.prototype.setHeaderTemplate = function(template){
+        this.headerTemplate = template;
+        this.clear();
     };
 
     // private calls
