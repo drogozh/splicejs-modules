@@ -18,7 +18,7 @@ define([
 
     var DataItem = data.DataItem;
 
-    var TextField = inheritance.Class(function TextFieldController(args){
+    var TextField = inheritance.Class(function TextField(args){
         event.attach(this,{
             onDataOut:event.MulticastEvent,
             onEnterKey:event.UnicastEvent
