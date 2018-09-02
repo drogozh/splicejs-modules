@@ -139,7 +139,7 @@ Collection.prototype.toMap = function(funcKey,funcItem){
     return mappedCollection;
 };
 
-Collection.prototype.orderBy = function(func,comparator){
+function _orderBy(func,comparator,direction){
     var sortedColleciton = new Collection(this);
     var array = this.toArray();
     sortedColleciton.forEach = function(foo){
@@ -147,22 +147,33 @@ Collection.prototype.orderBy = function(func,comparator){
             _forEach(array.sort(),foo);
             return;
         }
+
+        if(comparator == null) {
+            comparator = function(a,b){
+                if(_a < _b) return -1;
+                if(_a > _b) return 1;
+                return 0; 
+            };
+        }
+
         if(func != null) {
             _forEach(array.sort(function(a,b){
                 var _a = func(a);
                 var _b = func(b);
-                if(_a < _b) return -1;
-                if(_a > _b) return 1;
-                return 0; 
+                return direction * comparator(_a,_b);
             }),foo);
             return;
         }
     }
     return sortedColleciton;
+}
+
+Collection.prototype.orderBy = function(func,comparator){
+    return _orderBy.call(this,func,comparator,1);
 };
 
-Collection.prototype.orderByDesc = function(func){
-
+Collection.prototype.orderByDesc = function(func,comparator){
+    return _orderBy.call(this,func,comparator,-1);
 };
 
 Collection.prototype.aggregate = function(func){
