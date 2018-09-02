@@ -127,8 +127,8 @@ function(data){
         return sourceValue;
       }
 
-      // if value is a function bind source instance
-      if(typeof sourceValue == 'function'){
+      //if value is a function bind source instance
+      if(typeof sourceValue == 'function' && !sourceValue.isProxy){
         sourceValue = sourceValue.bind(sourceInstance);
       }
 
