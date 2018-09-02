@@ -127,6 +127,11 @@ function(data){
         return sourceValue;
       }
 
+      // if value is a function bind source instance
+      if(typeof sourceValue == 'function'){
+        sourceValue = sourceValue.bind(sourceInstance);
+      }
+
       //4. value to value binding
       target.setValue(sourceValue);
       return sourceValue;
