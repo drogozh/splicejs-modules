@@ -31,6 +31,7 @@ define([
         this.trapMouseInput = args.captureMouse;
         this.isRealtime  = args.isRealtime;
         this.isEmail = args.isEmail;
+        this.isPassword = args.isPassword;
     }
 
     TextField.prototype.onLoaded = function(args){
@@ -53,6 +54,10 @@ define([
             this.elements.root.node.setAttribute('type','email');
             this.elements.root.node.setAttribute('autocorrect','off');
             this.elements.root.node.setAttribute('autocapitalize','none');
+        }
+
+        if(this.isPassword == true){
+            this.elements.root.node.type = 'password';
         }
     }
 
@@ -96,6 +101,10 @@ define([
 
     TextField.prototype.focus = function(){
         this.getElement('root').node.focus();
+    };
+
+    TextField.prototype.select = function(){
+        this.getElement('root').node.select();
     };
 
     TextField.prototype.blur = function(){

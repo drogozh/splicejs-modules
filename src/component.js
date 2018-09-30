@@ -813,7 +813,11 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
                     if(formatter == null) {
                         throw 'Formatter "' + target.format + '" is not found, register formatter with ComponentBase.registerFormatter();';
                     }
-                    value = formatter(value);         
+                    if(value instanceof DataItem) {
+                        value = formatter(value.getValue());         
+                    } else {
+                        value = formatter(value);         
+                    }
                 }
 
                 if(target.element instanceof ComponentBase){

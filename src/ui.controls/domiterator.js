@@ -26,7 +26,11 @@ define([
         event.attach(this,{
             onItemSelected : event.MulticastEvent,
             onItem : event.UnicastEvent,
-            onDataUpdated: event.MulticastEvent
+            onDataUpdated: event.MulticastEvent,
+            // todo:    separate event for items of data
+            //          element etc...
+            // todo: refactor to remove other events
+            onSelectedItem: event.UnicastEvent
         });
 
         args = this.resolve(args);
@@ -88,6 +92,7 @@ define([
     };
 
     DomIterator.prototype.clear = function(){
+        this._data = null;
         this.itemBuffer = [];
         // todo use component API
         this.node.innerHTML = "";
@@ -97,6 +102,7 @@ define([
     // argument must be a collection or an object
     DomIterator.prototype.dataIn = function dataIn(data){
         var _this = this;
+        this._data = data;
         var foo = function(item){
             return item;
         }
@@ -111,16 +117,16 @@ define([
             this._header = this.add(this.headerTemplate);
         }
 
-        var keys = Object.keys(data);
+        var keys = this._keys = Object.keys(data);
         // update existing or add new
         for(var i=0; i<keys.length; i++){
             var cmp =  this.itemBuffer[i];
             if(!cmp) {
-                cmp = this.add(this.domContent); 
+                cmp = this.add(this.domContent);
                 this.itemBuffer.push(cmp);
                 this.contentType = cmp.constructor;
             }
-
+            cmp.node.__sjs_domiterator_idx = keys[i];
             // record item type, ideally this should be done once
             cmp.applyContent(foo(data[keys[i]]));
             this.onItem(cmp);
@@ -154,6 +160,14 @@ define([
         var item = component.locate.visual(args.source,this.contentType);
         var source = component.locate.visual(args.source);
         
+        var parent = args.source;
+        var idx2 = null;
+        while(parent!= null) {
+            var idx2 = parent.__sjs_domiterator_idx;
+            if(idx2 != null) break;
+            parent = parent.parentNode;
+        }
+        console.log(idx2);
         // find index
         var idx = (function(){
             for(var i=0; i < this.itemBuffer.length; i++){
@@ -164,9 +178,14 @@ define([
             return null;
         }).bind(this)();
 
+        // todo: this a temp hack - refactor
+        if(idx2 != null) {
+            this.onSelectedItem(this._data[idx2],source,idx2);
+        }
+
         // no item selected
         if(!item)  return;
-        this.onItemSelected(item,source,args.source,idx);
+        this.onItemSelected(item,source,args.source,this._keys[idx]);
     }
 
     DomIterator.__sjs_is_comp__ = true;

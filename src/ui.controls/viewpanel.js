@@ -27,15 +27,18 @@ define([
 
     ViewPanel.prototype.onLoaded = function(){
         var _this = this;
-        var views = collections.collection(this._views)
-            .where(function(item,key){
-                return key == _this._default;
-            })
-            .toArray();
-
-        if(views[0]){
-            this.replace(views[0]);
+        if(this._default != null) {
+            this.switchView(this._default);
         }
+        // var views = collections.collection(this._views)
+        //     .where(function(item,key){
+        //         return key == _this._default;
+        //     })
+        //     .toArray();
+
+        // if(views[0]){
+        //     this.replace(views[0]);
+        // }
     };
 
     ViewPanel.prototype.switchView = function(name){
