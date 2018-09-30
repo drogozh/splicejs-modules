@@ -113,9 +113,12 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
             comp._templateName_ = templateName; 
             comp.init(comp.resolve(args));
             comp.loaded(__templates,scope,args);
+            comp.__sjs_instance_serial = component.__sjs_instance_count++;
             return comp;
         };
         
+        component.__sjs_instance_count = 0;
+
         component.prototype = controller.prototype;
         component.is = function(type){
             if(type.constructor ==  controller.prototype.constructor)
@@ -123,6 +126,9 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         }
         component.__sjs_is_comp__ = true;
 
+        component.getInstanceCount = function(){
+            return component.__sjs_instance_count;
+        }
         return component;
     }
 
@@ -172,6 +178,10 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
      * Base Component
      */
     function ComponentBase(){}
+    var _formatters = {};
+    ComponentBase.registerFormatter = function(name, formatter){
+        _formatters[name] = formatter;
+    };
 
     //interface callbacks, intended for override
     ComponentBase.prototype.onInit = 
@@ -367,7 +377,9 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
             }
 
             if(!args.content) continue;
-            this.content[args.content] = inc.component;
+            this.content[args.content] = {
+                element:inc.component
+            };
         }
 
         this._includes = includes;
@@ -379,7 +391,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
             var parent = this.parent;
             while(parent!= null) {
                 if(parent._templateName_ == parts[i].trim()) {
-                    if(parent.components[args.name] != null) {
+                    if(parent.components[args.name] != null && parent.components[args.name] != this) {
                         throw 'Child name ' + args.name + ' already exists in component ' + parts[i];
                     }
                     parent.components[args.name] = this;
@@ -449,6 +461,10 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
             //console.warn('Content target for ' + key + ' is not found, content is not rendered');
             return;
         }
+        if(target.element == null) {
+            console.log('wtf');
+        }
+        target = target.element;
 
         if(mode == 'add'){
             target.node.appendChild(child.node);
@@ -581,8 +597,10 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         return child;
     }
 
+    /**
+     * Clear content
+     */
     ComponentBase.prototype.clear = function(){
-
     };
     
     ComponentBase.prototype.activateTemplate = function(key){
@@ -790,8 +808,16 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
                 
                 if(value == null) continue;
 
-                if(target instanceof ComponentBase){
-                    target.applyContent(value);
+                if(target.format) {
+                    var formatter = _formatters[target.format];
+                    if(formatter == null) {
+                        throw 'Formatter "' + target.format + '" is not found, register formatter with ComponentBase.registerFormatter();';
+                    }
+                    value = formatter(value);         
+                }
+
+                if(target.element instanceof ComponentBase){
+                    target.element.applyContent(value);
                     continue;
                 }
 
@@ -804,7 +830,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         return this;
     }
 
-        /**
+    /**
      * Returns true if component is attached to display tree
      */
     ComponentBase.prototype.isVisible = function(){
@@ -1146,7 +1172,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         ,	cMap = {};
 
         if(!contentNodes || contentNodes.length < 1) {
-            cMap['default'] = Element(node);
+            cMap['default'] = {element:Element(node)};
             return cMap;
         }
         
@@ -1155,7 +1181,10 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
                 node = contentNodes[i];
                 continue; 
             }
+            
             var attr = node.getAttribute('sjs-content');
+            var formatter = node.getAttribute('sjs-format');
+
             if(!attr) {
                 node = contentNodes[i];
                 continue;
@@ -1165,7 +1194,10 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
                 var key = keys[k];
                 if(cMap[key]) throw 'Duplicate content map key ' + key;
                 node.__sjscache__ = {n:0};
-                cMap[key] = Element(node);
+                cMap[key] = {
+                   element:Element(node),
+                   format: formatter
+                }
             }
             node = contentNodes[i];
         }

@@ -18,19 +18,14 @@ define([
 
     var DataItem = data.DataItem;
 
-    var TextField = inheritance.Class(function TextFieldController(args){
+    var TextField = inheritance.Class(function TextField(args){
         event.attach(this,{
-            onDataOut:event.MulticastEvent
+            onDataOut:event.MulticastEvent,
+            onEnterKey:event.UnicastEvent
         });
     }).extend(component.ComponentBase);
 
     TextField.Component = factory.define('TextField:textfield.html',TextField);
-    
-    function _textFieldOnKey(args){
-        var newValue = this.getElement('root').node.value;
-        this._data.setValue(newValue);
-        this.onDataOut(newValue);
-    };
 
     TextField.prototype.onInit = function(args){
         this.trapMouseInput = args.captureMouse;
@@ -52,12 +47,7 @@ define([
             });
         }
 
-        if(this.isRealtime == true){
-        	changeEvents.onkeyup.subscribe(_textFieldOnKey, this);
-        }
-        else {
-        	changeEvents.onchange.subscribe(_textFieldOnKey, this);
-        }
+        changeEvents.onkeyup.subscribe(_textFieldOnKey, this);
         
         if(this.isEmail === true) {
             this.elements.root.node.setAttribute('type','email');
@@ -69,7 +59,7 @@ define([
     TextField.prototype.dataIn = function(dataItem){
         if(!dataItem) return;
         if(!(dataItem instanceof DataItem)){
-            throw 'TextField.dataIn expects DataItem instance';
+           dataItem = new DataItem(dataItem);
         }
 
         this._data = dataItem;
@@ -110,6 +100,21 @@ define([
 
     TextField.prototype.blur = function(){
         this.getElement('root').node.blur();
+    };
+
+    function _textFieldOnKey(args){
+        var newValue = this.getElement('root').node.value;
+        if(this._data != null) {
+            this._data.setValue(newValue);
+        }
+
+        if(this.isRealtime) {
+            this.onDataOut(newValue);
+        }
+        // enter key
+        if(args.domEvent.keyCode == 13) {
+            this.onEnterKey(newValue);
+        }
     };
 
     return TextField;

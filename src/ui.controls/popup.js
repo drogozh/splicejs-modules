@@ -3,7 +3,7 @@ define([
 	'../inheritance',
 	'../component',
 	'../event',
-	'../component.interaction',
+	'../interaction',
 	'preload|../loader.css',
 	'!popup.css'
 ],function(require,inheritance,component,event,interaction){

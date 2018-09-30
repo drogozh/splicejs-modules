@@ -4,7 +4,7 @@ define([
 	'../component',
 	'../event',
 	'../view',
-	'../component.interaction',
+	'../interaction',
     '../util',
     '../async',
 	'preload|../loader.css',

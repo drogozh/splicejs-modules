@@ -1,0 +1,45 @@
+.sjs-splitpanel {
+    position:absolute;
+    left:0;top:0;right:0;bottom:0;
+}
+
+.sjs-splitpanel__left {
+    position:absolute;
+    left:0;top:0;right:50%;bottom:0;
+    border-right:1px solid #cecece;
+}
+
+.sjs-splitpanel__right {
+    position:absolute;
+    left:50%;top:0;right:0px;bottom:0;  
+}
+
+.sjs-splitpanel__separator {
+    position:absolute;
+    left:50%;top:0;width:0px;bottom:0;
+}
+
+.sjs-splitpanel__separator__handle {
+    position:relative; height:100%; width:10px; margin-left:-5px;
+    cursor:ew-resize;
+}
+
+.sjs-splitpanel__separator__handle:hover {
+    background-color:#bebebe;
+    opacity:0.5;
+    transition:background-color 1s;
+}
+
+/* hide right */
+.sjs-splitpanel.hide-right .sjs-splitpanel__left {
+    right:0;
+    width:auto !important;
+}
+
+.sjs-splitpanel.hide-right .sjs-splitpanel__right {
+    display: none;
+}
+
+.sjs-splitpanel.hide-right .sjs-splitpanel__separator {
+    display: none;
+}

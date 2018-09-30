@@ -31,6 +31,12 @@ define([
             if(this._requestTimeOut && this._requestTimeOut.isTimeOut) return;
             _handleStateChange.call(this,this._observer,function(r){
                 var contentType = this.transport.getResponseHeader('content-type');
+                
+                // empty response
+                if(contentType == null) {
+                    return null;
+                }
+
                 if(contentType.indexOf('application/json') > -1) {
                     return JSON.parse(r.text);
                 }

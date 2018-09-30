@@ -1,0 +1,38 @@
+.sjs-toastmessage {
+    position:absolute; 
+    left:50%; top:-9em;
+    z-index:1000; 
+    opacity: 0;
+    transition: top 0.5s;
+}
+
+.sjs-toastmessage.visible {
+    transition: top 0.5s, opacity 0.5s;
+    opacity:1;
+    top:13%;
+}
+
+.sjs-toastmessage.hide { 
+    transition: opacity 1s;
+    top:13%;
+    opacity:0;
+}
+
+.sjs-toastmessage__message {
+    display: inline-block;
+    padding:4em;
+    border-radius: 5px;
+    font-family: RobotoMedium;
+    font-size: 1.1em;
+    padding-top: 2em;
+    padding-bottom: 2em;
+}
+
+.sjs-theme--light 
+.sjs-toastmessage__message {
+    background-color: #de562d;
+    color: #fefefe;
+    -webkit-box-shadow: 0px 9px 42px -10px rgba(0,0,0,0.43);
+    -moz-box-shadow: 0px 9px 42px -10px rgba(0,0,0,0.43);
+    box-shadow: 0px 9px 42px -10px rgba(0,0,0,0.43);
+}
