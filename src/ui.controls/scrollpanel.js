@@ -8,7 +8,9 @@ define([
     '../async',
 	'../interaction',
 	'preload|../loader.css',
-	'!scrollpanel.css'
+	'preload|../loader.template',
+	'!scrollpanel.css',
+	'!scrollpanel.html'
 //todo:
 /*
     Implement scrollTo call to bring scrolled items into view
