@@ -161,6 +161,7 @@ function collapseUrl(path){
 	for(var i=0; i<stack.length; i++){
 		cpath = cpath + separator + stack[i];
 		if(stack[i] == 'http:') { separator = '//';  continue; }
+		if(stack[i] == 'https:') { separator = '//';  continue; }
 		if(stack[i] == 'file:') { separator = '///'; continue; }
 		separator = _pd_;
 	}
@@ -451,8 +452,9 @@ Loader.prototype = {
 
 			//skip unknown resources
 			if(!handler) { 
-				console.warn('unrecognized resource type ' + filename);
-				continue;
+				//console.warn('unrecognized resource type ' + filename);
+				//continue;
+				handler = _fileHandlers['.js'];
 			}
 
 			var spec = importsMap[filename];
