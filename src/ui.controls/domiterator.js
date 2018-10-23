@@ -56,6 +56,8 @@ define([
         
         this.formatter = args.formatter;
 
+        this.emptyMessage = args.emptyMessage;
+
         // setup on click handler
         // handler is invoked with data as argument
         // at this point onItemSelected may stil be a binding
