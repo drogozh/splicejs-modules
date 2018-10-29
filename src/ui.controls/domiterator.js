@@ -18,6 +18,7 @@ define([
     var touchSupport = loader.getVar('{touchsupport}');
 
     var collection = collections.collection;
+    var DataItem = di.DataItem;
 
     var DomIterator = Class(function DomIterator(parent,args){
         this.parent = parent;
@@ -102,9 +103,9 @@ define([
     };
 
     // argument must be a collection or an object
-    DomIterator.prototype.dataIn = function dataIn(data){
+    DomIterator.prototype.dataIn = function dataIn(sourceData){
         var _this = this;
-        this._data = data;
+        this._data = sourceData;
         var foo = function(item){
             return item;
         }
@@ -118,6 +119,11 @@ define([
         if(this._header == null && this.headerTemplate != null) {
             this._header = this.add(this.headerTemplate);
         }
+        
+        var data = sourceData;
+        if(sourceData instanceof DataItem){
+            data = sourceData.getValue();
+        }
 
         var keys = this._keys = Object.keys(data);
         // update existing or add new
@@ -129,7 +135,6 @@ define([
                 this.contentType = cmp.constructor;
             }
             cmp.node.__sjs_domiterator_idx = keys[i];
-            // record item type, ideally this should be done once
             cmp.applyContent(foo(data[keys[i]]));
             this.onItem(cmp);
         }
@@ -182,7 +187,7 @@ define([
 
         // todo: this a temp hack - refactor
         if(idx2 != null) {
-            this.onSelectedItem(this._data[idx2],source,idx2);
+            this.onSelectedItem(this._data[idx2],source,idx2,this.itemBuffer[idx2]);
         }
 
         // no item selected
