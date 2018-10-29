@@ -1,7 +1,9 @@
 define([
-  {Inheritance  :'inheritance.js',
-  Events        :'event.js',
-  Util          :'util.js'}
+  {
+    Inheritance  :'inheritance.js',
+    Events        :'event.js',
+    Util          :'util.js'
+  }
 ],function(imports){
   "use strict";
   
@@ -56,6 +58,10 @@ define([
     };
 
     DataItem.prototype.getValue = function(){
+      if(this._temp) {
+        return this._tempValue;
+      }
+
       var s = _recGetSource(this);
       if(this._path == null) return s;
       return !s ? null : s[this._path];
@@ -141,7 +147,11 @@ define([
         todo: ???  create separate events for new, unpdated, deleted
         this enable observers to track specific changes separately
     */
-    DataItem.prototype.setValue = function(value){
+      DataItem.prototype.setValue = function(value){
+        if(this._temp) {
+          this._tempValue = value;
+          return;
+        }
 
         /*
           set initial value, nothing to bubble
@@ -193,7 +203,15 @@ define([
   	*/
   	DataItem.prototype.path = function(path){
       return _path(this,path);
-  	};
+    };
+    
+    /**
+     * Returns DataItem that will have no effect
+     * on original source item
+     */
+    DataItem.prototype.tempPath = function(path){
+      return _path(this,path,true);
+    };
 
   	DataItem.prototype.fullPath = function(){
   		var node = this;
@@ -398,7 +416,7 @@ define([
     /**
       
     */
-    function _path(dataItem, path){
+    function _path(dataItem, path, isTemp){
       if(!path || path == null || path === '') return dataItem;
 
       var source = _recGetSource(dataItem,0);
@@ -427,10 +445,14 @@ define([
         }
 */
         if(child == null /*|| source[parts[i]] == null*/) {
-          if(source && source[parts[i]] instanceof Array)
+          if(source && source[parts[i]] instanceof Array) {
             child = new ArrayDataItem(source);
-          else
+            child._temp = isTemp;
+          }
+          else {
             child = new DataItem();
+            child._temp = isTemp;
+          }
 
           child._path = parts[i];
           parent.pathmap[parts[i]] = child;

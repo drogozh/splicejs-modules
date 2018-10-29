@@ -137,7 +137,6 @@ function(data){
       return sourceValue;
   	}
 
-
     function findBindingInstance(binding,instance){
         var parent = instance.parent;
         var target = null;
@@ -146,16 +145,16 @@ function(data){
                 target = parent;
                 break;
             }
-            //check is parent's includes
 
-            
+            if(parent.__sjs_comp_nm == binding.targetName){
+                target = parent;
+                break;
+            }
+            //check is parent's includes
             parent = parent.parent;
         }
         return new DataItem(target).path(binding.property);    
     }      
-
-
-
 
 return Binding;
 

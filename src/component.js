@@ -376,10 +376,14 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
                 _processAncestors.call(inc.component,args);
             }
 
+            // handle content attribute of included component
             if(!args.content) continue;
-            this.content[args.content] = {
-                element:inc.component
-            };
+            var cKeys = args.content.split(' ');
+            for(var cKey in cKeys) {
+                this.content[cKeys[cKey]] = {
+                    element:inc.component
+                };
+            }
         }
 
         this._includes = includes;
@@ -776,8 +780,11 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
 
    function _getValue(path, value) {
         if(value instanceof DataItem) {
+            if(path == 'default') {
+                return value.getValue();
+            } 
             return value.path(path);
-        }
+``        }
 
         var parts = path.split('.');
         for (var i = 0; i < parts.length; i++) {
@@ -785,6 +792,13 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
             if (value == null) break;
         }
         return value;
+    }
+
+    ComponentBase.prototype.getContentValue = function(content){
+        if(content instanceof DataItem){
+            return content.getValue();
+        }
+        return content;
     }
 
     ComponentBase.prototype.applyContent = function(content){
@@ -821,7 +835,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
                 }
 
                 if(target.element instanceof ComponentBase){
-                    target.element.applyContent(value);
+                    target.element.applyContent(value, key);
                     continue;
                 }
 
@@ -1005,7 +1019,11 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
     ValueComponent.prototype.toString = function(){
         if(this.node.nodeValue == null) return '';
         return this.node.nodeValue.toString();
-    }
+    };
+
+    ValueComponent.prototype.detach = function(){
+        this.node.parentNode.removeChild(this.node);
+    };
 
     //todo: how about tryng string-based template components
     //to utilize innerHTML behavior for complex data controls
@@ -1195,7 +1213,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
             }
             var keys = attr.split(' ');
             for(var k=0; k<keys.length; k++){
-                var key = keys[k];
+                var key = keys[k].trim();
                 if(cMap[key]) throw 'Duplicate content map key ' + key;
                 node.__sjscache__ = {n:0};
                 cMap[key] = {
@@ -1230,6 +1248,9 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
             }
 
             var instance = Object.create(type.prototype);
+            if(pArgs.name != null) {
+                instance.__sjs_comp_nm = pArgs.name;
+            }
            
             return type.apply(instance,arguments) || instance;
         }
