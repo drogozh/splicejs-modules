@@ -1,9 +1,9 @@
 <template sjs-name="DatePicker">
-	<include sjs-type="Controls.Selectors.DropDown" sjs-name="selector">
+	<include sjs-type="DropDown" sjs-name="selector">
 	{
         dataIn: binding('onDateSelected').parent,
         dropDownItem:
-        <include sjs-type="Controls.Calendar">
+        <include sjs-type="Calendar">
         {
             onDateSelected: binding('receiveFromCalendar').name('DatePicker')
         }

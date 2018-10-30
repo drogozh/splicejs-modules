@@ -7,14 +7,15 @@ define([
 	'../text',
 	{
 		Calendar:'calendar',
-		Selectors:'dropdown'
+		DropDown:'dropdown'
 	},
 	'!datepicker.html'
 ],function(require,inheritance,component,event,view,text,controls){
 	"use strict";
 
 	var scope = {
-		Controls:controls
+		Calendar:controls.Calendar,
+		DropDown:controls.DropDown
 	};
 
 	var	Class       = inheritance.Class
@@ -34,6 +35,8 @@ define([
 		}
 
 	}).extend(component.ComponentBase);
+
+	DatePicker.Component = factory.define('DatePicker:datepicker.html',DatePicker);
 
 	DatePicker.prototype.onInit = function(){
 
@@ -67,6 +70,6 @@ define([
 	};
 
 
-	return factory.define('DatePicker:datepicker.html',DatePicker);
+	return DatePicker;
 
 });

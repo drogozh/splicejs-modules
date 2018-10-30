@@ -110,8 +110,8 @@ define([
             return item;
         }
         if(this.formatter != null) {
-            foo = function(item){
-                return _this.formatter(item);        
+            foo = function(item,key){
+                return _this.formatter(item,key);        
             }
         }
 
@@ -135,7 +135,7 @@ define([
                 this.contentType = cmp.constructor;
             }
             cmp.node.__sjs_domiterator_idx = keys[i];
-            cmp.applyContent(foo(data[keys[i]]));
+            cmp.applyContent(foo(data[keys[i]],keys[i]));
             this.onItem(cmp);
         }
 
