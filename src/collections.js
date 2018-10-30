@@ -150,8 +150,8 @@ function _orderBy(func,comparator,direction){
 
         if(comparator == null) {
             comparator = function(a,b){
-                if(_a < _b) return -1;
-                if(_a > _b) return 1;
+                if(a < b) return -1;
+                if(a > b) return 1;
                 return 0; 
             };
         }
