@@ -538,6 +538,10 @@ Element.prototype.addClass = function(name){
     this.appendClass(name);
 };
 
+Element.prototype.clear = function(){
+    this.node.innerHTML = '';
+};
+
 function _buildClassMap(){
     this.classMap = {};
     this.classStore = [];

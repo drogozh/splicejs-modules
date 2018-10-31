@@ -61,11 +61,19 @@ define([
 	 * @param {any} item 
 	 */
 	PickList.prototype.setSelectedItem = function(item){
+		var value = null;
 		if(item instanceof dataApi.DataItem) {
-			this.components.dropDown.applyContent(item.getValue());
+			value = item.getValue();
 		} else {
-			this.components.dropDown.applyContent(item);
+			value = item;
 		}
+		
+		if(value != null) { 		
+			this.components.dropDown.applyContent(value);
+		} else {
+			this.components.dropDown.applyContent(this.selectorDefaultValue);
+		}
+
 		this._selectedItem = item;
 		this.onItemSelected(item);
 	};

@@ -514,7 +514,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         var timeStart= window.performance.now();
 
         //component is displayed already
-        if(this._state_.display == DISPLAY_TRUE) { 
+        if(this.node.parentNode != null) { 
             return this; 
         }
 
@@ -605,6 +605,17 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
      * Clear content
      */
     ComponentBase.prototype.clear = function(){
+        var keys = Object.keys(this.content);
+        for(var i=0; i<keys.length; i++){
+            var key = keys[i];
+            var target = this.content[key];
+            if(target.element instanceof ComponentBase){
+                target.clear();
+                continue;
+            }
+            this.children[key] = null;
+            target.element.clear();
+        }
     };
     
     ComponentBase.prototype.activateTemplate = function(key){
@@ -802,7 +813,10 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
     }
 
     ComponentBase.prototype.applyContent = function(content){
-        if(content == null) return;
+        if(content == null) {
+            this.clear();
+            return;
+        } 
         if(typeof content === 'string' || typeof content === 'number') {
             this.replace(content.toString());
         }
