@@ -94,34 +94,54 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         return htmlSpec.__sjs__compiled_exports;
     }
 
-    ComponentFactory.prototype.define = function(templateLocation, controller, defaultArgs){
-        var templateName =  templateLocation.split(':')[0];
-        var templateFile =  templateLocation.split(':')[1];
+    /**
+     * Overfloaded function
+     * 2 arguments:
+     *  templateLocation:string, viewModel:function
+     * 3 arguments:
+     *  templateDefinition:string, templateName: string, viewModel:function
+     */
+    ComponentFactory.prototype.define = function(){
+        var viewModel, templateName, templateFile, templateVersions;
+        if(arguments.length == 2) {
+            viewModel = arguments[1];
+            templateName =  arguments[0].split(':')[0];
+            templateFile =  arguments[0].split(':')[1];
+            templateVersions = _compileTemplates.call(this,
+                this.require('context').resolve('!'+templateFile),
+                this.scope)[templateName];
+        } 
+
+        if(arguments.length == 3){
+            viewModel = arguments[2];
+            templateName = arguments[1];
+            var parent = document.createElement('span');
+            parent.innerHTML = arguments[0];
+            templateVersions = {
+                'default': new Template(parent.childNodes[0],templateName,'default').compile(this.scope)
+            };
+        }
 
         // set default controller
-        controller = controller || ComponentBase;
-
-        var __templates = _compileTemplates.call(this,
-            this.require('context').resolve('!'+templateFile),
-            this.scope)[templateName];
+        viewModel = viewModel || ComponentBase;
 
         var scope = this.scope;
         // component constructor
         var component = function Component(parent,args){
-            var comp = new controller(parent,args);
+            var comp = new viewModel(parent,args);
             comp.parent = parent;
             comp._templateName_ = templateName; 
             comp.init(comp.resolve(args));
-            comp.loaded(__templates,scope,args);
+            comp.loaded(templateVersions,scope,args);
             comp.__sjs_instance_serial = component.__sjs_instance_count++;
             return comp;
         };
         
         component.__sjs_instance_count = 0;
 
-        component.prototype = controller.prototype;
+        component.prototype = viewModel.prototype;
         component.is = function(type){
-            if(type.constructor ==  controller.prototype.constructor)
+            if(type.constructor ==  viewModel.prototype.constructor)
             if(type._templateName_ == templateName ) return true;
         }
         component.__sjs_is_comp__ = true;
@@ -935,6 +955,11 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         //todo: see if we care what the resulting proxy instance is
         if(typeof s === 'function' && s.isProxy === true ){
             return s(parent,s.proxyArgs.args);
+        }
+
+        // just a component, no constructor args
+        if(s.__sjs_is_comp__ == true){
+            return new s(parent);
         }
 
         //on ComponentBase instances, just return

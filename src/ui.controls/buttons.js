@@ -108,7 +108,7 @@ RadioButton.Component = factory.define("RadioButton:buttons.html",RadioButton);
 
 
     return {
-        Button		: factory.define('Button:buttons.html',Button,{animated:true}),
+        Button		: factory.define('Button:buttons.html',Button),
         RadioButton : RadioButton,
         Label		: factory.define('Label:buttons.html',Label)
     }
