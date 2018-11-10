@@ -162,6 +162,16 @@ define([
         this.clear();
     };
 
+    DomIterator.prototype.findItem = function(func){
+        if(!func) return null;
+        for(var i=0; i< this.itemBuffer.length; i++){
+            var item = this.itemBuffer[i]; 
+            if(func(item) === true){
+                return item; 
+            }
+        }
+    };
+
     // private calls
     function _onItemClicked(args){
         var item = component.locate.visual(args.source,this.contentType);
