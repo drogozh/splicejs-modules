@@ -17,6 +17,12 @@
             "name": "Test (Mocha)",
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "args":["--delay", "-r", "./mocha/mocha-init.js"]
+        },
+        {
+            "type":"node",
+            "request": "launch",
+            "name": "Node",
+            "program": "${file}",
         }
 
     ]
