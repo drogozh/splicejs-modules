@@ -1,4 +1,3 @@
-define(function(){
 
     /**
      * 
@@ -13,10 +12,10 @@ define(function(){
     NumericIterator.prototype.next = function(){
         if(this._i == (this._source-1)) {
             this.current = null;
-        } else {
-            this.current = ++this._i;
-        }
-        return this;
+            return false;
+        } 
+        this.current = ++this._i;
+        return true;
     }
 
     NumericIterator.prototype.reset = function(){
@@ -38,11 +37,10 @@ define(function(){
     ArrayIterator.prototype.next = function(){
         if(this._i >= (this._source.length-1)){
             this.current = null;
+            return false;
         }
-        else {
-            this.current = this._source[++this._i];
-        }
-        return this;
+        this.current = this._source[++this._i];
+        return true;
     };
 
     ArrayIterator.prototype.reset = function(){
@@ -64,10 +62,10 @@ define(function(){
     ObjectIterator.prototype.next = function(){
         if(this._i >= (this._keys.length-1)){
             this.current = null;
-        } else {
-            this.current = this._source[this._keys[++this._i]];
-        }
-        return this;
+            return false;
+        } 
+        this.current = this._source[this._keys[++this._i]];
+        return true;
     };
 
     ObjectIterator.prototype.reset = function(){
@@ -76,6 +74,11 @@ define(function(){
         return this;
     };
 
+    /**
+     * 
+     * @param {*} iterator 
+     * @param {*} filter 
+     */
     function FilterIterator(iterator,filter){
         this._iterator = iterator;
         this._filter = filter;
@@ -83,54 +86,161 @@ define(function(){
     };
 
     FilterIterator.prototype.next = function(){
-        while(this._iterator.next().current != null) {
+        while(this._iterator.next()) {
             if(this._filter(this._iterator.current)){
-                this.current = this._iterator.current;
-                break;
+                this.current = this._iterator.current;        
+                return true;
             }
         }
+        this.current = null;
+        return false;
     };
 
     FilterIterator.prototype.reset = function(){
         this._iterator.reset();
         this.current = null;
+        return this;
     };
 
-    function Collection(collection, filter, selector) {
-        this._data = collection;
+    /**
+     * 
+     * @param {*} iterator 
+     * @param {*} selector 
+     */
+    function SelectIterator(iterator,selector){
+        this._iterator = iterator;
         this._selector = selector;
+        this.current = null;
+    };
+
+    SelectIterator.prototype.next = function(){
+       if(this._iterator.next()) {
+            this.current = this._selector(this._iterator.current);    
+            return true;
+        }
+        this.current = null;
+        return false;
+    };
+
+    SelectIterator.prototype.reset = function(){
+        this._iterator.reset();
+        this.current = null;
+        return this;
+    };
+
+    /**
+     * 
+     * @param {*} iterator 
+     * @param {*} grouping 
+     */
+    function GroupingIterator(iterator,grouping){
+        this._iterator = iterator;
+        this._grouping = grouping;
+        this.current = null;
+    }
+
+    GroupingIterator.prototype.next = function(){
+
+    };
+
+    GroupingIterator.prototype.reset = function(){
+        this._iterator.reset();
+        this.current = null;
+        return this;
+    };
+
+
+    /**
+     * 
+     * @param {*} collection 
+     * @param {*} filter 
+     * @param {*} selector 
+     */
+
+    function Collection(collection) {
+        this._collection = collection;
     }
 
     function FilteredCollection(collection, filter){
         Collection.call(this,collection);
         this._filter = filter;
     }
-    
-    FilteredCollection.prototype.iterator = function(){
-        return new FilterIterator(Collection.prototype.iterator.call(this),this._filter);
+
+    function SelectCollection(collection, selector){
+        Collection.call(this,collection);
+        this._selector = selector;
     }
 
-    Collection.prototype.iterator = function() {
-        return new 
+    function GroupedCollection(collection, grouping){
+        Collection.call(this,collection);
+        this._grouping = grouping;
+    }
+
+    FilteredCollection.prototype = Object.create(Collection.prototype);
+    FilteredCollection.prototype.iterator = function(){
+        return new FilterIterator(Collection.prototype.iterator.call(this),this._filter);
     };
 
-Collection.prototype.toArray = function(){
-    var result = [];
-    this.forEach(function(item){
-        result.push(item);
-    });
-    return result;
-};
+    SelectCollection.prototype = Object.create(Collection.prototype);
+    SelectCollection.prototype.iterator = function(){
+        return new SelectIterator(Collection.prototype.iterator.call(this),this._selector);
+    };
 
-Collection.prototype.where = function(func){
-    return new Collection(this, func);
-};
+    GroupedCollection.prototype = Object.create(Collection.prototype);
+    GroupedCollection.prototype.iterator = function(){
+        return new GroupingIterator(Collection.prototype.iterator.call(this),this._grouping);
+    };
 
-Collection.prototype.select = function(func){
-    return new Collection(this,null,func);
-};
+    Collection.prototype.iterator = function() {
+        if(typeof this._collection == 'number'){
+            return new NumericIterator(this._collection);
+        }
 
-Collection.prototype.groupBy = function(func){
+        if(this._collection instanceof Array){
+            return new ArrayIterator(this._collection);
+        }
+
+        if(this._collection instanceof Collection){
+            return this._collection.iterator();
+        }
+
+        if(typeof this._collection == 'object'){
+            return new ObjectIterator(this._collection);
+        }
+
+        throw 'Unsupoorted collection type';
+    };
+
+    Collection.prototype.forEach = function(fn){
+       var iterator = this.iterator();
+       while(iterator.next()) {
+           fn(iterator.current);
+       }
+    };
+
+    Collection.prototype.where = function(filter){
+        return new FilteredCollection(this, filter);
+    };
+
+    Collection.prototype.select = function(selector){
+        return new SelectCollection(this,selector);
+    };
+
+    Collection.prototype.toArray = function(){
+        var result = [];
+        this.forEach(function(item){
+            result.push(item);
+        });
+        return result;
+    };
+
+
+    Collection.prototype.groupBy = function(grouping){
+
+    };
+
+
+Collection.prototype._groupBy = function(func){
     var groupedCollection = new Collection(this);
 
     //override forEach method
@@ -239,23 +349,6 @@ Collection.prototype.selectMany = function(func){
     return nestedCollection;
 };
 
-Collection.prototype.forEach = function(fn){
-    if(typeof(this._filter) == 'function') {
-        return _forEach(this._data,(function(item,key){
-            if(this._filter(item,key) == true){
-                fn(item,key);
-            }
-        }).bind(this));
-    }
-
-    if(typeof(this._selector) == 'function'){
-        return _forEach(this._data,(function(item,i){
-            fn(this._selector(item,i),i);
-        }).bind(this));
-    }
-
-    return _forEach(this._data,fn);
-}
 
 Collection.prototype.forIndex = function(index){
     if(this._data instanceof Collection){
@@ -345,13 +438,19 @@ Collection.prototype.forIndex = function(index){
     }
 
 
-function collection(data){
-    return new Collection(data);
-}
 
 
 
-//var x = collection([1,2,3,4,5,6]).where(item => item == 4 || item == 5).where(item=>item %2 == 0 ).toArray();
+var x = new Collection([1,2,3,4,5,6]);
+
+var filteredCollection = x.where(function(i){return i%2 == 0});
+
+filteredCollection.select(function(z){return z*2;})
+.forEach(function(i){console.log(i);})
+
+//filteredCollection.where(function(k){return k == 6; }).forEach(function(i){console.log(i);})
+
+//.where(item => item == 4 || item == 5).where(item=>item %2 == 0 ).toArray();
 
 // var all = collection(10);
 // console.log(all.toArray());
@@ -410,9 +509,3 @@ function collection(data){
 // var m = collection([{id:12,name:'test12'}, {id:2,name:'test2'}]).toMap(x=>x.id).toArray();
 // console.log(m);
 
-    return {
-        collection : collection,
-        Collection: Collection
-    }
-
-});

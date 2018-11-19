@@ -184,7 +184,6 @@ define([
             if(idx2 != null) break;
             parent = parent.parentNode;
         }
-        console.log(idx2);
         // find index
         var idx = (function(){
             for(var i=0; i < this.itemBuffer.length; i++){

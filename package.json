@@ -7,5 +7,8 @@
     "devDependencies": {
         "splicejs": "file:../SpliceJS",
         "node-http-server": "file:../node-http-server"
+    },
+    "dependencies": {
+        "mocha": "^5.2.0"
     }
 }

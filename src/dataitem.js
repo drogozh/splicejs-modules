@@ -9,7 +9,6 @@ define([
   
   var
         Class = imports.Inheritance.Class
-  ,     Interface = imports.Inheritance.Interface
   ,     Events = imports.Events
   ,     TextUtil = imports.Util.Text
   ,     log = imports.Util.log
@@ -25,24 +24,9 @@ define([
 
     /*
         ------------------------------------------------------------------------------
-        IDataContract interface
-    */
-
-      var IDataContract = new Interface({
-         IDataContract:{
-             onDataItemChanged:function(){},
-             onDataIn:function(){}
-         }
-      });
-
-
-    /*
-        ------------------------------------------------------------------------------
         DataItem class
     */
-    var DataItem = function DataItem(data){
-
-
+    function DataItem(data){
       //core properties
       this.parent = null;
       this.pathmap = Object.create(null);
@@ -51,7 +35,6 @@ define([
       //-1 indicates empty dataItem
       this._version = -1;
       this._versionMap = {};
-      
 
       if(data!= null) this.setValue(data);
 
@@ -311,10 +294,12 @@ define([
     /**
       ArrayDataItem
     */
-    var ArrayDataItem = Class(function ArrayDataItem(data){
+    function ArrayDataItem(data){
       this.base(data);
-      this._length = data.length;
-    }).extend(DataItem);
+        this._length = data.length;
+    }
+    
+    Class(ArrayDataItem).extend(DataItem);
 
     ArrayDataItem.prototype.remove = function(dataItem){
       if(!(this.source instanceof Array)) throw EXCEPTIONS.invalidDeleteOperation;
@@ -332,13 +317,6 @@ define([
       d._path = this._length++;
       this.pathmap[d._path] = d;
       return d;
-    };
-
-    ArrayDataItem.prototype.commit = function(){
-    };
-
-    ArrayDataItem.prototype.commit = function(){
-
     };
 
 
@@ -514,11 +492,9 @@ define([
   		}
   	};
 
- return {
-   IDataContract : IDataContract,
-   DataItem : DataItem, 
-   DelegateDataItem : DelegateDataItem, 
-   ArrayDataItem : ArrayDataItem
-};
-
-})
+  return {
+    DataItem : DataItem, 
+    DelegateDataItem : DelegateDataItem, 
+    ArrayDataItem : ArrayDataItem, 
+  };
+});
