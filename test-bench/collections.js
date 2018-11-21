@@ -32,19 +32,24 @@
         this._i = -1;
         this._source = array;
         this.current = null;
+        this.key = null;
     }
 
     ArrayIterator.prototype.next = function(){
         if(this._i >= (this._source.length-1)){
             this.current = null;
+            this.key = null;
             return false;
         }
-        this.current = this._source[++this._i];
+        this.key = ++this._i;
+        this.current = this._source[this.key];
         return true;
     };
 
     ArrayIterator.prototype.reset = function(){
         this._i = -1;
+        this.current = null;
+        this.key = null;
         return this;
     };
 
@@ -57,20 +62,24 @@
         this._keys = Object.keys(this._source);
         this._i = -1;
         this.current = null;    
+        this.key = null;
     }
 
     ObjectIterator.prototype.next = function(){
         if(this._i >= (this._keys.length-1)){
             this.current = null;
+            this.key = null;
             return false;
         } 
-        this.current = this._source[this._keys[++this._i]];
+        this.key = this._keys[++this._i];
+        this.current = this._source[this.key];
         return true;
     };
 
     ObjectIterator.prototype.reset = function(){
         this._i = -1;
         this.current = null;
+        this.key = null;
         return this;
     };
 
@@ -83,22 +92,26 @@
         this._iterator = iterator;
         this._filter = filter;
         this.current = null;
+        this.key = null;
     };
 
     FilterIterator.prototype.next = function(){
         while(this._iterator.next()) {
             if(this._filter(this._iterator.current)){
-                this.current = this._iterator.current;        
+                this.current = this._iterator.current;  
+                this.key = this._iterator.key;      
                 return true;
             }
         }
         this.current = null;
+        this.key = null;
         return false;
     };
 
     FilterIterator.prototype.reset = function(){
         this._iterator.reset();
         this.current = null;
+        this.key = null;
         return this;
     };
 
@@ -111,44 +124,26 @@
         this._iterator = iterator;
         this._selector = selector;
         this.current = null;
+        this.key = null;
     };
 
     SelectIterator.prototype.next = function(){
        if(this._iterator.next()) {
-            this.current = this._selector(this._iterator.current);    
+            this.current = this._selector(this._iterator.current);  
+            this.key = this._iterator.key;  
             return true;
         }
         this.current = null;
+        this.key = null;
         return false;
     };
 
     SelectIterator.prototype.reset = function(){
         this._iterator.reset();
         this.current = null;
+        this.key = null;
         return this;
     };
-
-    /**
-     * 
-     * @param {*} iterator 
-     * @param {*} grouping 
-     */
-    function GroupingIterator(iterator,grouping){
-        this._iterator = iterator;
-        this._grouping = grouping;
-        this.current = null;
-    }
-
-    GroupingIterator.prototype.next = function(){
-
-    };
-
-    GroupingIterator.prototype.reset = function(){
-        this._iterator.reset();
-        this.current = null;
-        return this;
-    };
-
 
     /**
      * 
@@ -188,7 +183,20 @@
 
     GroupedCollection.prototype = Object.create(Collection.prototype);
     GroupedCollection.prototype.iterator = function(){
-        return new GroupingIterator(Collection.prototype.iterator.call(this),this._grouping);
+        if(this._groups == null){
+            var iterator = Collection.prototype.iterator.call(this);
+            var groups = {};
+            while(iterator.next()){
+                var key = this._grouping(iterator.current)
+                var list = groups[key];
+                if(list == null) {
+                    list = groups[key] = [];
+                }
+                list.push(iterator.current);
+            }
+            this._groups = groups;
+        }
+        return new ObjectIterator(this._groups);
     };
 
     Collection.prototype.iterator = function() {
@@ -214,7 +222,7 @@
     Collection.prototype.forEach = function(fn){
        var iterator = this.iterator();
        while(iterator.next()) {
-           fn(iterator.current);
+           fn(iterator.current,iterator.key);
        }
     };
 
@@ -234,34 +242,10 @@
         return result;
     };
 
-
     Collection.prototype.groupBy = function(grouping){
-
+        return new GroupedCollection(this,grouping);
     };
 
-
-Collection.prototype._groupBy = function(func){
-    var groupedCollection = new Collection(this);
-
-    //override forEach method
-    groupedCollection.forEach = function(fn){
-        var groups = {};
-        Collection.prototype.forEach.call(this,function(item){
-            var key = func(item);
-            var list = groups[key];
-            if(list == null) {
-                list = groups[key] = [];
-            }
-            list.push(item);
-        });
-
-        _forEach(groups,function(item,i){
-            fn({key:i,value:item},i);
-        });
-    }
-
-    return groupedCollection;
-};
 
 Collection.prototype.toMap = function(funcKey,funcItem){
     var mappedCollection = new Collection(this);
@@ -443,10 +427,14 @@ Collection.prototype.forIndex = function(index){
 
 var x = new Collection([1,2,3,4,5,6]);
 
-var filteredCollection = x.where(function(i){return i%2 == 0});
+//var filteredCollection = x.where(function(i){return i%2 == 0});
+//filteredCollection.select(function(z){return z*2;})
+//.forEach(function(i){console.log(i);})
 
-filteredCollection.select(function(z){return z*2;})
-.forEach(function(i){console.log(i);})
+x.groupBy(function(item){return item%2;})
+.forEach(function(item,key){
+    console.log(item);
+});
 
 //filteredCollection.where(function(k){return k == 6; }).forEach(function(i){console.log(i);})
 

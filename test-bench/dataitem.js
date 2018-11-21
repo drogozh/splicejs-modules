@@ -8,15 +8,17 @@ function DataItem(data){
 
 DataItem.prototype.setValue = function(value){
     if(value == null) return this;
-    this._values[++this._version] = value;
     if(this._parent == null) {
+        this._source = value;
         return this;
-    } 
-
-    var source = _getSource(this._parent);
-    if(source != null) {
-        source[this._path] = this._values[this._version];
     }
+    // 
+    this._values[++this._version] = value;    
+    var source = _getSource(this._parent);
+    if(source == null) {
+        return source;
+    }
+    source[this._path] = value;
     return this;
 };
 
@@ -26,9 +28,9 @@ DataItem.prototype.path = function(path){
 };
 
 DataItem.prototype.getValue = function(){
-
+    var source = _getSource(this._parent);
+    return source != null ? source[this._path] : null;
 };
-
 
 /**
  * CollectionDataItem
@@ -44,6 +46,14 @@ CollectionDataItem.prototype.constructor = CollectionDataItem;
 CollectionDataItem.prototype.remove = function(){
 };
 
+CollectionDataItem.prototype.insert = function(item, position){
+
+};
+
+CollectionDataItem.prototype.path = function(path){
+    if(path == null || path == '') return null;
+    return _path(this,_getSource(this),path.split('.'));
+};
 
 /**
  * 
@@ -52,6 +62,7 @@ CollectionDataItem.prototype.remove = function(){
 function _initDataItem(data){
     this._parent = null;
     this._pathmap = Object.create(null);
+    this._version = 0;
     this.setValue(data);
     return this;
 }
@@ -62,7 +73,7 @@ function _initDataItem(data){
  */
 function _getSource(dataItem){
     if(dataItem._parent == null) {
-        return dataItem._values[dataItem._version];
+        return dataItem._source;
     }
     var source = _getSource(dataItem._parent);
     if(source == null) return source;
@@ -82,18 +93,22 @@ function _path(dataItem, source, path)
     if(property == null) return dataItem;
 
     var child = dataItem._pathmap[property];
-    var value = source[property];
+    
+    var value = source != null ? source[property] : null;
 
     if(child == null) {
-        child = dataItem._pathmap[property] = new DataItem();
+        if(value instanceof Array){
+            child = dataItem._pathmap[property] = new CollectionDataItem();
+        } else {
+            child = dataItem._pathmap[property] = new DataItem(); 
+        }
+        child._values = [value];
         child._path = property;
         child._parent = dataItem;
     }
 
     return _path(child, value, path);
 }
-
-
 
 //---------------------------------------------
 var obj1 = {
@@ -112,19 +127,29 @@ var obj1 = {
 
 var obj2 = [1,2,3,4,5];
 
+// case for missing properties
+//var p1 =new DataItem({}).path('one.two.tree');
+//p1.setValue(3);
 
+//
 var di = new DataItem(obj1);
 
-var weight = di.path('weight');
-var street = di.path('address.street');
-var address = di.path('address');
+//------------------
+var children = di.path('children');
+var value = children.getValue();
+console.log(children.getValue());
 
+//------------------
+var weight = di.path('weight');
 weight.setValue(10);
 
+//------------------
+var street = di.path('address.street');
+street.setValue('king');
+
+// -----------------
+var address = di.path('address');
 address.setValue({
     street:'spadina',
     apt:12
 });
-
-street.setValue('king');
-
