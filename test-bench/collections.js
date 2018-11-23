@@ -171,6 +171,12 @@
         this._grouping = grouping;
     }
 
+    function MapCollection(collection, fnkey, fnselect){
+        Collection.call(this,collection);
+        this._fnkey = fnkey;
+        this._fnselect = fnselect;
+    }
+
     FilteredCollection.prototype = Object.create(Collection.prototype);
     FilteredCollection.prototype.iterator = function(){
         return new FilterIterator(Collection.prototype.iterator.call(this),this._filter);
@@ -183,20 +189,35 @@
 
     GroupedCollection.prototype = Object.create(Collection.prototype);
     GroupedCollection.prototype.iterator = function(){
-        if(this._groups == null){
-            var iterator = Collection.prototype.iterator.call(this);
-            var groups = {};
-            while(iterator.next()){
-                var key = this._grouping(iterator.current)
-                var list = groups[key];
-                if(list == null) {
-                    list = groups[key] = [];
-                }
-                list.push(iterator.current);
+        if(this._groups != null) return new ObjectIterator(this._groups);
+        
+        var iterator = Collection.prototype.iterator.call(this);
+        var groups = {};
+        while(iterator.next()){
+            var key = this._grouping(iterator.current)
+            var list = groups[key];
+            if(list == null) {
+                list = groups[key] = [];
             }
-            this._groups = groups;
+            list.push(iterator.current);
         }
+        this._groups = groups;
         return new ObjectIterator(this._groups);
+    };
+
+    MapCollection.prototype = Object.create(Collection.prototype);
+    MapCollection.prototype.iterator = function(){
+        if(this._map != null) return new ObjectIterator(this._map);
+
+        var iterator = Collection.prototype.iterator.call(this);
+        var map = {};
+        while(iterator.next()){
+            var key = this._fnkey(iterator.current);
+            var value = this._fnselect(iterator.current);
+            this._map[key] = value;    
+        }
+        this._map = map;
+        return new ObjectIterator(this._map)
     };
 
     Collection.prototype.iterator = function() {
@@ -247,7 +268,11 @@
     };
 
 
-Collection.prototype.toMap = function(funcKey,funcItem){
+    Collection.prototype.toMap = function(fnKey, fnSelect){
+        return new MapCollection(this, fnKey, fnSelect);
+    };
+
+Collection.prototype._toMap = function(funcKey,funcItem){
     var mappedCollection = new Collection(this);
     if(!funcItem) funcItem = function(item){return item;}
 
