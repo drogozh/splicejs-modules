@@ -1,4 +1,3 @@
-
     /**
      * 
      * @param {Number} number of sequential elements in the collection 
@@ -84,7 +83,8 @@
     };
 
     /**
-     * 
+     * Iterates skipping values where 
+     * filter function evaluates to 'false'
      * @param {*} iterator 
      * @param {*} filter 
      */
@@ -146,7 +146,7 @@
     };
 
     /**
-     * 
+     * Collection root class
      * @param {*} collection 
      * @param {*} filter 
      * @param {*} selector 
@@ -211,14 +211,21 @@
 
         var iterator = Collection.prototype.iterator.call(this);
         var map = {};
+
+        var selector = typeof(this._fnselect) == 'function' ? this._fnselect : function(item){return item;};
         while(iterator.next()){
-            var key = this._fnkey(iterator.current);
-            var value = this._fnselect(iterator.current);
-            this._map[key] = value;    
+            var key = this._fnkey(iterator.current, iterator.key);
+            var value = selector(iterator.current, iterator.key);
+            map[key] = value;    
         }
         this._map = map;
         return new ObjectIterator(this._map)
     };
+
+    MapCollection.prototype.get = function(key){
+        this.iterator();
+        return this._map[key];
+    }
 
     Collection.prototype.iterator = function() {
         if(typeof this._collection == 'number'){
@@ -267,199 +274,98 @@
         return new GroupedCollection(this,grouping);
     };
 
-
     Collection.prototype.toMap = function(fnKey, fnSelect){
         return new MapCollection(this, fnKey, fnSelect);
     };
 
-Collection.prototype._toMap = function(funcKey,funcItem){
-    var mappedCollection = new Collection(this);
-    if(!funcItem) funcItem = function(item){return item;}
-
-    var map = {};
-    this.forEach(function(item,key){
-        var key = funcKey(item, key);
-        map[key] = funcItem(item, key);
-    });
-
-    mappedCollection.forEach = function(fn){
-        _forEach(map,function(item,i){
-            fn(item,i);
-        });
+    Collection.prototype.first = function(filter){
+        var iterator = this.iterator();
+        var filter = typeof(filter) == 'function' ? filter : function(){return true;}
+        while(iterator.next()){
+            if(filter(iterator.current)) return iterator.current;
+        }
     };
 
-    mappedCollection.toObject = function(){
-        return map;
+    var CONST_MAX = 1;
+    var CONST_MIN = -1;
+    var CONST_SORT_ASC = 1;
+    var CONST_SORT_DESC = -1;
+
+    Collection.prototype.max = function(comparator){
+        return _maxmin(this.iterator(),comparator,CONST_MAX);
     };
 
-    return mappedCollection;
-};
+    Collection.prototype.min = function(comparator){
+        return _maxmin(this.iterator(),comparator,CONST_MIN);
+    };
 
+    Collection.prototype.orderBy = function(comparator,selector){
+        return _sorter(this,comparator,selector,CONST_SORT_ASC);
+    };
 
+    Collection.prototype.orderByDesc = function(comparator,selector){
+        return _sorter(this,comparator,selector,CONST_SORT_DESC);
+    };
 
-Collection.prototype.orderBy = function(func,comparator){
-    return _orderBy.call(this,func,comparator,1);
-};
+    Collection.prototype.selectMany = function(){
+        throw 'Not Implemented';
+    };
 
-Collection.prototype.orderByDesc = function(func,comparator){
-    return _orderBy.call(this,func,comparator,-1);
-};
-
-Collection.prototype.aggregate = function(func){
-
-};
-
-Collection.prototype.max = function(func){
-    var max = {value : null };
-    func = func || function(x){return x;}
-    this.forEach(function(item){
-        var x = func(item);
-        if(max.value < x) {
-            max.value = x;
-        }
-    });
-    return max.value;
-};
-
-// todo: refactor to use iterators, this will enumerate the entire collectino
-Collection.prototype.first = function(){
-    var first = null;    
-    this.forEach(function(item){
-        if(first != null) return;
-        first = item;
-    });
-    return first;
-};
-
-Collection.prototype.min = function(func){
-    var min = {value : null };
-    var count = 0;
-    func = func || function(x){return x;}
-    this.forEach(function(item){
-        var x = func(item);
-        if(count++ == 0){
-            min.value = x;
-        }
-        if(min.value > x) {
-            min.value = x;
-        }
-    });
-    return min.value;
-};
-
-Collection.prototype.selectMany = function(func){
-    var nestedCollection = new Collection(this);
-    // override forEach
-    nestedCollection.forEach = function(fn){
-        Collection.prototype.forEach.call(this,function(item,i){
-            _forEach(func(item),fn);
-        });        
-    }
-    return nestedCollection;
-};
-
-
-Collection.prototype.forIndex = function(index){
-    if(this._data instanceof Collection){
-        return this._data.forIndex(index);
+    function _defaultComparator(a,b){
+        if(a < b) return -1;
+        if(a > b) return 1;
+        return 0; 
     }
 
-    if(this._data instanceof Array){
-        return this._data[index];
+    function _defaultSelector(item){
+        return item;
     }
-
-    throw 'Collection operation is not supported, pending implementation';
-};
-
-    /**
-     * 
-     * @param {*} data 
-     * @param {function} fn 
-     */
-    function _forEach(data,fn) {
-
-        // iterate Collection object
-        if(data instanceof Collection){
-            data.forEach(fn);
-            return;
-        }
-
-        // iterate over array
-        // if(data instanceof Array) {
-        //     for(var i=0; i < data.length; i++){
-        //         fn(data[i], i);
-        //     }
-        //     return;
-        // }
-
-        // iterate for a 'number' of consecutive digits
-        if(typeof(data) == 'number'){
-            for(var i=0; i < data; i++){
-                fn(i,i);
-            }
-            return;
-        }
-
-        // iterate of object or array
-        if(typeof(data) == 'object' || data instanceof Array){
-            var keys = Object.keys(data);
-            for(var i=0; i< keys.length; i++){
-                fn(data[keys[i]],keys[i]);
-            }
-            return;
-        }
-
-        // iterate over string characters
-        if(typeof(data) == 'string'){
-            for(var i=0; i< data.length; i++){
-                fn(data[i],i);
-            }
-        }
-    }
-
-    function _orderBy(func,comparator,direction){
-        var sortedColleciton = new Collection(this);
-        var array = this.toArray();
-        sortedColleciton.forEach = function(foo){
-            if(func == null) {
-                _forEach(array.sort(),foo);
-                return;
-            }
     
-            if(comparator == null) {
-                comparator = function(a,b){
-                    if(a < b) return -1;
-                    if(a > b) return 1;
-                    return 0; 
-                };
-            }
-    
-            if(func != null) {
-                _forEach(array.sort(function(a,b){
-                    var _a = func(a);
-                    var _b = func(b);
-                    return direction * comparator(_a,_b);
-                }),foo);
-                return;
-            }
+    function _sorter(collection,comparator,selector,direction){
+        if(typeof(selector) =='function'){
+            collection = SelectCollection(this,selector);
         }
-        return sortedColleciton;
+        comparator = comparator || _defaultComparator;
+        var _comparator = function(a,b){return direction * comparator(a,b);};
+        new Collection(collection.toArray().sort(_comparator));
+    }
+
+    function _maxmin(iterator,comparator,direction){
+        iterator.next();
+        var value = iterator.current;
+        comparator = comparator || _defaultComparator;
+        while(iterator.next()){
+            value = comparator(value,iterator.current) == direction ? value : iterator.current
+        }
+        return value;
     }
 
 
 
 
-
-var x = new Collection([1,2,3,4,5,6]);
+var x = new Collection([6,2,3,4,5,1]);
 
 //var filteredCollection = x.where(function(i){return i%2 == 0});
 //filteredCollection.select(function(z){return z*2;})
 //.forEach(function(i){console.log(i);})
 
-x.groupBy(function(item){return item%2;})
-.forEach(function(item,key){
-    console.log(item);
-});
+// x.groupBy(function(item){return item%2;})
+// .forEach(function(item,key){
+//     console.log(item);
+// });
+
+var min = x.min();
+var max = x.max();
+
+var z = x.toMap(function(item,key){
+    console.log(item,key);
+    return key + 1;
+})
+
+var two = z.get(2);
+var f = z.first(function(i){return i ==4});
+
+console.log(z);
 
 //filteredCollection.where(function(k){return k == 6; }).forEach(function(i){console.log(i);})
 

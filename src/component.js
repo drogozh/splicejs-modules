@@ -269,6 +269,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         }, function(item,key){
             return item[1];
         }).toObject();
+        
         return _args;        
     }
 

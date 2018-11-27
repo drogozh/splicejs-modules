@@ -17,7 +17,7 @@ define([
 
     var touchSupport = loader.getVar('{touchsupport}');
 
-    var collection = collections.collection;
+    var Collection = collections.Collection;
     var DataItem = di.DataItem;
 
     var DomIterator = Class(function DomIterator(parent,args){
@@ -105,7 +105,7 @@ define([
     // argument must be a collection or an object
     DomIterator.prototype.dataIn = function dataIn(sourceData){
         var _this = this;
-        this._data = sourceData;
+        
         var foo = function(item){
             return item;
         }
@@ -120,32 +120,39 @@ define([
             this._header = this.add(this.headerTemplate);
         }
         
-        var data = sourceData;
         if(sourceData instanceof DataItem){
-            data = sourceData.getValue();
+            this._data = new Collection(sourceData.getValue());
+        } 
+        else if(sourceData instanceof Collection){
+            this._data = sourceData;
+        } else {
+            this._data = new Collection(sourceData);
         }
-
-        var keys = this._keys = Object.keys(data);
+       
         // update existing or add new
-        for(var i=0; i<keys.length; i++){
+        var i=0;
+        var iterator = this._data.iterator();
+        while(iterator.next()){
+           
             var cmp =  this.itemBuffer[i];
             if(!cmp) {
                 cmp = this.add(this.domContent);
                 this.itemBuffer.push(cmp);
                 this.contentType = cmp.constructor;
             }
-            cmp.node.__sjs_domiterator_idx = keys[i];
-            cmp.applyContent(foo(data[keys[i]],keys[i]));
+            cmp.node.__sjs_domiterator_idx = i;
+            cmp.applyContent(foo(iterator.current,iterator.key));
             this.onItem(cmp);
+            i++;
         }
 
         //difference
-        var d = this.itemBuffer.length - keys.length
+        var d = this.itemBuffer.length - i
 
         // remove extras
         while(d--){
-            var cmp = this.itemBuffer[keys.length];
-            this.itemBuffer.splice(keys.length,1);
+            var cmp = this.itemBuffer[i];
+            this.itemBuffer.splice(i,1);
             cmp.detach();
         }
 
@@ -174,34 +181,24 @@ define([
 
     // private calls
     function _onItemClicked(args){
-        var item = component.locate.visual(args.source,this.contentType);
         var source = component.locate.visual(args.source);
-        
         var parent = args.source;
-        var idx2 = null;
+        var idx = null;
         while(parent!= null) {
-            var idx2 = parent.__sjs_domiterator_idx;
-            if(idx2 != null) break;
+            var idx = parent.__sjs_domiterator_idx;
+            if(idx != null) break;
             parent = parent.parentNode;
         }
-        // find index
-        var idx = (function(){
-            for(var i=0; i < this.itemBuffer.length; i++){
-                if(this.itemBuffer[i] == item) {
-                    return i;
-                }
-            }   
-            return null;
-        }).bind(this)();
-
-        // todo: this a temp hack - refactor
-        if(idx2 != null) {
-            this.onSelectedItem(this._data[idx2],source,idx2,this.itemBuffer[idx2]);
-        }
-
-        // no item selected
-        if(!item)  return;
-        this.onItemSelected(item,source,args.source,this._keys[idx]);
+        
+        if(idx == null)  return;
+        
+        this.onItemSelected({
+            data:this._data.forIndex(idx),
+            rowComponent:this.itemBuffer[idx],
+            index:idx,
+            srcElement: args.source,
+            srcComponent: source,
+        });
     }
 
     DomIterator.__sjs_is_comp__ = true;
