@@ -25,3 +25,9 @@
     z-index:1000;
  }
 
+ .sjs-dropdown-container.pinned {
+    position: absolute;
+    top: 10%;
+    bottom: 10%;
+ }
+

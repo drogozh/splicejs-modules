@@ -47,7 +47,9 @@ define([
 				} else {
 					_this._selectedItem = item;
 				}
+				_this.components.dropDown.close();
 			});
+			item.getDisplayParent().reflow();
 		});
 	};
 

@@ -40,7 +40,7 @@ define([
 		var _this = this;
 		this._docFragment = document.createDocumentFragment();
 		event.attach(this.elements.root.node, {
-			onmousedown: element.DomUnicastEvent
+			onmousedown: element.DomUnicastStopEvent
 		}).onmousedown.subscribe(function(e){
 			var itemVm = component.locate.visual(e.source,ListBoxItem);
 			if(itemVm == null) return;
@@ -77,6 +77,15 @@ define([
 		});
 		
 		_this.elements.root.node.appendChild(fragment);
+	};
+
+	ListBox.prototype.reflow = function(x,y,w,h){
+		
+		this.elements.root.addClass('parent-fit');
+		var style = this.elements.root.node.style;
+		style.width = w + 10 + 'px';
+		style.height = h + 'px';
+		console.log('reflowing',this);
 	};
 
 	return factory.define('ListBox:listbox.html', ListBox);

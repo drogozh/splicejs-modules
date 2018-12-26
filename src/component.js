@@ -130,6 +130,8 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         var component = function Component(parent,args){
             var comp = new viewModel(parent,args);
             comp.parent = parent;
+            comp.__sjs_parent = parent;
+            comp.__sjs_display_parent = parent;
             comp._templateName_ = templateName; 
             comp.init(comp.resolve(args));
             comp.loaded(templateVersions,scope,args);
@@ -218,6 +220,13 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
     ComponentBase.prototype.onApplyContent = 
     ComponentBase.prototype.onResize  = function(){};
 
+    ComponentBase.prototype.getParent = function(){
+        return this.__sjs_parent;
+    };
+
+    ComponentBase.prototype.getDisplayParent = function(){
+        return this.__sjs_display_parent;
+    };
 
     ComponentBase.prototype.init = function(args){
         this._state_ = {}; 
@@ -626,12 +635,15 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
      * Clear content
      */
     ComponentBase.prototype.clear = function(){
+        //todo: refactor
+        // settings children to null may break template layout
+        return;
         var keys = Object.keys(this.content);
         for(var i=0; i<keys.length; i++){
             var key = keys[i];
             var target = this.content[key];
             if(target.element instanceof ComponentBase){
-                target.clear();
+                target.element.clear();
                 continue;
             }
             this.children[key] = null;

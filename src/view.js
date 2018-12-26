@@ -434,6 +434,36 @@ function _domEventArgs(e){
             }
     }
 }
+/**
+ * Calculates element's position relative to the parent element
+ * if parent element is not specified poistion is calculated
+ * relative to the root of the document
+ * @param {*} obj 
+ * @param {*} refElement 
+ */
+function _elementPosition(obj, refElement){
+    var n = obj
+    ,   location  = [0,0]
+    ,   scroll = [0,0];
+
+    while (n != null) {
+        if(n == refElement) {
+            break;
+        }
+        location[0] += n.offsetLeft;
+        location[1] += n.offsetTop;
+        
+        scroll[0] += n.scrollLeft;
+        scroll[1] += n.scrollTop;
+
+        n = n.offsetParent;
+    }
+
+    return {
+        x:location[0] - scroll[0],
+        y:location[1] - scroll[1]
+    };  
+}
 
 
 
@@ -540,6 +570,23 @@ Element.prototype.addClass = function(name){
 
 Element.prototype.clear = function(){
     this.node.innerHTML = '';
+};
+
+Element.prototype.getBoundingBox = function(relativeTo){
+    var left = 0;
+    var top = 0;
+
+    var position = _elementPosition(this.node,relativeTo);
+
+    var width = this.node.offsetWidth;
+    var height = this.node.offsetHeight;
+
+    return {
+        left: position.x,
+        top: position.y,
+        width: width,
+        height: height
+    };
 };
 
 function _buildClassMap(){

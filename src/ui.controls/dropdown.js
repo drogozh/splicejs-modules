@@ -38,6 +38,19 @@ function(require,inheritance,component,event,view,interaction){
   	var DropDownContainer = Class(function DropDownContainer(){
 	}).extend(component.ComponentBase);
 
+	DropDownContainer.prototype.reflow = function(){
+		var boundingBox = this.elements.root.getBoundingBox();
+		if( (boundingBox.height + boundingBox.top) >= window.innerHeight){
+			var s = this.elements.root.node.style;
+			var newHeight = window.innerHeight - boundingBox.top - 20;
+			s.height = newHeight + 'px';
+			s.width = boundingBox.width + 'px';
+			boundingBox = this.elements.root.getBoundingBox();
+			component.ComponentBase.prototype.reflow.call(this,0,0,boundingBox.width, boundingBox.height);
+			return;
+		}
+	};
+
     scope.DropDownContainer = 
     factory.define('DropDownContainer:dropdown.html',DropDownContainer);
 
@@ -176,13 +189,12 @@ function(require,inheritance,component,event,view,interaction){
 		this.dropDownContainerSize.left = left;
 		this.dropDownContainerSize.top = top;
 
-
 		//set position and display mode of the drop-down container
 		s.left = left + 'px';
 		s.top =  top + 'px';
 		s.display='block';
 
-        //handler that will close the dropdown when 
+		//handler that will close the dropdown when 
         //mouse event on the windows is detected
 		this.offFocusHandler = (function(){
 			_closeDropDown.call(this);
@@ -205,6 +217,7 @@ function(require,inheritance,component,event,view,interaction){
         //call event to notify listeners
 		this.onDropDown();
 
+		this.dropDownContainer.reflow();
 	};
 
 	function _closeDropDown(){
@@ -226,8 +239,7 @@ function(require,inheritance,component,event,view,interaction){
         
         this.dropDownContainer.detach();
         this.isOpen = false;
-    }
+	}
 
-    return factory.define('DropDownSelector:dropdown.html',DropDown)
-    
+	return factory.define('DropDownSelector:dropdown.html',DropDown)    
 });
