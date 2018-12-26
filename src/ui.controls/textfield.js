@@ -32,6 +32,7 @@ define([
         this.isRealtime  = args.isRealtime;
         this.isEmail = args.isEmail;
         this.isPassword = args.isPassword;
+        this.placeholder = args.placeholder;
     }
 
     TextField.prototype.onLoaded = function(args){
@@ -56,8 +57,12 @@ define([
             this.elements.root.node.setAttribute('autocapitalize','none');
         }
 
-        if(this.isPassword == true){
+        if(this.isPassword == true) {
             this.elements.root.node.type = 'password';
+        }
+
+        if(this.placeholder != null) {
+            this.elements.root.node.setAttribute('placeholder',this.placeholder);
         }
     }
 
