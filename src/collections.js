@@ -416,6 +416,7 @@ define(function(){
 
     return {
         collection: _collection,
+        defaultComparator: _defaultComparator,
         Collection: Collection
     }
 
