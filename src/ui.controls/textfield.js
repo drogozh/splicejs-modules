@@ -131,6 +131,25 @@ define([
         }
     };
 
+    function _isControlCharacter(key){
+        switch(key.toLower()){
+            case 'backspace':
+            case 'escape':
+            case 'esc':
+            case 'right':
+            case 'arrowright':
+            case 'left':
+            case 'arrowleft':
+            case 'left':
+            case 'arrowup':
+            case 'up':
+            case 'arrowdown':
+            case 'down':
+            return true;
+        }
+        return false;
+    }
+
     return TextField;
 
 });

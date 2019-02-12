@@ -866,8 +866,6 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
                 } 
                 var value = _getValue(key, content);
                 var target = this.content[key];
-                
-                if(value == null) continue;
 
                 if(target.format) {
                     var formatter = _formatters[target.format];
@@ -886,6 +884,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
                     continue;
                 }
 
+                if(value == null) continue;
                 this.replace(value,key);
             }        
         }         

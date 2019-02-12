@@ -1,0 +1,49 @@
+.sjs-toggle {
+    position:relative;
+    display:inline-block;
+}
+
+.sjs-toggle-core {
+    position: relative;
+    display: inline-block;
+    width: 3em;
+    height: 1em;
+    border: 1px solid;
+    border-bottom-right-radius: 1em;
+    border-top-right-radius: 1em;
+    border-bottom-left-radius: 1em;
+    border-top-left-radius: 1em;
+    top: 0.25em;
+}
+
+.sjs-toggle-thumb {
+    position: absolute;
+    width: 1.5em;
+    height: 1.5em;
+    background-color: #2d74de;
+    top: 0;
+    border-radius: 50%;
+    cursor:pointer;
+}
+
+.sjs-toggle.off 
+.sjs-toggle-core {
+    background-color:none;
+    border-color:#cecece;
+}
+
+.sjs-toggle.on 
+.sjs-toggle-core {
+    background-color: #7bde31;
+    border-color: #7bde30;
+}
+
+.sjs-toggle.off 
+.sjs-toggle-thumb {
+    left: 1px;
+}
+
+.sjs-toggle.on 
+.sjs-toggle-thumb {
+    right: 1px;
+}

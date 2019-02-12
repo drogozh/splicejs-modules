@@ -395,7 +395,7 @@ define([
       
     */
     function _path(dataItem, path, isTemp){
-      if(!path || path == null || path === '') return dataItem;
+      if(path == null) return dataItem;
 
       var source = _recGetSource(dataItem,0);
       var parts = path.toString().split('.');

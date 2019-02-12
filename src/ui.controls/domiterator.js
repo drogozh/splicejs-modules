@@ -94,6 +94,21 @@ define([
         this.dataIn(content);
     };
 
+    DomIterator.prototype.update = function(item){
+        var iterator = this._data.iterator();
+        while(iterator.next()){
+            if(iterator.current == item){
+                break;
+            }
+        }
+        var cmp = this.itemBuffer[iterator.key];
+        // item to update is not found
+        if(cmp == null) {
+            return;
+        }
+        cmp.applyContent(iterator.current);
+    };
+
     DomIterator.prototype.clear = function(){
         this._data = null;
         this.itemBuffer = [];
@@ -157,6 +172,10 @@ define([
         }
 
         this.onDataUpdated(this.itemBuffer);
+    };
+
+    DomIterator.prototype.refreshContent = function(keys){
+        console.log(keys);
     };
 
     DomIterator.prototype.setTemplate = function(template){
