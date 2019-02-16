@@ -195,7 +195,6 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         }
     };
 
-
     /**
      * Base Component
      */
@@ -204,10 +203,6 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         this.__sjs_parent = parent;
         this.__sjs_display_parent = parent;
     }
-    var _formatters = {};
-    ComponentBase.registerFormatter = function(name, formatter){
-        _formatters[name] = formatter;
-    };
 
     //interface callbacks, intended for override
     ComponentBase.prototype.onInit = 
@@ -236,11 +231,17 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
             }
             comp = comp.__sjs_parent;
         }
+        return _sharedFormatters[formatter];
     }
-
+    
+    var _sharedFormatters = {};
     ComponentBase.prototype.addFormatter = function(name, formatter){
         this.__sjs_formatters = this.__sjs_formatters || {};
         this.__sjs_formatters[name] = formatter;
+    };
+
+    ComponentBase.shareFormatter = function(name, formatter){
+        _sharedFormatters[name] = formatter;
     };
 
     ComponentBase.prototype.getParent = function(){

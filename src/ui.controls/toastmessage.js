@@ -43,6 +43,9 @@ define([
             },1);
         } else {
             _this.elements.root.replaceClass('visible','hide');
+            setTimeout(function(){
+                document.body.removeChild(_this.node);
+            },1000);
         }
     }   
 
