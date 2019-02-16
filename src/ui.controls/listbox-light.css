@@ -6,5 +6,6 @@
 
 .sjs-theme--light
 .sjs-listbox-item:hover {
-	background-color: #ffd254;
+	background-color: #2d74dd;
+    color: #ffffff;
 }

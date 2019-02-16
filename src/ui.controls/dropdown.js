@@ -73,6 +73,7 @@ function(require,inheritance,component,event,view,interaction){
 			onDropDown : event.MulticastEvent,
 			onInitialDrop: event.UnicastEvent
 		});
+		this._isEnabled = true;
 	}).extend(component.ComponentBase);
 
 
@@ -92,10 +93,12 @@ function(require,inheritance,component,event,view,interaction){
 		Subscribe to onclick instead of mousedown, because firing mousedown
 		will immediately execute event within dropDown() closing the dropdown
 		*/
+		var _this = this;
 		event.attach(this.elements.root,{
 			onmousedown : view.DomMulticastStopEvent
 		})
 		.onmousedown.subscribe(function(e){
+			if(!_this._isEnabled) return;
 			this.dropDown();
 		},this);
 
@@ -110,6 +113,15 @@ function(require,inheritance,component,event,view,interaction){
 		this.dropDownContainer = new scope.DropDownContainer(this);
 		
 		this._isInitialDrop = true;
+	}
+
+	DropDown.prototype.enable = function(isEnabled){
+		this._isEnabled = isEnabled;
+		if(this._isEnabled){
+			this.elements.root.removeClass('disabled');
+		} else {
+			this.elements.root.addClass('disabled');
+		}
 	}
 
 	DropDown.prototype.clear = function(){

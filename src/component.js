@@ -199,7 +199,11 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
     /**
      * Base Component
      */
-    function ComponentBase(){}
+    function ComponentBase(parent, args){
+        this.parent = parent
+        this.__sjs_parent = parent;
+        this.__sjs_display_parent = parent;
+    }
     var _formatters = {};
     ComponentBase.registerFormatter = function(name, formatter){
         _formatters[name] = formatter;
@@ -219,6 +223,25 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
     ComponentBase.prototype.onDispose =
     ComponentBase.prototype.onApplyContent = 
     ComponentBase.prototype.onResize  = function(){};
+
+    ComponentBase.prototype.getFormatter = function(formatter){
+        return _getFormatter.call(this, formatter);
+    };
+
+    function _getFormatter(formatter){
+        var comp = this;
+        while(comp != null){
+            if(comp.__sjs_formatters && comp.__sjs_formatters[formatter] != null){
+                return comp.__sjs_formatters[formatter];
+            }
+            comp = comp.__sjs_parent;
+        }
+    }
+
+    ComponentBase.prototype.addFormatter = function(name, formatter){
+        this.__sjs_formatters = this.__sjs_formatters || {};
+        this.__sjs_formatters[name] = formatter;
+    };
 
     ComponentBase.prototype.getParent = function(){
         return this.__sjs_parent;
@@ -622,6 +645,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         }
 
         child.parent = this;
+        child.__sjs_display_parent = this;
         target.push([child,'add']);    
 
         if(this._state_.display) {
@@ -868,7 +892,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
                 var target = this.content[key];
 
                 if(target.format) {
-                    var formatter = _formatters[target.format];
+                    var formatter = _getFormatter.call(this,target.format);
                     if(formatter == null) {
                         throw 'Formatter "' + target.format + '" is not found, register formatter with ComponentBase.registerFormatter();';
                     }
@@ -1439,8 +1463,9 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         }
 
         scope[_type] = function Component(parent,args){
-            var comp = new vm(args);
+            var comp = new vm(parent,args);
             comp.parent = parent;
+            comp.__sjs_parent = parent;
             comp.init(args);
             comp.resolve(parent != null ? parent.scope : null);
             comp.loaded({default:template},scope,args);

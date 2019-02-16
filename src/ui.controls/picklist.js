@@ -104,5 +104,9 @@ define([
 		}
 	};
 
+	PickList.prototype.enable = function(isEnabled){
+		this.components.dropDown.enable(isEnabled);
+	};
+
 	return factory.define('PickList:picklist.html', PickList);
 });

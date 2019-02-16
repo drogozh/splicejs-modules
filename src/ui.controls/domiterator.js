@@ -21,7 +21,7 @@ define([
     var DataItem = di.DataItem;
 
     var DomIterator = Class(function DomIterator(parent,args){
-        this.parent = parent;
+        component.ComponentBase.call(this,parent,args);
 
         // important! attach event before binding resolution takes place
         event.attach(this,{

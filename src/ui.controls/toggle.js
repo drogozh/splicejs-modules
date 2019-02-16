@@ -27,16 +27,27 @@ define([
     };
 
     Toggle.prototype.applyContent = function(content){
-        if(typeof(content) != 'boolean') return;
-        this._state = content;
+        var value = false;
+        if(content instanceof data.DataItem){
+            this._data = content;
+            value = content.getValue();
+        } else {
+            value = content;
+        }
+
+        if(typeof(value) != 'boolean') return;
+        this._state = value;
         _decorate.call(this);
-        console.log(content);
+        console.log(value);
     };
 
     function _toggle(){
         this._state = !this._state;
         _decorate.call(this);
         this.onChange.raise(this._state);
+        if(this._data!= null){
+            this._data.setValue(this._state);
+        }
     }
 
     function _decorate(){

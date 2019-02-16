@@ -38,6 +38,10 @@ define([
 
       if(data!= null) this.setValue(data);
 
+      Events.attach(this,{
+        onChange:Events.MulticastEvent
+      });
+
     };
 
     DataItem.prototype.getValue = function(){
@@ -175,7 +179,7 @@ define([
             helps observers stay on track
         */
         _bubbleChangeCount(this);
-        //_triggerOnChange.call(this);
+        _triggerOnChange.call(this);
         return this;
     };
 

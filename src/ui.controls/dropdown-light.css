@@ -37,3 +37,12 @@
     box-shadow: 0px 12px 22px 0px rgba(0,0,0,0.41);
 }
 
+.sjs-theme--light
+.sjs-dropdown-selector.disabled .selector {
+    color: #b1b1b1;
+}
+
+.sjs-theme--light
+.sjs-dropdown-selector.disabled .selector:hover {
+    background-color:#e8e8e8;
+}

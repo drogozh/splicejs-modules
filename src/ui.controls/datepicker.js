@@ -18,28 +18,20 @@ define([
 		DropDown:controls.DropDown
 	};
 
-	var	Class       = inheritance.Class
-	,	format      = text.format;
-
 	var factory = component.ComponentFactory(require,scope);
 
-	var DatePicker = Class(function DatePicker(args){
+	var DatePicker = inheritance.Class(function DatePicker(args){
 		event.attach(this,{
 			onDateSelected : event.MulticastEvent
 		});
 
 		this.date = new Date();
-
-		if(args && args.format){
-			this.format = args.format;
-		}
-
 	}).extend(component.ComponentBase);
 
 	DatePicker.Component = factory.define('DatePicker:datepicker.html',DatePicker);
 
-	DatePicker.prototype.onInit = function(){
-
+	DatePicker.prototype.onInit = function(args){
+		this._formater = args.format != null ? this.getFormatter(args.format) : function(date){return date.toString();};
 	};
 
 	DatePicker.prototype.onDataIn = function(item){
@@ -60,16 +52,13 @@ define([
 	DatePicker.prototype.setDate = function (date) {
 	    if (!date) return;
         this.date = date;
-		if (this.format) {
-	    	date = format('{0:' + this.format + '}', date);
-	    } else {
-			date = date.toString();
-		}
-		
+   		date = this._formater(date);
 		this.components.selector.set(date);
 	};
 
+	DatePicker.prototype.enable = function(isEnabled){
+		this.components.selector.enable(isEnabled);
+	};
 
 	return DatePicker;
-
 });

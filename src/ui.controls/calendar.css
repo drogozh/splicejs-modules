@@ -1,13 +1,17 @@
 .sjs-calendar {
 	position:relative;
+	width:20em;
+	height:22em;
+	background-color:#fefefe;
 }
+
 .sjs-calendar .days {
 	color:#cecece;
 	background-color: #323232;
 }
 
 .sjs-calendar .grid {
-	color:#cecece;
+	color:#323232;
 }
 
 
@@ -18,8 +22,6 @@
 }
 .sjs-calendar .grid tr.days td {
 	height:auto;
-	color:#ffffff;
-	background-color: rgb(116, 116, 116);
 }
 
 .sjs-calendar .grid tr.controls td:hover {
@@ -29,31 +31,44 @@
 .sjs-calendar .grid td {
   text-align: center;
   vertical-align: middle;
-  border: 1px solid #494949;
+  border: 1px solid #dadada;
   cursor: pointer;
 }
+.sjs-theme--light
+.sjs-calendar .grid tr.days td {
+    color: #323232;
+    background-color: #f9f9f9;
+    font-family: Roboto;
+}
 
-
+.sjs-theme--light
 .sjs-calendar .grid td:hover {
-	background-color:#5E5D5D;
+	background-color:#cecece;
 }
 
+.sjs-theme--light
 .sjs-calendar .grid td.this-month {
-	background-color: #383838;
+	background-color: #e8e8e8
 }
 
+.sjs-theme--light
 .sjs-calendar .grid td.this-month:hover {
-	background-color:#5E5D5D;	
+	background-color: #cecece;	
 }
 
-
+.sjs-theme--light
 .sjs-calendar .grid td.today {
-	background-color: #D3A800;
+	background-color: #2b71de;
   	color: #ffffff;
 }
 
+.sjs-theme--light
 .sjs-calendar .grid td.today:hover {
-	background-color: #FDCA00;
+	background-color: #2b71de;
   	color: #ffffff;
 }
+
+/*
+	themes
+*/
 
