@@ -60,7 +60,7 @@ define(function(){
      * Then-able action
      * Event is considered resolved after the very first raise() call
      */
-    function MulticastStatefulEvent(action){
+    function MulticastResetEvent(action){
         this._listeners = [];
         this._state = null;
         this._resolved = false;
@@ -69,7 +69,7 @@ define(function(){
         this.resolve();
     };
 
-    MulticastStatefulEvent.prototype.resolve = function(){
+    MulticastResetEvent.prototype.resolve = function(){
         var _this = this;
         this._resolved = false;
         this._action(function(result){
@@ -77,20 +77,20 @@ define(function(){
         });
     };
 
-    MulticastStatefulEvent.prototype.subscribe = function(callback, instance){
+    MulticastResetEvent.prototype.subscribe = function(callback, instance){
         this._listeners.push({callback:callback, instance:instance});
         if(this._resolved != true) return;
         callback.apply(instance, this._state);
     };
 
-    MulticastStatefulEvent.prototype.raise = function(){
+    MulticastResetEvent.prototype.raise = function(){
         this._state = arguments;
         this._resolved = true;
         _raise.apply(this._listeners, this._state);
         _raiseOnce.apply(this._queue, this._state);
     };
 
-    MulticastStatefulEvent.prototype.then = function(callback){
+    MulticastResetEvent.prototype.then = function(callback){
         var thenable = new Thenable(callback);
         if(!this._resolved) {
             this._queue.push(thenable);
@@ -140,7 +140,7 @@ define(function(){
 
     return {
         MulticastEvent: MulticastEvent,
-        MulticastStatefulEvent: MulticastStatefulEvent,
+        MulticastResetEvent: MulticastResetEvent,
         UnicastEvent: UnicastEvent
     }
 });

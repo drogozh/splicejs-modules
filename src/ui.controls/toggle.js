@@ -38,7 +38,6 @@ define([
         if(typeof(value) != 'boolean') return;
         this._state = value;
         _decorate.call(this);
-        console.log(value);
     };
 
     function _toggle(){
