@@ -1310,7 +1310,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
      *  @param args - constructor arguments
     */
     function _proxy(scope,pArgs, isInclude){
-        var prx =  function proxy(){
+        var prx =  function proxy(_parent,_args){
             var type = new DataItem(scope).path(pArgs.type).getValue();
             if(type == null) throw 'type not found [' + pArgs.type +']';
 
@@ -1327,8 +1327,8 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
             if(pArgs.name != null) {
                 instance.__sjs_comp_nm = pArgs.name;
             }
-           
-            return type.apply(instance,arguments) || instance;
+            var __args = utils.mixin(pArgs.args,_args);
+            return type.call(instance,_parent,__args) || instance;
         }
 
         prx.isProxy = true;
@@ -1351,7 +1351,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         var compArgs = fn.proxyArgs.args;
         
         //remove component constructor arguments
-        delete fn.proxyArgs.args;
+        //delete fn.proxyArgs.args;
 
         return {
             proxyArgs:fn.proxyArgs,
