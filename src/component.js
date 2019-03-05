@@ -444,6 +444,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
     }
 
     function _processAncestors(args){
+        if(args.ancestors == null) return;
         var parts = args.ancestors.split(',');
         for(var i=0; i< parts.length; i++){
             var parent = this.parent;
@@ -458,6 +459,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
                 parent = parent.parent;
             }
         }
+        return this;
     }
 
 
@@ -822,11 +824,15 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
 
         if( target && target[0] && 
             target[0][0] instanceof ValueComponent && 
-            child instanceof ValueComponent) {
-            target[0][0].set(child.toString());
+            (child instanceof ValueComponent || child == null )) {
+            target[0][0].set(child);
             return child;
         } 
         
+        if(child == null){
+            return null;
+        }
+
         // if child by the same key exists detach them
         // 0 is an item index
         if(this.children[key]){
@@ -836,13 +842,9 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         }
         
         this.children[key]= [[child,'set']];
+
         child.parent = this;
-
-
-        //if(this._state_.display) { 
-            child.display(this,key,'set');
-         //   this.onChildDisplay(child);
-        //}
+        child.display(this,key,'set');
 
         return child;
     }
@@ -909,7 +911,6 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
                     continue;
                 }
 
-                if(value == null) continue;
                 this.replace(value,key);
             }        
         }         
@@ -988,10 +989,15 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
      * 6. Anything else is turned to a string
      */
     function toComponent(s, parent){
+        if(s == null) { 
+            return null;
+        }
         //check for proxy
         //todo: see if we care what the resulting proxy instance is
         if(typeof s === 'function' && s.isProxy === true ){
-            return s(parent,s.proxyArgs.args);
+            var _comp = s(parent,s.proxyArgs.args);
+            _processAncestors.call(_comp, s.proxyArgs);
+            return _comp;
         }
 
         // just a component, no constructor args
@@ -1089,6 +1095,10 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
 
 
     ValueComponent.prototype.set = function(value){
+        if(value == null) {
+            this.node.nodeValue = '';
+            return;
+        }
         this.node.nodeValue = value.toString();
     };
     //override toString
