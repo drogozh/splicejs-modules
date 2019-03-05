@@ -619,7 +619,11 @@ function _commitClassMap(){
 //      attr(name).get();
 View.prototype.attr = function(attr){
     for(var k in attr){
-        this.htmlElement.setAttribute(k,attr[k]);
+        if(attr[k] == null){
+            this.htmlElement.removeAttribute(k);
+        } else {
+            this.htmlElement.setAttribute(k,attr[k]);
+        }
     }
     return this;
 };
