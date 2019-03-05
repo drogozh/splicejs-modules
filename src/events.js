@@ -16,7 +16,7 @@ define(function(){
     };
 
     UnicastEvent.prototype.raise = function(){
-        _raise.apply(this._listeners, arguments);
+        return _raise.apply(this._listeners, arguments);
     };
 
     
@@ -124,10 +124,12 @@ define(function(){
 
     function _raise(){
         var listeners = this;
+        var result = null;
         for(var i=0; i < listeners.length; i++ ){
             var sub = listeners[i];
-            sub.callback.apply(sub.instance,arguments);
+            result = sub.callback.apply(sub.instance,arguments);
         }
+        return result;
     }
 
     function _raiseOnce(){
