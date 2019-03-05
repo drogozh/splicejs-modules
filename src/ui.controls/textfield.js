@@ -116,6 +116,16 @@ define([
         this.getElement('root').node.blur();
     };
 
+    TextField.prototype.enable = function(isEnabled){
+        if(isEnabled === true) {
+            this.getElement('root').attr({disabled:null});
+            this.getElement('root').removeClass('disabled');
+        } else {
+            this.getElement('root').attr({disabled:true});
+            this.getElement('root').addClass('disabled');
+        }
+    };
+
     function _textFieldOnKey(args){
         var newValue = this.getElement('root').node.value;
         if(this._data != null) {

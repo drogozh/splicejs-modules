@@ -5,3 +5,9 @@
 	border-radius: 3px;
 	outline:none; 
 }
+
+.sjs-theme--light
+.sjs-textfield.disabled {
+	background-color:#e8e8e8;
+	color:#b1b1b1;
+}
