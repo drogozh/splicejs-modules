@@ -71,6 +71,10 @@ define([
         return this;
     };
 
+    ViewPanel.prototype.getView = function(name){
+        return this._viewInstances[name];
+    };
+
     ViewPanel.Component = factory.define('ViewPanel:viewpanel.html',ViewPanel);
 
     return ViewPanel;
