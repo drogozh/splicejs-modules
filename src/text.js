@@ -424,7 +424,18 @@ function format(){
 	return result;
 };
 
+function _join(collection, delimiter){
+	if(!delimiter) delimiter = ' ';
 
+	var runningDelimiter = '';
+	var result = '';
+	for(var i=0; i< collection.length; i++){
+		result = result + runningDelimiter + collection[i];
+		runningDelimiter = delimiter;
+	}
+
+	return result;
+};
 
 /**
 	* Text manupulation wrapper function
@@ -524,7 +535,8 @@ var Text = function Text(text){
 
 return {
 	format:format, 
-	Text:Text
+	Text:Text,
+	join:_join
 };
 
 
