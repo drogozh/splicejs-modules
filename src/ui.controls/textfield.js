@@ -33,6 +33,7 @@ define([
         this.isEmail = args.isEmail;
         this.isPassword = args.isPassword;
         this.placeholder = args.placeholder;
+        this._format = args.format;
     }
 
     TextField.prototype.onLoaded = function(args){
@@ -64,39 +65,30 @@ define([
         if(this.placeholder != null) {
             this.elements.root.node.setAttribute('placeholder',this.placeholder);
         }
-    }
 
-    TextField.prototype.dataIn = function(dataItem){
-        if(!dataItem) return;
-        if(!(dataItem instanceof DataItem)){
-           dataItem = new DataItem(dataItem);
-        }
-
-        this._data = dataItem;
-        var value = this._data.getValue();
-
-        this.elements.root.htmlElement.value = value;
-        this.elements.root.attr({value:value});
+        this._format = this.getFormatter(this._format);
     };
 
     TextField.prototype.applyContent = function(content){
-        this.dataIn(content);
-    };
+        if(content == null){
+            this.clear();
+        }
 
-    TextField.prototype.dataOut = function(){
-        this.elements.root.attr({
-            value:this.elements.root.htmlElement.value
-        });
-        return this.elements.root.attrGet('value');
-    }
+        if(!(content instanceof DataItem)){
+           content = new DataItem(content);
+        }
+
+        this._data = content;
+        var value = this._data.getValue();
+
+        var formattedValue = _applyFormat.call(this,value);
+
+        this.elements.root.htmlElement.value = formattedValue;
+        this.elements.root.attr({value:formattedValue});
+    };
 
     TextField.prototype.getValue = function(){
         return this.elements.root.node.value;
-    }
-
-    TextField.prototype.onDataIn = function(item){
-        if(!item) return;
-        this.elements.root.attr({value:item.getValue()});
     };
 
     TextField.prototype.clear = function(){
@@ -125,6 +117,13 @@ define([
             this.getElement('root').addClass('disabled');
         }
     };
+
+    function _applyFormat(value){
+        if(typeof(this._format) == 'function' ){
+            return this._format(value);
+        } 
+        return value;
+    }
 
     function _textFieldOnKey(args){
         var newValue = this.getElement('root').node.value;
