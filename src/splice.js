@@ -21,9 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-try {
-	!require;
-} catch(ex){
+if(typeof(require) === 'undefined'){
 	window.require = function require(m){
 		if(m == './splice.window') return window;
 		if(m == './splice.document') return document;
