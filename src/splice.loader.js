@@ -300,21 +300,6 @@ function _resolvePaths(dep, ctx, paths){
     return paths;
 }
 
-// var _queueStatus = {busy:false};
-// function _processQueue(){
-//     if(_queueStatus.busy) return;
-//     _queueStatus.busy = true;
-//     var foo = function(){
-//         _invokeModules();
-//         if(_queue.length > 0){
-//             setTimeout(foo,5);
-//         } else {
-//             _queueStatus.busy = false;
-//         }
-//     }
-//     foo();
-// }
-
 var _queueStatus = {interval:0};
 function _processQueue(){
     if(_queueStatus.interval > 0) return;
