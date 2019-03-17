@@ -1,3 +1,27 @@
+/*
+SpliceJS Loader v.1.0.0
+
+The MIT License (MIT)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
 (function(window,document){
 "use strict"
 
@@ -17,7 +41,7 @@ var _config = {
     pathSeparator:'/'
 };
 
-var _pathVariables = {};
+var _variables = {};
 
 var _handlers = {
     '.js':_handler
@@ -28,13 +52,13 @@ var _queue = [];
 var _modules = {
     loader:{status:'imported', exports:{
         setVar:function(v,r){
-            _pathVariables[v] = r;
+            _variables[v] = r;
             return this;
         },
         getVar:function(v){
-            return _pathVariables[v];
+            return _variables[v];
         },
-        addHandler:_addHandler,
+        addHandler:function(ext,handler){_handlers[ext] = handler;},
         getModules(){
             return _modules;
         },
@@ -55,19 +79,20 @@ var _modules = {
     }}
 };
 
-function _addHandler(ext, handler){
-    _handlers[ext] = handler;
-}
-
 function _getFileExt(url){
     var idx = url.lastIndexOf(".");
     return (idx > -1 && idx > url.lastIndexOf(_config.pathSeparator)) ?  url.substr(idx) : '.js';
 }
 
-var _currentScript = null;
+var _currentScript = [];
+_currentScript.top = function(){
+    if(this.length < 1) return null;
+    return this[this.length-1];
+}
+
 function _getCurrentScript(){
-    if(_currentScript != null){
-        return _currentScript;
+    if(_currentScript.top() != null){
+        return _currentScript.top();
     }
     if(document.currentScript == null){
         return '';
@@ -102,12 +127,12 @@ function _collapseUrl(parts){
 }
 
 function _subst(url){
-    var keys = Object.keys(_pathVariables);
+    var keys = Object.keys(_variables);
     var was = url;
     for(var i = 0; i < keys.length; i++) 
 	{
 		var key = keys[i];
-		var value = _pathVariables[key];
+		var value = _variables[key];
         url = url.replace(key, value);
 	}
 	return url;
@@ -158,13 +183,28 @@ function _load(url){
     return url;
 }
 
-function _traverseDependencies(paths){
+function _bindRequire(url){
+    return function require(){
+        _currentScript.push(url);
+        var result = _require.apply({},arguments);
+        _currentScript.pop();
+        return result;
+    }
+}
+
+function _traverseDependencies(item, paths){
     var deps = {};
     var keys = Object.keys(paths);
     for(var i=0; i<keys.length; i++){
         var path = paths[keys[i]];
+
+        if(path == 'require'){
+            deps[keys[i]] = _bindRequire(item.url);
+            continue;
+        }
+
         if(typeof(path) == 'object'){
-            var result = _traverseDependencies(path);
+            var result = _traverseDependencies(item, path);
             if(result == null) return null;
             deps[keys[i]] = result;
             continue;
@@ -180,8 +220,8 @@ function _traverseDependencies(paths){
     return deps;
 }
 
-function _getDependencies(paths){
-    var result = _traverseDependencies(paths);
+function _getDependencies(item){
+    var result = _traverseDependencies(item, item.paths);
     if(result == null){
         return null;
     }
@@ -197,13 +237,12 @@ function _invokeModules(){
     var i = _queue.length;
     while(i-- > 0 ){
         var last = _queue[i];
-        var deps = _getDependencies(last.paths);
+        var deps = _getDependencies(last);
         if(deps == null){
             continue;
-        }
-        _currentScript = last.url;
-
+        }      
         try {
+            _currentScript.push(last.url);
             var exps = last.callback.apply({},deps);
             if(_modules[last.url] != null && _modules[last.url] != ''){
                 _modules[last.url].status = MODULE_STATUS.IMPORTED;
@@ -215,7 +254,7 @@ function _invokeModules(){
             }
             throw e;
         } finally {
-            _currentScript = null;
+            _currentScript.pop();
             _queue.splice(i,1);
         }
     }
@@ -261,19 +300,37 @@ function _resolvePaths(dep, ctx, paths){
     return paths;
 }
 
-var _queueStatus = {busy:false};
+// var _queueStatus = {busy:false};
+// function _processQueue(){
+//     if(_queueStatus.busy) return;
+//     _queueStatus.busy = true;
+//     var foo = function(){
+//         _invokeModules();
+//         if(_queue.length > 0){
+//             setTimeout(foo,5);
+//         } else {
+//             _queueStatus.busy = false;
+//         }
+//     }
+//     foo();
+// }
+
+var _queueStatus = {interval:0};
 function _processQueue(){
-    if(_queueStatus.busy) return;
-    _queueStatus.busy = true;
-    var foo = function(){
+    if(_queueStatus.interval > 0) return;
+        
+    var tryQueue = function(){
+        try {
         _invokeModules();
-        if(_queue.length > 0){
-            setTimeout(foo,2);
-        } else {
-            _queueStatus.busy = false;
+        } catch (e){
+            clearInterval(_queueStatus.interval);
+        }
+        if(_queue.length == 0){
+            clearInterval(_queueStatus.interval);
+            _queueStatus.interval = 0;
         }
     }
-    foo();
+    _queueStatus.interval = setInterval(tryQueue,1);
 }
 
 function _loadDependencies(dep,callback){
