@@ -1,8 +1,14 @@
 {
-    "name":"splicejs",
+    "name": "sjs-loader",
     "version": "1.0.0",
-    "files":["src/*"],
+    "files": [
+        "src/*"
+    ],
     "devDependencies": {
-        "node-http-server":"file:../node-http-server"
-    }      
+        "node-http-server": "file:../node-http-server",
+        "mocha": "latest"
+    },
+    "scripts":{
+        "test":"mocha"
+    }
 }

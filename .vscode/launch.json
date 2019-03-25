@@ -7,9 +7,16 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
-            "program": "${workspaceFolder}/src/splice.js",
-            "args":["-i","./test/init.js","./test/cli.test.js"]
+            "name": "Splice Loader",
+            "program": "${file}"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Splice Loader Mocha Tests",
+            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+            "args": ["${file}"]
         }
+
     ]
 }

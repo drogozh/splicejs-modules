@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-(function(window,document){
+(function(window,document,global){
 "use strict"
 
 var ERRORS = {
@@ -36,17 +36,36 @@ var MODULE_STATUS = {
     FAILED:'failed',
 };
 
-var _config = {
-    origin:window.origin,
-    pathSeparator:'/'
+var _handlers = {
+    '.js':_handlerWeb
 };
+
+var _config = (function(){
+    if(typeof(process) !== "undefined"){
+        _handlers['.js'] = _handlerConsole;
+        if(process.cwd().startsWith('/')){
+            return {
+                origin:process.cwd(),
+                pathSeparator:'/',
+                platform:'UNX',
+            };
+        } else {
+            return {
+                origin:process.cwd(),
+                pathSeparator:'\\',
+                platform:'WIN',
+            };
+        }    
+    } else {
+        return {
+            origin:window.origin,
+            pathSeparator:'/',
+            platform:'WEB'
+        };
+    }
+})();
 
 var _variables = {};
-
-var _handlers = {
-    '.js':_handler
-};
-
 var _queue = [];
 
 var _modules = {
@@ -85,20 +104,25 @@ function _getFileExt(url){
 }
 
 var _currentScript = [];
-_currentScript.top = function(){
+_currentScript.top = function top(){
     if(this.length < 1) return null;
     return this[this.length-1];
-}
+};
 
 function _getCurrentScript(){
     if(_currentScript.top() != null){
         return _currentScript.top();
     }
+
+    if(_config.platform == 'UNX'){
+        return module.parent.filename;
+    }
+
     if(document.currentScript == null){
         return '';
     }
     var path = document.currentScript.src;
-    return path.replace(_config.origin,'');        
+    return path;
 }
 
 function _getContext(){
@@ -151,7 +175,7 @@ function _join(parts){
     return url;
 }
 
-function _handler(url,callback){
+function _handlerWeb(url,callback){
     var head = document.head || document.getElementsByTagName('head')[0];
     var script = document.createElement('script');
     script.setAttribute("type", "text/javascript");
@@ -162,6 +186,13 @@ function _handler(url,callback){
         callback();
     }
     head.appendChild(script);
+}
+
+function _handlerConsole(url, callback){
+    _currentScript.push(url);
+    require(url);
+    callback();
+    _currentScript.pop(url);
 }
 
 function _load(url){
@@ -273,7 +304,7 @@ function _resolve(ctx,url){
     }    
 
     url = url.replace('!','');
-    return _collapseUrl(
+    return _config.origin + _collapseUrl(
         _join([ctx.context,_subst(url)]).split(_config.pathSeparator)
     );        
 }
@@ -292,7 +323,6 @@ function _resolvePaths(dep, ctx, paths){
             _resolvePaths(d,ctx,paths[keys[i]]);
             continue;
         }
-
         var path = _resolve(ctx,d);
         paths[keys[i]] = path;
         _load(path);
@@ -300,9 +330,9 @@ function _resolvePaths(dep, ctx, paths){
     return paths;
 }
 
-var _queueStatus = {interval:0};
+var _queueStatus = {interval:null};
 function _processQueue(){
-    if(_queueStatus.interval > 0) return;
+    if(_queueStatus.interval != null) return;
         
     var tryQueue = function(){
         try {
@@ -312,7 +342,7 @@ function _processQueue(){
         }
         if(_queue.length == 0){
             clearInterval(_queueStatus.interval);
-            _queueStatus.interval = 0;
+            _queueStatus.interval = null;
         }
     }
     _queueStatus.interval = setInterval(tryQueue,1);
@@ -344,7 +374,9 @@ function _require(dep,callback){
     _define(dep,callback|| function(){});
 }
 
-window.define = _define;
+window.define = global.define = _define;
 window.require = _require;
 
-})(window,document);
+})( typeof(window) === 'undefined' ? {} : window,
+    typeof(document) === 'undefined' ? {} : document,
+    typeof(global) === 'undefined' ? {} : global);
