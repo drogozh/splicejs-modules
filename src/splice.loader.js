@@ -286,7 +286,7 @@ function _invokeModules(){
             var exps = last.callback.apply({},deps);
             if(_modules[last.url] != null && _modules[last.url] != ''){
                 _modules[last.url].status = MODULE_STATUS.IMPORTED;
-                if(info.exportsIndex != null) {
+                if(info.exportsIndex != null && Object.keys(deps[info.exportsIndex]).length > 0) {
                     _modules[last.url].exports = deps[info.exportsIndex];
                 } else {
                     _modules[last.url].exports = exps;
