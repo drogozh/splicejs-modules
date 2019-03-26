@@ -223,7 +223,7 @@ function _bindRequire(url){
     }
 }
 
-function _traverseDependencies(item, paths){
+function _traverseDependencies(item, paths, info){
     var deps = {};
     var keys = Object.keys(paths);
     for(var i=0; i<keys.length; i++){
@@ -231,6 +231,14 @@ function _traverseDependencies(item, paths){
 
         if(path == 'require'){
             deps[keys[i]] = _bindRequire(item.url);
+            continue;
+        }
+
+        if(path == 'exports'){
+            deps[keys[i]] = {};
+            if(info != null) {
+                info.exportsIndex = keys[i];
+            }
             continue;
         }
 
@@ -251,8 +259,8 @@ function _traverseDependencies(item, paths){
     return deps;
 }
 
-function _getDependencies(item){
-    var result = _traverseDependencies(item, item.paths);
+function _getDependencies(item,info){
+    var result = _traverseDependencies(item, item.paths, info);
     if(result == null){
         return null;
     }
@@ -268,7 +276,8 @@ function _invokeModules(){
     var i = _queue.length;
     while(i-- > 0 ){
         var last = _queue[i];
-        var deps = _getDependencies(last);
+        var info = {};
+        var deps = _getDependencies(last,info);
         if(deps == null){
             continue;
         }      
@@ -277,7 +286,11 @@ function _invokeModules(){
             var exps = last.callback.apply({},deps);
             if(_modules[last.url] != null && _modules[last.url] != ''){
                 _modules[last.url].status = MODULE_STATUS.IMPORTED;
-                _modules[last.url].exports = exps;
+                if(info.exportsIndex != null) {
+                    _modules[last.url].exports = deps[info.exportsIndex];
+                } else {
+                    _modules[last.url].exports = exps;
+                }
             }
         } catch(e){
             if(_modules[last.url] != null && _modules[last.url] != ''){

@@ -17,3 +17,13 @@ define([
         });
     }); 
 });
+
+define([
+    'modules/with-export-dependency'
+],function(a){
+    describe('Loading dependency with exports argument', function() {
+        it('Should resolve import and assert true', function() {
+            assert.equal(a.result,true);
+        });
+    }); 
+});
