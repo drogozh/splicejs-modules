@@ -236,10 +236,9 @@ Namespace.prototype = {
 	}
 };
 
-
-
-
-
+function _clone(obj){
+    return JSON.parse(JSON.stringify(obj));
+}
 
 //logging setup
 var log = !console ? {} : console;
@@ -266,7 +265,8 @@ return {
     formany:formany,
     blend:blend,
     max:max,
-    unique:_unique
+    unique:_unique,
+    clone:_clone
 };
 
 });

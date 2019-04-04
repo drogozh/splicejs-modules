@@ -2,10 +2,9 @@ define([
     'loader',
     'network',
 ],function(loader, network){
-
-    var http = network.http
-    ,   ImportSpec = loader.ImportSpec;
-
+    'use strict'
+    
+    
     // HTML template handler
     function Template(node,name,key){
         this.node = node;
@@ -53,38 +52,19 @@ define([
         this.templates[key].push(template);
     };
 
-    function HtmlSpec(fileName){
-        this.fileName = fileName;
-    }
-  
-    HtmlSpec.prototype = new ImportSpec();
-    HtmlSpec.prototype.execute = function(){
 
-        var node = document.createElement('span');
-        node.innerHTML = this.innerHTML;
 
-        var collection = new TemplateCollection(node);
-        this.exports = collection.templates;
-        this.isProcessed = true;
-    }
 
-    var htmlHandler = {
-        importSpec:function(fileName){
-            return new HtmlSpec(fileName);
-        },
-        load:function(loader, spec){
-            loader.add(spec);
-            http.get({
-                url: spec.fileName
-            })({
-                ok:function(response){
-                    spec.innerHTML = response.text;
-                    loader.notify(spec);
-                }
-            });
-        }
-    };
-  
-    loader.addHandler('.html',htmlHandler);
-
+    loader.addHandler('.html',function(url,callback){
+        network.http.get({
+            url: url
+        })({
+            ok:function(response){
+                var node = document.createElement('span');
+                node.innerHTML = response.text;
+                var collection = new TemplateCollection(node);
+                callback(collection.templates);
+            }
+        });
+    });
 });

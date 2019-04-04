@@ -1,7 +1,7 @@
 /* global sjs */
 define(
 [
-	'syntax.js'
+	'syntax'
 ],
 function(syntax){
     "use strict";

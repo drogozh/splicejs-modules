@@ -1,12 +1,20 @@
+require('sjs-loader/src/splice.loader.js');
+
+var assert = require('assert');
+
+describe('Collection test bootstrap', function() {
+    it('Should initialize test framework', function() {
+        assert.equal(1,1);
+    });
+});
+
 define([
-    'splicejs.modules/collection'
-],function(collection){
-    var assert = require('assert');
-    
+    '../src/collections'
+],function(collections){
+    var collection = collections.collection;
+
     describe('Sequential Collection', function() {
-        
         describe('collection(10).toArray()', function() {
-            
             it('should return an Array of 10 elements', function() {
                 var numbers = collection(10).toArray();            
                 if(!(numbers instanceof Array)) {
@@ -22,7 +30,6 @@ define([
                     }
                 }            
             });
-
         });
 
         describe('collection(10).where(x => x > 7).toArray()', function(){
@@ -35,9 +42,4 @@ define([
         });
 
     });
-
-    
-
-    run();
-
 });

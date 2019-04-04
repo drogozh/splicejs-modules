@@ -1,6 +1,6 @@
 define(
 [
-	'util.js'
+	'util'
 ],	
 function(utils){
 

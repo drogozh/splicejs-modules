@@ -5,10 +5,11 @@
         "src/*"
     ],
     "devDependencies": {
-        "splicejs": "file:../SpliceJS",
-        "node-http-server": "file:../node-http-server"
+        "sjs-loader": "file:../SpliceJS",
+        "node-http-server": "file:../node-http-server",
+        "mocha": "latest"
     },
-    "dependencies": {
-        "mocha": "^5.2.0"
+    "scripts":{
+        "test":"mocha"
     }
 }

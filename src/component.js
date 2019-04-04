@@ -411,8 +411,6 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
     //   includes are special types of children and processed separately from any other content child
     //   this is because they are a part of template composition
     function _integrateIncludes(includes){
-
-       
         var keys = Object.keys(includes);
         for(var key in keys){
             var inc = includes[keys[key]];
@@ -432,6 +430,13 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
 
             // handle content attribute of included component
             if(!args.content) continue;
+
+            // remove default content target if
+            // it is a composition container
+            if(this.content['default'] != null && inc.anchor.parentNode == this.content['default'].element.node){
+                delete this.content['default'];
+            }
+
             var cKeys = args.content.split(' ');
             for(var cKey in cKeys) {
                 this.content[cKeys[cKey]] = {
@@ -852,10 +857,10 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
    function _getValue(path, value) {
         if(value instanceof DataItem) {
             if(path == 'default') {
-                return value.getValue();
+                return value;
             } 
             return value.path(path);
-``        }
+        }
 
         var parts = path.split('.');
         for (var i = 0; i < parts.length; i++) {
@@ -888,9 +893,9 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
             for(var i=0; i<keys.length; i++){
                 var key = keys[i];
                 // do not allow default content if object is composed
-                if(key == 'default' && this._includes.child0 != null) {
-                    continue;
-                } 
+                // if(key == 'default' && this._includes.child0 != null) {
+                //     continue;
+                // } 
                 var value = _getValue(key, content);
                 var target = this.content[key];
 
@@ -910,7 +915,9 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
                     target.element.applyContent(value, key);
                     continue;
                 }
-
+                if(value instanceof DataItem){
+                    value = value.getValue();
+                }
                 this.replace(value,key);
             }        
         }         

@@ -33,6 +33,7 @@ define([
         this.isEmail = args.isEmail;
         this.isPassword = args.isPassword;
         this.placeholder = args.placeholder;
+        this.enabled = args.enabled;
         this._format = args.format;
     }
 
@@ -64,6 +65,10 @@ define([
 
         if(this.placeholder != null) {
             this.elements.root.node.setAttribute('placeholder',this.placeholder);
+        }
+
+        if(this.enabled === false){
+            this.enable(this.enabled);
         }
 
         this._format = this.getFormatter(this._format);

@@ -1,8 +1,8 @@
 define([
   {
-    Inheritance  :'inheritance.js',
-    Events        :'event.js',
-    Util          :'util.js'
+    Inheritance  :'inheritance',
+    Events        :'event',
+    Util          :'util'
   }
 ],function(imports){
   "use strict";
