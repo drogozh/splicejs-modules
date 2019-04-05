@@ -1286,7 +1286,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         var contentNodes = node.querySelectorAll('[sjs-content]')
         ,	cMap = {};
 
-        if((!contentNodes || contentNodes.length < 1) && node.childNodes.length < 1) {
+        if((!contentNodes || contentNodes.length < 1) && node.children.length < 1) {
             cMap['default'] = {element:Element(node)};
             return cMap;
         }
