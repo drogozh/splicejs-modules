@@ -520,7 +520,7 @@ Element.prototype.clearClass = function(className){
 
 Element.prototype.removeClass = function(className){
     var idx = this.classMap[className];
-    if(idx == null) return;
+    if(idx == null) return this;
 
     this.classStore[idx] = null;
     delete this.classMap[className];
@@ -564,8 +564,9 @@ Element.prototype.appendClass = function(className){
 
 Element.prototype.addClass = function(name){
     // class map index could 0, check for null
-    if(this.classMap[name] != null) return;
+    if(this.classMap[name] != null) return this;
     this.appendClass(name);
+    return this;
 };
 
 Element.prototype.clear = function(){

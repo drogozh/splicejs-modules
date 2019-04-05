@@ -118,9 +118,12 @@ define([
     };
 
     // argument must be a collection or an object
-    DomIterator.prototype.dataIn = function dataIn(sourceData){
+    DomIterator.prototype.dataIn = function dataIn(sourceData,onitem){
         var _this = this;
-        
+        if(typeof(onitem) != 'function'){
+            onitem = function(){};
+        }
+
         var foo = function(item){
             return item;
         }
@@ -156,7 +159,9 @@ define([
                 this.contentType = cmp.constructor;
             }
             cmp.node.__sjs_domiterator_idx = i;
-            cmp.applyContent(foo(iterator.current,iterator.key));
+            var d = foo(iterator.current,iterator.key);
+            cmp.applyContent(d);
+            onitem(cmp,d);
             this.onItem(cmp);
             i++;
         }
