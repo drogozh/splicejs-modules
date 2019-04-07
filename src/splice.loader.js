@@ -209,6 +209,8 @@ function _load(url){
         if(exp != null) {
             m.exports = exp;
             m.status = MODULE_STATUS.IMPORTED;
+        } else {
+            m.status = MODULE_STATUS.LOADED;
         }
     });
     return url;
@@ -304,6 +306,12 @@ function _invokeModules(){
     }
 }
 
+var _isAbsUrl = /^[a-zA-Z]+:\/\//;
+
+function _isSameOrigin(url){
+    return url.startsWith(_config.origin);
+}
+
 function _resolve(ctx,url){
     url = url.trim();
     // ignore preloads
@@ -317,9 +325,14 @@ function _resolve(ctx,url){
     }    
 
     url = url.replace('!','');
+
+    if(_isAbsUrl.test(url)){
+        return url;
+    }
+    
     return _config.origin + _collapseUrl(
         _join([ctx.context,_subst(url)]).split(_config.pathSeparator)
-    );        
+    );
 }
 
 function _resolvePaths(dep, ctx, paths){
