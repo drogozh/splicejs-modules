@@ -174,8 +174,8 @@ define([
                 }
             break;
             default:
-                if(typeof observer.fail === 'function'){
-                    observer.fail(transform({
+                if(typeof observer.onCode === 'function'){
+                    observer.onCode(this.transport.status, transform.call(this,{
                         code:this.transport.status,
                         text:this.transport.responseText
                     }));
