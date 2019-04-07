@@ -254,6 +254,8 @@ function _traverseDependencies(item, paths, info){
         if(d == null) return null;
         if(d.status == 'imported') {
             deps[keys[i]] = d.exports;
+        } else if (d.status == 'loaded' && (d.dependencies == null || Object.keys(d.dependencies).length < 1)) {
+            deps[keys[i]] = null;
         } else {
             return null;
         }
@@ -375,8 +377,12 @@ function _processQueue(){
 }
 
 function _loadDependencies(dep,callback){
-    var ctx = _getContext()
-    _queue.push({url:ctx.current, callback:callback, paths:_resolvePaths(dep,ctx,{})});
+    var ctx = _getContext();
+    var paths = _resolvePaths(dep,ctx,{});
+    if(_modules[ctx.current] != null){
+        _modules[ctx.current].dependencies = paths; 
+    }
+    _queue.push({url:ctx.current, callback:callback, paths: paths});
     _processQueue();
 }
 
