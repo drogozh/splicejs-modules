@@ -997,7 +997,7 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
      */
     function toComponent(s, parent){
         if(s == null) { 
-            return null;
+            return s;
         }
         //check for proxy
         //todo: see if we care what the resulting proxy instance is
@@ -1102,7 +1102,8 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
 
 
     ValueComponent.prototype.set = function(value){
-        if(value == null) {
+        if(value === undefined) return;
+        if(value === null) {
             this.node.nodeValue = '';
             return;
         }

@@ -51,7 +51,7 @@ define([
 
       var s = _recGetSource(this);
       if(this._path == null) return s;
-      return !s ? null : s[this._path];
+      return !s ? undefined : s[this._path];
     };
 
     DataItem.prototype.get = function(){
