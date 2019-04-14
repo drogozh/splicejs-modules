@@ -427,11 +427,6 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
                 this.components[args.name] = inc.component;
             }
 
-            //process ancestors
-            if(args.ancestors){
-                _processAncestors.call(inc.component,args);
-            }
-
             // handle content attribute of included component
             if(!args.content) continue;
 
@@ -471,7 +466,6 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         return this;
     }
 
-
     // typeof the content
     // 1. proxy
     // 2. value type
@@ -481,7 +475,6 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         content = toComponent(content,this);
         this.set(content);
     }
-
     
     ComponentBase.prototype.getComponent = function(name){
         if(!this.components) throw 'Components collection is empty';
@@ -1353,7 +1346,14 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
                 instance.__sjs_comp_nm = pArgs.name;
             }
             var __args = utils.mixin(pArgs.args,_args);
-            return type.call(instance,_parent,__args) || instance;
+            var _instance = type.call(instance,_parent,__args) || instance;
+            
+            //process ancestors
+            if(pArgs.ancestors){
+                _processAncestors.call(_instance,pArgs);
+            }
+            
+            return _instance;
         }
 
         prx.isProxy = true;
