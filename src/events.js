@@ -83,6 +83,10 @@ define(function(){
         callback.apply(instance, this._state);
     };
 
+    MulticastResetEvent.prototype.reset = function(){
+        this._resolved = false;
+    };
+
     MulticastResetEvent.prototype.raise = function(){
         this._state = arguments;
         this._resolved = true;

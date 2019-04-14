@@ -244,6 +244,10 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         _sharedFormatters[name] = formatter;
     };
 
+    function _shareFormatter(name, formatter){
+        _sharedFormatters[name] = formatter;
+    }
+
     ComponentBase.prototype.getParent = function(){
         return this.__sjs_parent;
     };
@@ -755,7 +759,10 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         this.node = instance.node;
     };
 
-    
+    ComponentBase.prototype.is = function(obj){
+        return (this instanceof obj);
+    }
+
     function _findParentInstance(source,parent){
         while(source){
             if(source == parent) return true;
@@ -1616,7 +1623,8 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
             visual: searchVisualTree,
             relational : searchRelationalTree
         },
-        logTo:function(lg){log = lg;}
+        logTo:function(lg){log = lg;},
+        shareFormatter:_shareFormatter
     }
 
 });

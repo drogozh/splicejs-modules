@@ -162,7 +162,7 @@ define([
             var d = foo(iterator.current,iterator.key);
             cmp.applyContent(d);
             onitem(cmp,d);
-            this.onItem(cmp);
+            this.onItem(cmp,d);
             i++;
         }
 
