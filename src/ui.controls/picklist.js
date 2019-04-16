@@ -108,5 +108,9 @@ define([
 		this.components.dropDown.enable(isEnabled);
 	};
 
+	PickList.prototype.focus = function(){
+		this.node.focus();
+	};
+
 	return factory.define('PickList:picklist.html', PickList);
 });

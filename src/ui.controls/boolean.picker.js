@@ -31,7 +31,11 @@ define([
 
     BooleanPicker.prototype.applyContent = function(content){
         this.getComponent('pickList').applyContent(content);
-    };
+	};
+	
+	BooleanPicker.prototype.focus = function(){
+		this.getComponent('pickList').focus();
+	};
 
     return BooleanPicker;
 });
