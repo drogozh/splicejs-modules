@@ -40,6 +40,11 @@ var _handlers = {
     '.js':_handlerWeb
 };
 
+function _getWindowOrigin(){
+    var path = window.location.pathname;
+    return window.origin + "" + path.substr(0,path.lastIndexOf('/'));
+}
+
 var _config = (function(){
     if(typeof(process) !== "undefined"){
         _handlers['.js'] = _handlerConsole;
@@ -58,7 +63,7 @@ var _config = (function(){
         }    
     } else {
         return {
-            origin:window.origin,
+            origin:_getWindowOrigin(),
             pathSeparator:'/',
             platform:'WEB'
         };
