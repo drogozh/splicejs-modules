@@ -380,7 +380,7 @@ function _processQueue(){
 function _loadDependencies(dep,callback){
     var ctx = _getContext();
     var paths = _resolvePaths(dep,ctx,{});
-    if(_modules[ctx.current] != null){
+    if(_modules[ctx.current] != null && _modules[ctx.current].dependencies == null){
         _modules[ctx.current].dependencies = paths; 
     }
     _queue.push({url:ctx.current, callback:callback, paths: paths});
@@ -401,8 +401,12 @@ function _define(dep,callback){
 }
 
 function _require(dep,callback){    
-    if(_modules[dep] != null){
+    if(_modules[dep] != null && callback == null){
         return _modules[dep].exports;
+    }
+    if(_modules[dep] != null && callback != null){
+        callback(_modules[dep].exports);
+        return;
     }
     _define(dep,callback|| function(){});
 }
