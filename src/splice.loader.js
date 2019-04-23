@@ -304,6 +304,7 @@ function _invokeModules(){
         } catch(e){
             if(_modules[last.url] != null && _modules[last.url] != ''){
                 _modules[last.url].status = MODULE_STATUS.FAILED;
+                _modules[last.url].exception = e;
             }
             throw e;
         } finally {
