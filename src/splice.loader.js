@@ -327,6 +327,9 @@ function _resolve(ctx,url){
         url = url.replace('preload|','');
     }
 
+    // substitute paths
+    url = _subst(url);
+
     // add default module extension
     if(url.indexOf('!') != 0){
         url = url + '.js';
@@ -339,7 +342,7 @@ function _resolve(ctx,url){
     }
     
     return _config.origin + _collapseUrl(
-        _join([ctx.context,_subst(url)]).split(_config.pathSeparator)
+        _join([ctx.context,url]).split(_config.pathSeparator)
     );
 }
 
