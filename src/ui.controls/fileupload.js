@@ -26,6 +26,10 @@ define([
     FileUpload.prototype.onLoaded = function(){
     };
 
+    FileUpload.prototype.setAction = function(action){
+        this.action = action;
+    };
+
     FileUpload.prototype.append = function(name, value){
         this._extraFormData[name] = value;
     };
