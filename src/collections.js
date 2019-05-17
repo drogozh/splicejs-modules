@@ -114,7 +114,7 @@ define(function(){
 
     FilterIterator.prototype.next = function(){
         while(this._iterator.next()) {
-            if(this._filter(this._iterator.current)){
+            if(this._filter(this._iterator.current,this._iterator._i)){
                 this.current = this._iterator.current;  
                 this.key = this._iterator.key;
                 this._i++;      
