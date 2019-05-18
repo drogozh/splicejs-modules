@@ -94,19 +94,22 @@ define([
         this.dataIn(content);
     };
 
-    DomIterator.prototype.update = function(item){
+    DomIterator.prototype.update = function(item,compare){
+        if(compare == null){
+            compare = function(a,b){return a == b;}
+        }
         var iterator = this._data.iterator();
         while(iterator.next()){
-            if(iterator.current == item){
-                break;
+            if(compare(iterator.current,item)){
+                var cmp = this.itemBuffer[iterator.key];
+                // item to update is not found
+                if(cmp == null) {
+                    return;
+                }
+                cmp.applyContent(item);                       
+                return;
             }
         }
-        var cmp = this.itemBuffer[iterator.key];
-        // item to update is not found
-        if(cmp == null) {
-            return;
-        }
-        cmp.applyContent(iterator.current);
     };
 
     DomIterator.prototype.clear = function(){

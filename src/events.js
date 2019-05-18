@@ -19,6 +19,9 @@ define(function(){
         return _raise.apply(this._listeners, arguments);
     };
 
+    UnicastEvent.prototype.getSubscriberCount = function(){
+        return this._listeners.length;
+    };
     
     /**
      * Multicast Event    
