@@ -411,6 +411,7 @@ define(function(){
     }
 
     function _collection(data){
+        if(data == null) return null;
         return new Collection(data);
     }
 

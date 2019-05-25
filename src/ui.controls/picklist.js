@@ -40,21 +40,21 @@ define([
 			}
 			_this.listBox.onItemSelected.subscribe(function(item){
 				_this.components.dropDown.applyContent(item);
-				_this.onItemSelected(item);
-				
-				if(_this._selectedItem instanceof dataApi.DataItem) {
-					_this._selectedItem.setValue(item);
-				} else {
-					_this._selectedItem = item;
+				try {
+					_this.setSelectedItem(item);
+				} finally {
+					_this.components.dropDown.close();
 				}
-				_this.components.dropDown.close();
 			});
 			item.getDisplayParent().reflow();
 		});
 	};
 
 	PickList.prototype.applyContent = function(content){
-		this.setSelectedItem(content);
+		if(content instanceof dataApi.DataItem){
+			this._boundData = content;
+		}
+		_applySelectedValue.call(this, _getValue(content));
 	};
 
 	/**
@@ -63,22 +63,31 @@ define([
 	 * @param {any} item 
 	 */
 	PickList.prototype.setSelectedItem = function(item){
+		var value = this._selectedItem = _getValue(item);
+		if(this._boundData != null){
+			this._boundData.setValue(value);
+		}
+		_applySelectedValue.call(this, value);
+		this.onItemSelected(item);
+	};
+
+	function _applySelectedValue(value){
+		if(value != null) { 		
+			this.components.dropDown.applyContent(value);
+		} else {
+			this.components.dropDown.applyContent(this.selectorDefaultValue);
+		}
+	}
+
+	function _getValue(item){
 		var value = null;
 		if(item instanceof dataApi.DataItem) {
 			value = item.getValue();
 		} else {
 			value = item;
 		}
-		
-		if(value != null) { 		
-			this.components.dropDown.applyContent(value);
-		} else {
-			this.components.dropDown.applyContent(this.selectorDefaultValue);
-		}
-
-		this._selectedItem = item;
-		this.onItemSelected(item);
-	};
+		return value;
+	}
 
 	PickList.prototype.clearSelectedItem = function(){
 		this.components.dropDown.clear();
