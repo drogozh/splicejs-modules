@@ -115,16 +115,34 @@ define([
         return versionItem;
     }
 
-
-
-
     DataItem.prototype.getOwner = function(){
       return _recGetSource(this);
     };
 
+    DataItem.prototype.stage = function(){
+      this._isStaged = true;
+      return this;
+    };
 
+    function _isStaged(){
+      var root = this;
+      while(root != null){
+        if(root._isStaged == true) return true;
+        root = root.parent;
+      }
+      return false;
+    }
 
+    DataItem.prototype.commit = function(){
+      _setValue.call(this._stagedValue);
+      return this.reset();
+    };
 
+    DataItem.prototype.reset = function(){
+      this._isStaged = false;
+      this._stagedValue = null;
+      return this;      
+    };
 
     /*
         setValue must not access arbitrary object keys
@@ -135,11 +153,6 @@ define([
         this enable observers to track specific changes separately
     */
       DataItem.prototype.setValue = function(value){
-        if(this._temp) {
-          this._tempValue = value;
-          return;
-        }
-
         /*
           set initial value, nothing to bubble
           this is a new value
@@ -149,41 +162,38 @@ define([
           //_triggerOnChange.call(this);
           _notifyDown(this,this);
           return this;
-        }//throw EXCEPTIONS.invalidSourceProperty + ' ' +this.source;
+        }
 
         //find data source
         var source = _recGetSource(this);
+        var isStaged = _isStaged.call(this);
+
+        var currentValue = source[this._path];
+        if(isStaged){
+          currentValue = this._stagedValue;
+        } 
 
         //same as current value
-        if(source[this._path] === value) return this;
+        if(currentValue === value) return this;
 
-        //old is only the original value
-        if(!this._updated){
-            this.old = source[this._path];
-            //do not log repreated change
-            _bubbleChange(this,0,1,0);
+        if(isStaged){
+          this._stagedValue = value;
+          return;
         }
-
-        // set value
-        source[this._path] = value;
-
-        //pass the change down the tree
-        _notifyDown(this,this);
-
-        if(source[this._path] == this.old){
-            _bubbleChange(this,0,-1,0);
-        }
-
-        /*
-            indicates the version number
-            helps observers stay on track
-        */
-        _bubbleChangeCount(this);
-        _triggerOnChange.call(this);
-        return this;
+        return _setValue.call(this,value);
     };
 
-    
+    function _setValue(value){
+      var source = _recGetSource(this);
+      var currentValue = source[this._path];
+      //same as current value
+      if(currentValue === value) return this;
+
+      // set value
+      source[this._path] = value;
+      _triggerOnChange.call(this);
+      return this;
+    }
 
   	/**
   		returns child DataItem
@@ -434,6 +444,7 @@ define([
           else {
             child = new DataItem();
             child._temp = isTemp;
+            child._isStaged = parent._isStaged;
           }
 
           child._path = parts[i];
