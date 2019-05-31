@@ -134,13 +134,26 @@ define([
     }
 
     DataItem.prototype.commit = function(){
-      _setValue.call(this._stagedValue);
+     _commit(this);
       return this.reset();
     };
 
+    function _commit(dataItem){
+      if(dataItem == null) return;
+      if(dataItem._stagedValue !== undefined){
+        _setValue.call(dataItem, dataItem._stagedValue);
+      }
+      if(dataItem.pathmap == null) return;
+      var keys = Object.keys(dataItem.pathmap);
+      for(var i in keys){
+        var key = keys[i];
+        _commit(dataItem.pathmap[key]);
+      }
+    }
+
     DataItem.prototype.reset = function(){
       this._isStaged = false;
-      this._stagedValue = null;
+      this._stagedValue = undefined;
       return this;      
     };
 
@@ -181,6 +194,13 @@ define([
           return;
         }
         return _setValue.call(this,value);
+    };
+
+    DataItem.prototype.getStagedValue = function(){
+      if(_isStaged.call(this)){
+        return this._stagedValue;
+      }
+      return undefined;
     };
 
     function _setValue(value){
