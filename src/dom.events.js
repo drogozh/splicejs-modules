@@ -4,7 +4,7 @@ define([
 ],function(events, inheritance){
 
     var OnClick = inheritance.Class(function OnClick(){
-        events.UnicastEvent.call(this);
+        events.UnicastEvent.call(this,this);
     }).extend(events.UnicastEvent);
 
     OnClick.prototype.attach = function(node){

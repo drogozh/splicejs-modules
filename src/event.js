@@ -202,7 +202,6 @@ function(inheritance,sync,util){
       this.sub.callback.apply(this.sub.instance,arguments);
     }
 
-
     function _attach(instance,events){
         if(events instanceof BaseEvent){
             var e = events.attach(instance, null);
@@ -227,7 +226,6 @@ function(inheritance,sync,util){
         }
         return instance;
     }
-
 
     function _clear(instance, events) {
         if(events instanceof BaseEvent) {

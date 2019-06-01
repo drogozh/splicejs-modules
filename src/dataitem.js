@@ -172,8 +172,6 @@ define([
         */
         if(this.parent == null) {
           this.source = value;
-          //_triggerOnChange.call(this);
-          _notifyDown(this,this);
           return this;
         }
 
@@ -211,6 +209,7 @@ define([
 
       // set value
       source[this._path] = value;
+      this._change++;
       _triggerOnChange.call(this);
       return this;
     }
@@ -265,12 +264,23 @@ define([
 
     //traverse path map and output changes
     DataItem.prototype.changePath = function(onItem){
-        var list = [];
-        _pathWalker(this,list,'');
-       for(var i in list){
-           onItem(list[i]);
-       }
+        //_pathWalker(this,list,'');
+        var list = []; 
+        _visitPaths(this,list,'');
+        for(var i in list){
+          onItem(list[i]);
+        }
     };
+
+    function _visitPaths(root,list,branch){
+      if(root._change > 0) {
+        list.push(branch);
+      };
+      var sep = branch ? '.' : '';
+      for(var key in root.pathmap){
+        _visitPaths(root.pathmap[key],list,branch + sep + key);
+      }
+    }
 
     /*
       !!! There is not delegation ons subscribe
@@ -404,25 +414,6 @@ define([
       for(var key in dataItem.eventmap){
         _notifyDown(dataItem.eventmap[key],source);
       }
-    };
-
-    function _pathWalker(root,list,start){
-        if(!root) {
-           if(start) list.push(start);
-           return;
-        }
-
-        if(Object.keys(root.pathmap).length == 0) list.push(start);
-        var sep = start?'.':'';
-
-        for(var key in root.pathmap){
-            var item = root.pathmap[key];
-            if( !item._c_updated && !item._c_new && !item._c_deleted &&
-                !item._updated && !item._deleted && !item._new ) continue;
-            start = start+sep+ key;
-            _pathWalker(root.pathmap[key],list,start);
-            start = '';
-        }
     };
 
 

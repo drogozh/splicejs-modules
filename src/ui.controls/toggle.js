@@ -17,7 +17,7 @@ define([
 
     var Toggle = inheritance.Class(function Toggle(args){
         this._state = false;
-        this.onChange = new events.UnicastEvent();
+        this.onChange = new events.UnicastEvent(this);
     }).extend(component.ComponentBase);
 
     Toggle.Component = factory.define('Toggle:toggle.html',Toggle);

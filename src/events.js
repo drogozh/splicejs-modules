@@ -2,13 +2,18 @@ define(function(){
     /**
      * Unicast Event
      */
-    function UnicastEvent(){
+    function UnicastEvent(owner){
         this._listeners = [];
         this.__sjs_event__ = true;
+        if(owner == null){
+            throw "UnicastEvent constructor requires owner argument";
+        }
+        this.owner = owner;
     }
 
     UnicastEvent.prototype.subscribe = function(callback,instance){
         this._listeners[0] = {callback:callback, instance:instance};
+        return this.owner;
     };
 
     UnicastEvent.prototype.dispose = function(){
@@ -16,7 +21,23 @@ define(function(){
     };
 
     UnicastEvent.prototype.raise = function(){
+        if(this._listeners.length < 1 && this._emptyCallback != null){
+            _raise.apply([{callback:this._emptyCallback,instance:undefined}],arguments);
+            this._emptyCallback = null;
+            return;
+        }
+
+        this._emptyCallback = null;
         return _raise.apply(this._listeners, arguments);
+    };
+    
+    UnicastEvent.prototype.any = function(){
+        return this._listeners.length > 0;
+    };   
+
+    UnicastEvent.prototype.empty = function(callback){
+        this._emptyCallback = callback;
+        return this;
     };
 
     UnicastEvent.prototype.getSubscriberCount = function(){
@@ -146,10 +167,25 @@ define(function(){
             sub.callback.apply(sub.instance,arguments);
         }
     }
+    
+    /**
+     * Utility method to attached multiple events
+     * @param {} instance 
+     * @param {*} events 
+     */
+    function _attach(instance,events){
+        var keys = Object.keys(events);
+        for(var key in  keys){
+            var evt = events[keys[key]];
+            instance[keys[key]] = new evt(instance);
+        }
+        return instance;
+    }
 
     return {
         MulticastEvent: MulticastEvent,
         MulticastResetEvent: MulticastResetEvent,
-        UnicastEvent: UnicastEvent
+        UnicastEvent: UnicastEvent,
+        attach: _attach
     }
 });
