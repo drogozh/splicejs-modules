@@ -394,6 +394,7 @@ define([
       }
       var source = _recGetSource(dataItem.parent,1);
       if(i == null) return source;
+      if(source == null) return null;
       return source[dataItem._path];
     };
 
