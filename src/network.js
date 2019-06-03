@@ -27,9 +27,10 @@ define([
         this.transport =  new XMLHttpRequest();
 
         // setup onload handler
-        this.transport.onload = (function(){
+        this.transport.onreadystatechange = (function(e){
+            if(this.transport.readyState != 4) return; 
             if(this._requestTimeOut && this._requestTimeOut.isTimeOut) return;
-            _handleStateChange.call(this,this._observer,function(r){
+            _handleStateChange.call(this,this._observer,(function(r){
                 var contentType = this.transport.getResponseHeader('content-type');
                 
                 // empty response
@@ -40,8 +41,11 @@ define([
                 if(contentType.indexOf('application/json') > -1) {
                     return JSON.parse(r.text);
                 }
+                if(contentType.indexOf('application/text') > -1) {
+                    return r.text;
+                }
                 return r;
-            });
+            }).bind(this));
         }).bind(this);
             
         

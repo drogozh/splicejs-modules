@@ -149,6 +149,7 @@ define([
         var key = keys[i];
         _commit(dataItem.pathmap[key]);
       }
+      return this;
     }
 
     DataItem.prototype.reset = function(){
