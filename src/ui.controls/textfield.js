@@ -35,6 +35,9 @@ define([
         this.placeholder = args.placeholder;
         this.enabled = args.enabled;
         this._format = args.format;
+        if(args.filter != null && typeof(args.filter) == 'string'){
+            this._filter = new RegExp(args.filter);
+        }
     }
 
     TextField.prototype.onLoaded = function(args){
@@ -50,9 +53,9 @@ define([
                 onclick : dom.DomMulticastStopEvent
             });
         }
-
-        changeEvents.onkeyup.subscribe(_textFieldOnKey, this);
         
+        this.elements.root.node.setAttribute('spellcheck','false');
+
         if(this.isEmail === true) {
             this.elements.root.node.setAttribute('type','email');
             this.elements.root.node.setAttribute('autocorrect','off');
@@ -72,6 +75,8 @@ define([
         }
 
         this._format = this.getFormatter(this._format);
+
+        _attachHandlers.call(this);
     };
 
     TextField.prototype.applyContent = function(content){
@@ -123,6 +128,77 @@ define([
         }
     };
 
+    function _attachHandlers(){
+        this._value = '';
+        var _this = this;
+        var node = this.elements.root.node;
+
+        node.oninput = function(e){
+            if(!e) e = window.event;
+        
+            console.log("input", e);
+            console.log("value", this.value);
+            this.value = _this._value;
+            return false;
+        };
+
+        node.onfocus = function(){
+            if(_this._format == null) return;
+            this.setSelectionRange(this.value.length);
+        };
+
+        node.onkeydown = function(e){
+            if(!e) e = window.event;
+            console.log("key",e);
+            if(e.ctrlKey == true) return true;
+            if(_isControlCharacter(e.key)) return true;
+
+            var candidate = _getCandidateValue.call(_this, _forKey.call(node, _this._value,e.key));
+            if(_this._value == candidate.value) return false;            
+            _valueChanged.call(_this,candidate);
+            return false;
+        };
+    }
+
+    function _getCandidateValue(temp){
+        if(temp.value == '') return temp;
+        if(this._filter != null){
+            if(this._filter.test(temp.value)){
+                return temp;
+            }
+            return {value:this._value}; 
+        }
+        return temp;
+    }
+
+    function _forKey(value, key){
+        var _pre = value.substring(0,this.selectionStart);
+        var _post = value.substr(this.selectionEnd);
+        
+        var _key = key.toLowerCase();
+        switch(_key){
+            case 'backspace':
+                _pre = _pre.substr(0,_pre.length-1);
+            break;
+            case 'delete':
+                _post = _post.substring(1);
+            break;
+            default:
+            _pre = _pre + key;
+            break;
+        }
+
+        var result = _pre + _post;
+        console.log(result);
+        return {value:result,position:_pre.length};
+    }
+
+    function _valueChanged(candidate){
+        this._value = candidate.value;
+        this.elements.root.node.value = this._value;
+        this.elements.root.node.setSelectionRange(candidate.position,candidate.position);
+    }
+
     function _applyFormat(value){
         if(typeof(this._format) == 'function' ){
             return this._format(value);
@@ -143,11 +219,12 @@ define([
         if(args.domEvent.keyCode == 13) {
             this.onEnterKey(newValue);
         }
-    };
+    }
 
     function _isControlCharacter(key){
-        switch(key.toLower()){
-            case 'backspace':
+        switch(key.toLowerCase()){
+            case 'enter':
+            case 'control':
             case 'escape':
             case 'esc':
             case 'right':
