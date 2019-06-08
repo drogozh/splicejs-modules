@@ -89,7 +89,7 @@ define([
         }
 
         this._data = content;
-        var value = this._data.getValue();
+        var value = this._value = this._data.getStringValue();
 
         var formattedValue = _applyFormat.call(this,value);
 
@@ -151,7 +151,14 @@ define([
             if(!e) e = window.event;
             console.log("key",e);
             if(e.ctrlKey == true) return true;
-            if(_isControlCharacter(e.key)) return true;
+            var isControlKey = _isControlKey(e.key);
+            
+            if(isControlKey == 'enter') {
+                _this.onEnterKey(_this._value);
+                return true;
+            }
+
+            if(isControlKey) return true;
 
             var candidate = _getCandidateValue.call(_this, _forKey.call(node, _this._value,e.key));
             if(_this._value == candidate.value) return false;            
@@ -221,8 +228,9 @@ define([
         }
     }
 
-    function _isControlCharacter(key){
-        switch(key.toLowerCase()){
+    function _isControlKey(key){
+        var _key = key.toLowerCase();
+        switch(_key){
             case 'enter':
             case 'control':
             case 'escape':
@@ -236,7 +244,8 @@ define([
             case 'up':
             case 'arrowdown':
             case 'down':
-            return true;
+            case 'tab':
+            return _key;
         }
         return false;
     }

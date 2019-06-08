@@ -54,6 +54,12 @@ define([
       return !s ? undefined : s[this._path];
     };
 
+    DataItem.prototype.getStringValue = function(){
+      var value = this.getValue();
+      if(value == null) return '';
+      return value.toString();
+    };
+
     DataItem.prototype.get = function(){
          var value = {};
          _getVersionSource(this,function(di){
