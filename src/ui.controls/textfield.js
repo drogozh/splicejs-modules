@@ -103,6 +103,7 @@ define([
 
     TextField.prototype.clear = function(){
         this.getElement('root').node.value = '';
+        this._value = '';
         this._data = new DataItem();
     };
 
@@ -144,7 +145,8 @@ define([
 
         node.onfocus = function(){
             if(_this._format == null) return;
-            this.setSelectionRange(this.value.length);
+            this.setSelectionRange(this.value.length,this.value.length);
+            return false;
         };
 
         node.onkeydown = function(e){
@@ -205,8 +207,16 @@ define([
         if(this._data != null) {
             this._data.setValue(this._value);
         }
-        this.elements.root.node.value = this._value;
-        this.elements.root.node.setSelectionRange(candidate.position,candidate.position);
+
+        if(this._format != null) {
+            this.elements.root.node.value = this._format(this._value);
+            this.elements.root.node.setSelectionRange(
+                this.elements.root.node.value.length,
+                this.elements.root.node.value.length);
+        } else {
+            this.elements.root.node.value = this._value;
+            this.elements.root.node.setSelectionRange(candidate.position,candidate.position);
+        }
     }
 
     function _applyFormat(value){
@@ -234,6 +244,7 @@ define([
     function _isControlKey(key){
         var _key = key.toLowerCase();
         switch(_key){
+            case 'shift':
             case 'enter':
             case 'control':
             case 'escape':
