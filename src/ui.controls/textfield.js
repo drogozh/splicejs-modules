@@ -136,28 +136,35 @@ define([
 
         node.oninput = function(e){
             if(!e) e = window.event;
-        
-            console.log("input", e);
-            console.log("value", this.value);
             this.value = _this._value;
             return false;
         };
 
-        node.onfocus = function(){
-            if(_this._format == null) return;
+        node.onmousedown = function(){
+            if(_this._format == null) return true;
+            this.focus();
+            return false;
+        };
+
+        node.onfocus = function(e){
+            if(_this._format == null) return true;
             this.setSelectionRange(this.value.length,this.value.length);
             return false;
         };
 
         node.onkeydown = function(e){
             if(!e) e = window.event;
-            console.log("key",e);
             if(e.ctrlKey == true) return true;
             var isControlKey = _isControlKey(e.key);
             
             if(isControlKey == 'enter') {
                 _this.onEnterKey(_this._value);
                 return true;
+            }
+
+            // ignore arrow keys if formatter is set
+            if((isControlKey == 'left' || isControlKey == 'right') && _this._format != null){
+                return false;
             }
 
             if(isControlKey) return true;
@@ -198,7 +205,6 @@ define([
         }
 
         var result = _pre + _post;
-        console.log(result);
         return {value:result,position:_pre.length};
     }
 
@@ -244,20 +250,23 @@ define([
     function _isControlKey(key){
         var _key = key.toLowerCase();
         switch(_key){
+            case 'right':
+            case 'arrowright':
+                return 'right';
+            case 'left':
+            case 'arrowleft':
+                return 'left';
+            case 'arrowup':
+            case 'up':
+                return 'up';
+            case 'arrowdown':
+            case 'down':
+                return 'down';
             case 'shift':
             case 'enter':
             case 'control':
             case 'escape':
             case 'esc':
-            case 'right':
-            case 'arrowright':
-            case 'left':
-            case 'arrowleft':
-            case 'left':
-            case 'arrowup':
-            case 'up':
-            case 'arrowdown':
-            case 'down':
             case 'tab':
             return _key;
         }
