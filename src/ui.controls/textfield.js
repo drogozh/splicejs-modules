@@ -202,6 +202,9 @@ define([
 
     function _valueChanged(candidate){
         this._value = candidate.value;
+        if(this._data != null) {
+            this._data.setValue(this._value);
+        }
         this.elements.root.node.value = this._value;
         this.elements.root.node.setSelectionRange(candidate.position,candidate.position);
     }

@@ -196,7 +196,7 @@ define([
 
         if(isStaged){
           this._stagedValue = value;
-          return;
+          return this;
         }
         return _setValue.call(this,value);
     };

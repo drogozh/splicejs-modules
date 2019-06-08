@@ -22,8 +22,13 @@ define([
 
     Toggle.Component = factory.define('Toggle:toggle.html',Toggle);
 
+    Toggle.prototype.onInit = function(args){
+        this._state = typeof(args.state) == 'boolean' ? args.state : false;
+    };
+
     Toggle.prototype.onLoaded = function(){
         this.getElement('thumb').node.onclick = _toggle.bind(this);
+        this.applyContent(this._state);
     };
 
     Toggle.prototype.applyContent = function(content){
@@ -42,11 +47,15 @@ define([
 
     function _toggle(){
         this._state = !this._state;
+        _render.call(this);
+    }
+
+    function _render(){
         _decorate.call(this);
         this.onChange.raise(this._state);
         if(this._data!= null){
             this._data.setValue(this._state);
-        }
+        }       
     }
 
     function _decorate(){
