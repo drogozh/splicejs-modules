@@ -203,9 +203,12 @@ define([
 
     DataItem.prototype.getStagedValue = function(){
       if(_isStaged.call(this)){
+        if(this._stagedValue == undefined){
+          return this.getValue();
+        }
         return this._stagedValue;
       }
-      return undefined;
+      return this.getValue();
     };
 
     function _setValue(value){

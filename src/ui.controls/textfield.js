@@ -2,7 +2,7 @@ define([
     'require',
     '../inheritance',
     '../component',
-    '../event',
+    '../events',
     '../view',
     '../dataitem',
     'themeprovider',
@@ -10,7 +10,7 @@ define([
     'preload|../loader.template',
     '!textfield.css',
     '!textfield.html'
-],function(require,inheritance,component,event,dom,data,styleProvider){
+],function(require,inheritance,component,events,dom,data,styleProvider){
     "use strict"
     var scope = {};
 
@@ -19,9 +19,10 @@ define([
     var DataItem = data.DataItem;
 
     var TextField = inheritance.Class(function TextField(args){
-        event.attach(this,{
-            onDataOut:event.MulticastEvent,
-            onEnterKey:event.UnicastEvent
+        events.attach(this,{
+            onDataOut:events.MulticastEvent,
+            onChange:events.UnicastEvent,
+            onEnterKey:events.UnicastEvent
         });
     }).extend(component.ComponentBase);
 
@@ -41,19 +42,6 @@ define([
     }
 
     TextField.prototype.onLoaded = function(args){
-
-        var changeEvents = event.attach(this.getElement('root'), {
-            onkeyup		: dom.DomMulticastStopEvent,
-            onchange 	: dom.DomMulticastStopEvent
-        });
-
-        if(this.trapMouseInput === true){
-            event.attach(this.getElement('root'), {
-                onmousedown : dom.DomMulticastStopEvent,
-                onclick : dom.DomMulticastStopEvent
-            });
-        }
-        
         this.elements.root.node.setAttribute('spellcheck','false');
 
         if(this.isEmail === true) {
@@ -79,32 +67,48 @@ define([
         _attachHandlers.call(this);
     };
 
+    TextField.prototype.getContent = function(){
+        return this._data;
+    };
+
+    TextField.prototype.getValue = function(){
+        if(this._data instanceof DataItem){
+            return this._data.getStagedValue();
+        }
+        return this._data;
+    };
+
     TextField.prototype.applyContent = function(content){
+        if(content == undefined) return;
         if(content == null){
             this.clear();
+            return;
         }
 
-        if(!(content instanceof DataItem)){
-           content = new DataItem(content);
+        if(typeof(content) != 'string' && !(content instanceof DataItem)){
+            throw 'Invalid content, expecting string or DataItem';
         }
 
         this._data = content;
-        var value = this._value = this._data.getStringValue();
 
-        var formattedValue = _applyFormat.call(this,value);
+        if(this._data instanceof DataItem){
+            var v = this._data.getStagedValue();
+            if(v == null || v == 0) v = '';
+            this._value = v.toString();
+        } else {
+            this._value = this._data;
+        }
+
+        var formattedValue = _applyFormat.call(this, this._value);
 
         this.elements.root.htmlElement.value = formattedValue;
         this.elements.root.attr({value:formattedValue});
     };
 
-    TextField.prototype.getValue = function(){
-        return this.elements.root.node.value;
-    };
-
     TextField.prototype.clear = function(){
         this.getElement('root').node.value = '';
         this._value = '';
-        this._data = new DataItem();
+        this._data = null;
     };
 
     TextField.prototype.focus = function(){
@@ -136,7 +140,9 @@ define([
 
         node.oninput = function(e){
             if(!e) e = window.event;
-            this.value = _this._value;
+            var candidate = _getCandidateValue.call(_this, {value:this.value, position:this.selectionStart});
+            if(_this._value == candidate.value) return false;            
+            _valueChanged.call(_this,candidate);
             return false;
         };
 
@@ -158,7 +164,7 @@ define([
             var isControlKey = _isControlKey(e.key);
             
             if(isControlKey == 'enter') {
-                _this.onEnterKey(_this._value);
+                _this.onEnterKey.raise(_this._value);
                 return true;
             }
 
@@ -169,7 +175,7 @@ define([
 
             if(isControlKey) return true;
 
-            var candidate = _getCandidateValue.call(_this, _forKey.call(node, _this._value,e.key));
+            var candidate = _getCandidateValue.call(_this, _forKey.call(_this,this, _this._value,e.key));
             if(_this._value == candidate.value) return false;            
             _valueChanged.call(_this,candidate);
             return false;
@@ -187,9 +193,15 @@ define([
         return temp;
     }
 
-    function _forKey(value, key){
-        var _pre = value.substring(0,this.selectionStart);
-        var _post = value.substr(this.selectionEnd);
+    function _forKey(node, value, key){
+        var selectionStart = node.selectionStart;
+        var selectionEnd = node.selectionEnd;
+        if(this._format != null){
+            selectionStart = selectionEnd = this._value.length;
+        }
+
+        var _pre = value.substring(0,selectionStart);
+        var _post = value.substr(selectionEnd);
         
         var _key = key.toLowerCase();
         switch(_key){
@@ -210,8 +222,10 @@ define([
 
     function _valueChanged(candidate){
         this._value = candidate.value;
-        if(this._data != null) {
+        if(this._data instanceof DataItem) {
             this._data.setValue(this._value);
+        } else {
+            this._data = this._value;
         }
 
         if(this._format != null) {
@@ -223,6 +237,7 @@ define([
             this.elements.root.node.value = this._value;
             this.elements.root.node.setSelectionRange(candidate.position,candidate.position);
         }
+        this.onChange.raise(this._data);
     }
 
     function _applyFormat(value){
@@ -230,21 +245,6 @@ define([
             return this._format(value);
         } 
         return value;
-    }
-
-    function _textFieldOnKey(args){
-        var newValue = this.getElement('root').node.value;
-        if(this._data != null) {
-            this._data.setValue(newValue);
-        }
-
-        if(this.isRealtime) {
-            this.onDataOut(newValue);
-        }
-        // enter key
-        if(args.domEvent.keyCode == 13) {
-            this.onEnterKey(newValue);
-        }
     }
 
     function _isControlKey(key){
