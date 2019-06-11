@@ -265,9 +265,33 @@ define([
             case 'shift':
             case 'enter':
             case 'control':
+            case 'alt':
             case 'escape':
             case 'esc':
             case 'tab':
+            case 'capslock':
+            case 'insert':
+            case 'end':
+            case 'home':
+            case 'pageup':
+            case 'pagedown':
+            case 'numlock':
+            case 'pause':
+            case 'scrolllock':
+            case 'meta':
+            case 'contextmenu':
+            case 'f1':
+            case 'f2':
+            case 'f3':
+            case 'f4':
+            case 'f5':
+            case 'f6':
+            case 'f7':
+            case 'f8':
+            case 'f9':
+            case 'f10':
+            case 'f11':
+            case 'f12':
             return _key;
         }
         return false;
