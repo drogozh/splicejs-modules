@@ -292,6 +292,7 @@ define([
             case 'f10':
             case 'f11':
             case 'f12':
+            case 'dead':    
             return _key;
         }
         return false;
