@@ -170,21 +170,21 @@ define([
         } else 
         switch(this.transport.status){
             case 200:
+                var _result = transform.call(this,{
+                    text:this.transport.responseText,
+                    xml:this.transport.responseXML
+                });
                 if(typeof observer.ok === 'function'){
-                    observer.ok(transform.call(this,{
-                        text:this.transport.responseText,
-                        xml:this.transport.responseXML
-                    }));
+                    observer.ok(_result);
                 }
             break;
-            default:
-                if(typeof observer.onCode === 'function'){
-                    observer.onCode(this.transport.status, transform.call(this,{
-                        code:this.transport.status,
-                        text:this.transport.responseText
-                    }));
-                }
-            break;
+        }
+
+        if(typeof observer.onCode === 'function'){
+            observer.onCode(this.transport.status, transform.call(this,{
+                code:this.transport.status,
+                text:this.transport.responseText
+            }));
         }
 
         if(typeof observer.complete === 'function'){
