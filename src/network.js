@@ -31,23 +31,13 @@ define([
             if(this.transport.readyState != 4) return; 
             if(this._requestTimeOut && this._requestTimeOut.isTimeOut) return;
             _handleStateChange.call(this,this._observer,(function(r){
-                var contentType = this.transport.getResponseHeader('content-type');
-                
-                // empty response
-                if(contentType == null) {
-                    return null;
-                }
-
+                var contentType = this.transport.getResponseHeader('content-type') || '';                
                 if(contentType.indexOf('application/json') > -1) {
                     return JSON.parse(r.text);
                 }
-                if(contentType.indexOf('application/text') > -1) {
-                    return r.text;
-                }
-                return r;
+                return r.text;
             }).bind(this));
         }).bind(this);
-            
         
         this._url = request.url;
 

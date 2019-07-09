@@ -61,7 +61,7 @@ define([
         })({
             ok:function(response){
                 var node = document.createElement('span');
-                node.innerHTML = response.text;
+                node.innerHTML = response;
                 var collection = new TemplateCollection(node);
                 callback(collection.templates);
             }
