@@ -306,6 +306,7 @@ function _invokeModules(){
                 _modules[last.url].status = MODULE_STATUS.FAILED;
                 _modules[last.url].exception = e;
             }
+            console.error(e);
             throw e;
         } finally {
             _currentScript.pop();
