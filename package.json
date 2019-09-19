@@ -2,7 +2,8 @@
     "name": "splicejs.modules",
     "version": "1.0.0",
     "files": [
-        "src/*"
+        "src/*",
+        "lib/*"
     ],
     "devDependencies": {
         "sjs-loader": "file:../SpliceJS",

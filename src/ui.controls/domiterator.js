@@ -123,6 +123,7 @@ define([
     // argument must be a collection or an object
     DomIterator.prototype.dataIn = function dataIn(sourceData,onitem){
         var _this = this;
+
         if(typeof(onitem) != 'function'){
             onitem = function(){};
         }
@@ -142,6 +143,7 @@ define([
         }
         
         if(sourceData instanceof DataItem){
+            if(sourceData.getValue() === undefined) return;
             this._data = new Collection(sourceData.getValue());
         } 
         else if(sourceData instanceof Collection){
