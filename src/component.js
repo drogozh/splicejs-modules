@@ -252,6 +252,14 @@ function(inheritance,events,doc,data,utils,effects,Element,_binding,collections)
         return this.__sjs_parent;
     };
 
+    ComponentBase.prototype.getRootComponent = function(){
+        var parent = this;
+        while(parent.__sjs_parent != null){
+            parent = parent.__sjs_parent;
+        }
+        return parent;
+    };
+
     ComponentBase.prototype.getDisplayParent = function(){
         return this.__sjs_display_parent;
     };
