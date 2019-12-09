@@ -518,6 +518,17 @@ Element.prototype.clearClass = function(className){
     this.node.className = '';
 }
 
+Element.prototype.getParent = function(tagName){
+    var node = this.node;
+    while(node != null) {
+        if(node.nodeName.toLowerCase() == tagName.toLowerCase()){
+            return new Element(node);
+        }
+        node = node.parentNode;
+    }
+    return new Element(node);
+}
+
 Element.prototype.removeClass = function(className){
     var idx = this.classMap[className];
     if(idx == null) return this;
