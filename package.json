@@ -7,10 +7,9 @@
     ],
     "devDependencies": {
         "sjs-loader": "file:../SpliceJS",
-        "node-http-server": "file:../node-http-server",
-        "mocha": "latest"
+        "node-http-server": "file:../node-http-server"
     },
-    "scripts":{
-        "test":"mocha"
+    "scripts": {
+        "test": "mocha"
     }
 }
