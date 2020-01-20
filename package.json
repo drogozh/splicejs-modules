@@ -1,12 +1,12 @@
 {
-    "name": "splicejs.modules",
+    "name": "splicejs-modules",
     "version": "1.0.0",
     "files": [
         "src/*",
         "lib/*"
     ],
     "devDependencies": {
-        "sjs-loader": "file:../SpliceJS",
+        "splicejs-loader": "file:../splicejs-loader",
         "node-http-server": "file:../node-http-server"
     },
     "scripts": {
