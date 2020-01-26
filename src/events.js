@@ -1,81 +1,79 @@
 define(function(){
-    /**
-     * Unicast Event
-     */
-    function UnicastEvent(owner){
-        this._listeners = [];
-        this.__sjs_event__ = true;
-        if(owner == null){
-            throw "UnicastEvent constructor requires owner argument";
-        }
-        this.owner = owner;
+
+    var EVENT_TYPE = {
+        MULTICAST:'multicast',
+        UNICAST:'unicast'
+    };
+
+    function Subscription(callback){
+        this._callback = callback;
+        this._enabled = true;
     }
 
-    UnicastEvent.prototype.subscribe = function(callback,instance){
-        this._listeners[0] = {callback:callback, instance:instance};
-        return this.owner;
+    Subscription.prototype.enable = function enable(isEnabled){
+        this._enabled = isEnabled;
     };
 
-    UnicastEvent.prototype.dispose = function(){
-        this._listeners = [];
-    };
-
-    UnicastEvent.prototype.raise = function(){
-        if(this._listeners.length < 1 && this._emptyCallback != null){
-            _raise.apply([{callback:this._emptyCallback,instance:undefined}],arguments);
-            this._emptyCallback = null;
-            return;
-        }
-
-        this._emptyCallback = null;
-        return _raise.apply(this._listeners, arguments);
-    };
-    
-    UnicastEvent.prototype.any = function(){
-        return this._listeners.length > 0;
-    };   
-
-    UnicastEvent.prototype.empty = function(callback){
-        this._emptyCallback = callback;
-        return this;
-    };
-
-    UnicastEvent.prototype.getSubscriberCount = function(){
-        return this._listeners.length;
-    };
-    
     /**
      * Multicast Event    
      */
     function MulticastEvent(){
-        this._listeners = [];
-        this.__sjs_event__ = true;
+        return _createEvent(EVENT_TYPE.MULTICAST);
     }
 
-    MulticastEvent.prototype.subscribe = function(callback, instance){
-        this._listeners.push({callback:callback, instance:instance});
-    };
+    function UnicastEvent(){
+        return _createEvent(EVENT_TYPE.UNICAST);
+    }
 
-    MulticastEvent.prototype.dispose = function(listener, instance){
-        this._listeners = [];
-    };
+    function _createEvent(eventType){
+        var _closure = {subs:[]};
+        
+        var f = function MulticastEvent(){
+            _raiseEvent(f,_closure,arguments);
+        };
 
-    MulticastEvent.prototype.raise = function(){
-        _raise.apply(this._listeners, arguments);
-    };
+        f.__sjs_event__ = true;
+        f.__sjs_event_type__ = eventType;
 
-    MulticastEvent.prototype.single = function(listener){
-        // find listener
-        var sub = _getSubscription.call(this,listener);
+        f.subscribe = function(callback){
+            if(callback == f) throw 'Recursive event subscription';
+            return _subscribeToEvent(f,_closure,callback);
+        };
+        
+        f.unsubscribe = function(callback){
+            return _multicastUnsubscribe.call(f,_closure,callback);
+        };
 
-        if(sub == null) {
-            return new UnicastEvent();
+        f.dispose = function(){
+            return _multicastDispose(_closure);
+        };
+
+        f.subscribers = function(){
+            return _closure.subs.length;  
+        };
+        return f;
+    }
+
+    function _subscribeToEvent(event, closure, callback){
+        var subscription = new Subscription(callback);
+        if(event.__sjs_event_type__ == EVENT_TYPE.MULTICAST){
+            closure.subs.push(subscription);
+            return subscription;
         }
 
-        var _event = new UnicastEvent();
-        _event._listeners = [sub];
-        return _event;
-    };
+        if(event.__sjs_event_type__ == EVENT_TYPE.UNICAST){
+            closure.subs = [subscription];
+            return subscription;
+        }
+    }
+
+    function _raiseEvent(event,closure,arguments){
+        for(var i=0; i<closure.subs.length;i++){
+            var sub = closure.subs[i];
+            if(!sub._enabled) continue;
+            sub._callback.apply(sub,arguments);
+        }
+    }
 
     /**
      * MulticastStateEvent
@@ -84,6 +82,7 @@ define(function(){
      * Then-able action
      * Event is considered resolved after the very first raise() call
      */
+
     function MulticastResetEvent(action){
         this._listeners = [];
         this._state = null;
@@ -167,25 +166,10 @@ define(function(){
             sub.callback.apply(sub.instance,arguments);
         }
     }
-    
-    /**
-     * Utility method to attached multiple events
-     * @param {} instance 
-     * @param {*} events 
-     */
-    function _attach(instance,events){
-        var keys = Object.keys(events);
-        for(var key in  keys){
-            var evt = events[keys[key]];
-            instance[keys[key]] = new evt(instance);
-        }
-        return instance;
-    }
 
     return {
         MulticastEvent: MulticastEvent,
-        MulticastResetEvent: MulticastResetEvent,
         UnicastEvent: UnicastEvent,
-        attach: _attach
+        MulticastResetEvent: MulticastResetEvent
     }
 });

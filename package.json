@@ -7,7 +7,8 @@
     ],
     "devDependencies": {
         "splicejs-loader": "file:../splicejs-loader",
-        "node-http-server": "file:../node-http-server"
+        "node-http-server": "file:../node-http-server",
+        "mocha": "^7.0.0"
     },
     "scripts": {
         "test": "mocha"

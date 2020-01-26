@@ -1,16 +1,17 @@
-require('sjs-loader/src/splice.loader.js');
+require('splicejs-loader/src/splice.loader');
 
 var assert = require('assert');
 
 describe('Collection test bootstrap', function() {
-    it('Should initialize test framework', function() {
+    it('Ok', function() {
         assert.equal(1,1);
     });
 });
 
 define([
-    '../src/collections'
+    'src/collections'
 ],function(collections){
+    console.log(collections);
     var collection = collections.collection;
 
     describe('Sequential Collection', function() {
