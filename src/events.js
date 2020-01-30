@@ -37,11 +37,11 @@ define(function(){
 
         f.subscribe = function(callback){
             if(callback == f) throw 'Recursive event subscription';
-            return _subscribeToEvent(f,_closure,callback);
+            return _eventSubscribe(f,_closure,callback);
         };
         
         f.unsubscribe = function(callback){
-            return _multicastUnsubscribe.call(f,_closure,callback);
+            return _eventUnsubscribe(f,_closure,callback);
         };
 
         f.dispose = function(){
@@ -54,7 +54,7 @@ define(function(){
         return f;
     }
 
-    function _subscribeToEvent(event, closure, callback){
+    function _eventSubscribe(event, closure, callback){
         var subscription = new Subscription(callback);
         if(event.__sjs_event_type__ == EVENT_TYPE.MULTICAST){
             closure.subs.push(subscription);
@@ -65,6 +65,14 @@ define(function(){
             closure.subs = [subscription];
             return subscription;
         }
+    }
+
+    function _eventUnsubscribe(event,closure,subscription){
+        for(var i=0; i<closure.subs.length; i++){
+            if(closure.subs[i] == subscription){
+                closure.subs.splice(i,1);
+            }
+        }    
     }
 
     function _raiseEvent(event,closure,arguments){

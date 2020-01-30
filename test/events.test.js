@@ -53,6 +53,53 @@ define([
             }
         });
 
+        it('Disabled subscription must not invoke its callback', function(){
+            var event = new events.MulticastEvent();
+            var result= [];
+            var subscription = event.subscribe(function(value){
+                //do nothing
+                result.push(value);
+            });
+            subscription.enable(false);
+            event(1);
+            if(result.length > 0){
+                assert.fail();
+            }
+        });
+
+        it('Disabling and enabling subscription should have net-zero effect', function(){
+            var event = new events.MulticastEvent();
+            var result= [];
+            var subscription = event.subscribe(function(value){
+                //do nothing
+                result.push(value);
+            });
+            subscription.enable(false);
+            subscription.enable(true);
+            event(1);
+            if(result.length != 1 || result[0] != 1){
+                assert.fail();
+            }
+        });
+
+        it('It should unsubscribe only particular subscription from event', function(){
+            var event = new events.MulticastEvent();
+            var result = [];
+            var sub1 = event.subscribe(function(value){
+                result.push(2);
+            });
+            var sub2 = event.subscribe(function(value){
+                result.push(value);
+            });
+
+            event.unsubscribe(sub1);
+            event(1);
+            
+            if(result.length != 1) {
+                assert.fail();
+            }
+        });
+
         it('Event must not allow recursive subscription to itself, must throw exception', function(){
             var event = new events.MulticastEvent();
             try {
@@ -115,6 +162,20 @@ define([
             });
 
             if(subscription == null){
+                assert.fail();
+            }
+        });
+
+        it('It should unsubscribe from event', function(){
+            var event = new events.UnicastEvent();
+            var result = [];
+            var sub = event.subscribe(function(value){
+                result.push(value);
+            });
+            event.unsubscribe(sub);
+            event(1);
+            
+            if(result.length > 0) {
                 assert.fail();
             }
         });
