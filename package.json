@@ -4,6 +4,8 @@
     "files": [
         "src/*"
     ],
+    "main": "./src/splice.js",
+    "types":"./src/splice.d.ts",
     "devDependencies": {
         "node-http-server": "file:../node-http-server",
         "mocha": "latest"

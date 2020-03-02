@@ -148,7 +148,11 @@ function _collapseUrl(parts){
     for(var i=0; i<parts.length; i++){
         if(parts[i] == '..'){
             stack.pop();
-        } else {
+        } 
+        if(parts[i] == '.') {
+            continue;
+        }
+        else {
             stack.push(parts[i]);
         }
     }

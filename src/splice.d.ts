@@ -1,1 +1,1 @@
-declare var require:Function;
+export declare function require(impor:any);
