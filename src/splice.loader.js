@@ -148,13 +148,12 @@ function _collapseUrl(parts){
     for(var i=0; i<parts.length; i++){
         if(parts[i] == '..'){
             stack.pop();
+            continue;
         } 
         if(parts[i] == '.') {
             continue;
         }
-        else {
-            stack.push(parts[i]);
-        }
+        stack.push(parts[i]);
     }
     return _join(stack);
 }
@@ -261,6 +260,15 @@ function _traverseDependencies(item, paths, info){
         }
         var d = _modules[path];
         if(d == null) return null;
+
+        if(d.dependencies){
+            for(var x=0; x<d.dependencies.length; x++){
+                if(d.dependencies[x] == item.url) {
+                    throw 'SpliceJS Loader Exception: circular dependency. Module ' + path + ' depends on ' + item.url;
+                }
+            }
+        } 
+
         if(d.status == 'imported') {
             deps[keys[i]] = d.exports;
         } else if (d.status == 'loaded' && (d.dependencies == null || Object.keys(d.dependencies).length < 1)) {
@@ -381,6 +389,7 @@ function _processQueue(){
         _invokeModules();
         } catch (e){
             clearInterval(_queueStatus.interval);
+            throw e;
         }
         if(_queue.length == 0){
             clearInterval(_queueStatus.interval);
@@ -392,7 +401,7 @@ function _processQueue(){
 
 function _loadDependencies(dep,callback){
     var ctx = _getContext();
-    var paths = _resolvePaths(dep,ctx,{});
+    var paths = _resolvePaths(dep,ctx,[]);
     if(_modules[ctx.current] != null && _modules[ctx.current].dependencies == null){
         _modules[ctx.current].dependencies = paths; 
     }
