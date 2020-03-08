@@ -10,7 +10,7 @@ export interface Event<T = any> {
 }
 
 interface  EventConstructor<T=any> {
-    new() : Event<T>
+    new(hook?:(args?:T)=>void) : Event<T>
 }
 
 export var UnicastEvent :EventConstructor;
