@@ -271,9 +271,8 @@ function _traverseDependencies(item, paths, info){
 
         if(d.status == 'imported') {
             deps[keys[i]] = d.exports;
-        } else if (d.status == 'loaded' && (d.dependencies == null || Object.keys(d.dependencies).length < 1)) {
-            deps[keys[i]] = null;
-        } else {
+        } 
+        else {
             return null;
         }
     }
