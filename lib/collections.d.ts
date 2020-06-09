@@ -6,12 +6,14 @@ export class Grouping<TKey, TValue>{
 export interface ICollection<T> {    
     toArray(): Array<T>;
     where(filter:(item:T) => boolean): ICollection<T>;
+    first(filter:(item:T) => boolean): T;
     select<TResult>(selector:(item:T) => TResult): ICollection<TResult>;
     selectMany<TResult>(selector:(item:T) => TResult): ICollection<TResult>;
     groupBy<TKey>(func:(item:T) => TKey): ICollection<Grouping<TKey,T>>;
     min<TResult>(func?:(item:T) => TResult ):TResult | T;
-    max<TResult>(func?:(item:T) => TResult ):TResult | T;
+    max<TResult>(func?:(item:T) => TResult ):TResult | T;    
     forEach(func:(item:T, key:string) => void): void;
+    indexOf(func:(item:T) => boolean): number;
 }
 
 interface CollectionConstuctor {

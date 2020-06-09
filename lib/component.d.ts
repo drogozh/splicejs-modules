@@ -6,6 +6,7 @@ export class ComponentBase {
     getComponent<T>(name:string): T;
     applyContent(content:any): void;
     reflow(x?:number,y?:number,w?:number,h?:number,b?:boolean);
+    addFormatter(name:string, formatter:any);
 }
 
 export interface Component<T extends ComponentBase> {
