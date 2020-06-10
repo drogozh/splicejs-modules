@@ -1,4 +1,4 @@
-require('splicejs-loader/src/splice.loader');
+require('splicejs-loader/splice.loader');
 
 var assert = require('assert');
 
@@ -9,9 +9,8 @@ describe('Collection test bootstrap', function() {
 });
 
 define([
-    'src/collections'
+    '../lib/collections'
 ],function(collections){
-    console.log(collections);
     var collection = collections.collection;
 
     describe('Sequential Collection', function() {
