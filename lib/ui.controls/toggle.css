@@ -24,6 +24,7 @@
     top: 0;
     border-radius: 50%;
     cursor:pointer;
+    box-shadow: 0px 2px 2px 0px rgba(0,0,0,0.43);
 }
 
 .sjs-toggle.off 
@@ -35,7 +36,7 @@
 .sjs-toggle.on 
 .sjs-toggle-core {
     background-color: #7bde31;
-    border-color: #7bde30;
+    border-color: #5fab26;
 }
 
 .sjs-toggle.off 
