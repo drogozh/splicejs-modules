@@ -7,7 +7,7 @@ export interface ICollection<T> {
     toArray(): Array<T>;
     where(filter:(item:T) => boolean): ICollection<T>;
     first(filter:(item:T) => boolean): T;
-    select<TResult>(selector:(item:T) => TResult): ICollection<TResult>;
+    select<TResult>(selector:(item:T,key?:string) => TResult): ICollection<TResult>;
     selectMany<TResult>(selector:(item:T) => TResult): ICollection<TResult>;
     groupBy<TKey>(func:(item:T) => TKey): ICollection<Grouping<TKey,T>>;
     min<TResult>(func?:(item:T) => TResult ):TResult | T;

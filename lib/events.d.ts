@@ -13,6 +13,6 @@ interface  EventConstructor<T=any> {
     new(hook?:(args?:T)=>void) : Event<T>
 }
 
-export var UnicastEvent :EventConstructor;
+export var UnicastEvent : EventConstructor;
 export var MulticastEvent :EventConstructor;
 
