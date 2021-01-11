@@ -3,5 +3,7 @@ export class DataItem<T> {
     path<P>(key:string):DataItem<P>;
     getValue():T;
     setValue(value:T);
+    stage():DataItem<T>;
+    commit();
     reset();
 }
