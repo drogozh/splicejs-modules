@@ -2,8 +2,4 @@
 
 # SpliceJS.Modules
 
-## Running Unit-Tests
-
-npm install
-
-npm install mocha
+Various components and utilities
